@@ -807,17 +807,6 @@
                                     <action selector="selectFolderClicked:" target="XfG-lQ-9wD" id="biC-tb-kf6"/>
                                 </connections>
                             </button>
-                            <button horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="xBl-4b-TZr">
-                                <rect key="frame" x="596" y="617" width="96" height="32"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="push" title="Save Info" bezelStyle="rounded" alignment="center" enabled="NO" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="KaH-H6-cPP">
-                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                    <font key="font" metaFont="system"/>
-                                </buttonCell>
-                                <connections>
-                                    <action selector="saveInfoClicked:" target="XfG-lQ-9wD" id="aSh-v0-4Ux"/>
-                                </connections>
-                            </button>
                             <button horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ZJ0-uN-TjU">
                                 <rect key="frame" x="4" y="617" width="70" height="32"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -860,6 +849,17 @@
                                 </buttonCell>
                                 <connections>
                                     <action selector="toggleshowAllFiles:" target="XfG-lQ-9wD" id="nht-6O-lk0"/>
+                                </connections>
+                            </button>
+                            <button horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="xBl-4b-TZr">
+                                <rect key="frame" x="610" y="617" width="96" height="32"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <buttonCell key="cell" type="push" title="Save Info" bezelStyle="rounded" alignment="center" enabled="NO" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="KaH-H6-cPP">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="saveInfoClicked:" target="XfG-lQ-9wD" id="aSh-v0-4Ux"/>
                                 </connections>
                             </button>
                         </subviews>

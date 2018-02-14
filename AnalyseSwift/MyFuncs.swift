@@ -8,7 +8,7 @@
 //  ------ General Purpose Subroutines ------
 import Foundation
 
-//MARK: General Purpose
+//MARK: General Purpose 
 
 //---- Format Double "%#.#f" using fieldLen, places. fieldLen!=0 to right justify - Truncates ----
 public func formatDbl(number: Double, fieldLen: Int = 0, places: Int) -> String {

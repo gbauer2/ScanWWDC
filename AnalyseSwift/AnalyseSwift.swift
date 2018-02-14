@@ -8,7 +8,7 @@
 
 import Cocoa
 
-// MARK: - Properties for analyseSwiftFile
+// MARK: - Properties for analyseSwiftFile 
 var curlyDepth      = 0                     //accessed from gotOpenCurly, gotCloseCurly, getSelecFileInfo
 var blockOnDeck     = BlockInfo()           //accessed from gotOpenCurly,                analyseSwiftFile
 var blockStack      = [BlockInfo]()         //accessed from gotOpenCurly, gotCloseCurly, analyseSwiftFile

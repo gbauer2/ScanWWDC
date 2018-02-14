@@ -9,7 +9,7 @@
 
 import Foundation
 
-// String extensions:
+// String extensions: 
 // subscript(i), subscript(range), left(i), right(i), mid(i,len), rightJust(len),
 // indexOf(str), indexOfRev(str), trim(), contains(str), containsIgnoringCase(str), pluralize(n)
 extension String {

@@ -6,7 +6,7 @@
 // make ">" companion to "< Up"
 // when in full screen mode - Show file-path above window
 // remember state of "ShowAll" checkbox between runs
-// for folders:      show subDirs & Swift files(w/size)
+// for folders:     show subDirs & Swift files(w/size)
 // showContents: line numbers & truncation in swift file
 // Aggregate all swift file data in selected dir  "*.xcodeproj/project.pbxproj"
 // recursivly find all file of type .swift or .xcodeproj
