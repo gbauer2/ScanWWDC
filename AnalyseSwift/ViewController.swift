@@ -5,7 +5,7 @@
 
 // make ">" companion to "< Up"
 // when in full screen mode - Show file-path above window
-// remember state of "ShowAll" checkbox between runs
+// remember state of "ShowAll" checkbox between runs 
 // for folders:     show subDirs & Swift files(w/size)
 // showContents: line numbers & truncation in swift file
 // Aggregate all swift file data in selected dir  "*.xcodeproj/project.pbxproj"
@@ -242,20 +242,20 @@ extension ViewController {
     }
 
     func formatInfoText(_ text: String) -> NSAttributedString {
-        let paragraphStyle = NSMutableParagraphStyle.default().mutableCopy() as? NSMutableParagraphStyle
+        let paragraphStyle = NSMutableParagraphStyle.default.mutableCopy() as? NSMutableParagraphStyle
         paragraphStyle?.minimumLineHeight = 24
         paragraphStyle?.alignment = .left
         paragraphStyle?.tabStops = [ NSTextTab(type: .leftTabStopType, location: 240) ]
 
-        let textAttributes: [String: Any] = [
-            NSFontAttributeName: NSFont.systemFont(ofSize: 14),
-            NSParagraphStyleAttributeName: paragraphStyle ?? NSParagraphStyle.default()
+        let textAttributes: [NSAttributedStringKey: Any] = [
+            NSAttributedStringKey.font: NSFont.systemFont(ofSize: 14),
+            NSAttributedStringKey.paragraphStyle: paragraphStyle ?? NSParagraphStyle.default
         ]
 
         let formattedText = NSMutableAttributedString(string: text, attributes: textAttributes)
         var lengthLine1 = text.indexOf(searchforStr: "\n")
         if lengthLine1 < 0 { lengthLine1 = 0 }
-        formattedText.addAttribute(NSFontAttributeName,
+        formattedText.addAttribute(NSAttributedStringKey.font,
                                    value: NSFont.systemFont(ofSize: 20),
                                    range: NSRange(location: 0, length: lengthLine1))
         return formattedText
@@ -264,14 +264,14 @@ extension ViewController {
 
 // not used
 func formatContentsText(_ text: String) -> NSAttributedString {
-    let paragraphStyle = NSMutableParagraphStyle.default().mutableCopy() as? NSMutableParagraphStyle
+    let paragraphStyle = NSMutableParagraphStyle.default.mutableCopy() as? NSMutableParagraphStyle
     paragraphStyle?.minimumLineHeight = 24
     paragraphStyle?.alignment = .left
     paragraphStyle?.tabStops = [ NSTextTab(type: .leftTabStopType, location: 48),  NSTextTab(type: .leftTabStopType, location: 96) ]
 
-    let textAttributes: [String: Any] = [
-        NSFontAttributeName: NSFont.systemFont(ofSize: 14),
-        NSParagraphStyleAttributeName: paragraphStyle ?? NSParagraphStyle.default()
+    let textAttributes: [NSAttributedStringKey: Any] = [
+        NSAttributedStringKey.font: NSFont.systemFont(ofSize: 14),
+        NSAttributedStringKey.paragraphStyle: paragraphStyle ?? NSParagraphStyle.default
     ]
 
     let formattedText = NSAttributedString(string: text, attributes: textAttributes)
@@ -291,7 +291,7 @@ extension ViewController {
         panel.allowsMultipleSelection = false
 
         panel.beginSheetModal(for: window) { (result) in
-            if result == NSFileHandlingPanelOKButton {
+            if result.rawValue == NSFileHandlingPanelOKButton {
                 self.selectedFolderUrl = panel.urls[0]
                 //print(self.selectedFolderUrl)
             }
@@ -301,7 +301,7 @@ extension ViewController {
 
     // user clicked on ShowAllFiles button
     @IBAction func toggleshowAllFiles(_ sender: NSButton) {
-        showAllFiles = (sender.state == NSOnState)
+        showAllFiles = (sender.state == .on)
         if let selectedFolderUrl = selectedFolderUrl {
             filesList = myContentsOf(folder: selectedFolderUrl)
             //selectedItemUrl = nil
@@ -346,7 +346,7 @@ extension ViewController {
 
         // Show SavePanel & wait in a closure for user to finish
         panel.beginSheetModal(for: window) { (result) in
-            if result == NSFileHandlingPanelOKButton,
+            if result.rawValue == NSFileHandlingPanelOKButton,
                 let url = panel.url {
                 // get the file information and write it to the selected file.
                 do {
@@ -415,9 +415,9 @@ extension ViewController: NSTableViewDelegate {
                    viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
         let item = filesList[row]
 
-        let fileIcon = NSWorkspace.shared().icon(forFile: item.path)
+        let fileIcon = NSWorkspace.shared.icon(forFile: item.path)
 
-        if let cell = tableView.make(withIdentifier: "FileCell", owner: nil) as? NSTableCellView {
+        if let cell = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "FileCell"), owner: nil) as? NSTableCellView {
             cell.textField?.stringValue = item.lastPathComponent
             cell.imageView?.image = fileIcon
             return cell

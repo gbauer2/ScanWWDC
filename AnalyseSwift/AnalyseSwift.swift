@@ -63,12 +63,12 @@ private struct LineItem {
 private func showLineItems(name: String, items: [LineItem]) -> NSMutableAttributedString {
 
     let txt = "\n" + showCount(count: items.count, name: name, ifZero: "No") + ":\n"
-    let nsAttTxt = NSMutableAttributedString(string: txt, attributes: [NSFontAttributeName: NSFont.systemFont(ofSize: 18), NSParagraphStyleAttributeName: paragraphStyleA1])
+    let nsAttTxt = NSMutableAttributedString(string: txt, attributes: [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 18), NSAttributedStringKey.paragraphStyle: paragraphStyleA1])
     for item in items {
         var tx = "      \t@ line # \(item.lineNum)    \t\(item.name)"
         if !item.extra.isEmpty {tx += "  (\(item.extra) )"}
         tx += "\n"
-        let nsAttTx = NSAttributedString(string: tx, attributes: [NSFontAttributeName: NSFont.systemFont(ofSize: 14), NSParagraphStyleAttributeName: paragraphStyleA1])
+        let nsAttTx = NSAttributedString(string: tx, attributes: [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 14), NSAttributedStringKey.paragraphStyle: paragraphStyleA1])
         nsAttTxt.append(nsAttTx)
     }
     return nsAttTxt
@@ -89,12 +89,12 @@ private func showNamedBlock(name: String, blockType : BlockType, list: [BlockInf
     tabStop0 = NSTextTab(textAlignment: .left, location: 200)
     paragraphStyleA2.addTabStop(tabStop0)
     let txt = "\n" + showCount(count: items.count, name: name, ifZero: "No") + ":\n"
-    let nsAttTxt = NSMutableAttributedString(string: txt, attributes: [NSFontAttributeName: NSFont.systemFont(ofSize: 18), NSParagraphStyleAttributeName: paragraphStyleA1])
+    let nsAttTxt = NSMutableAttributedString(string: txt, attributes: [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 18), NSAttributedStringKey.paragraphStyle: paragraphStyleA1])
     for item in items {
         var tx = "\t\(formatInt(number: item.numLines, fieldLen: 5))\t lines @\t\(item.lineNum) \t\(item.name)"
         if !item.extra.isEmpty {tx += "  (\(item.extra) )"}
         tx += "\n"
-        let nsAttTx = NSAttributedString(string: tx, attributes: [NSFontAttributeName: NSFont.systemFont(ofSize: 14), NSParagraphStyleAttributeName: paragraphStyleA2])
+        let nsAttTx = NSAttributedString(string: tx, attributes: [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 14), NSAttributedStringKey.paragraphStyle: paragraphStyleA2])
         nsAttTxt.append(nsAttTx)
     }
     return nsAttTxt
@@ -227,17 +227,17 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
             nCodeLine += 1
             let codeLine: String
             //var codeType = BlockType.isNone
-            var pCommentF = aa.indexOf(searchforStr: "//")
-            var pCommentR = aa.indexOfRev(searchforStr: "//")
+            var pCommentF = aa.indexOf(searchforStr: "//")              // Leftmost "//"
+            var pCommentR = aa.indexOfRev(searchforStr: "//")           // Rightmost "//"
             var pQuoteF = aa.indexOf(searchforStr: "\"")
             var pQuoteR = aa.indexOfRev(searchforStr: "\"")
 
-            if pQuoteF >= 0 {
+            if pQuoteF >= 0 {                                           // we have a Quote
                 var inQuote = false
                 var isEscaped = false
                 for p in 0..<aa.count {
                     let char = aa.mid(begin: p, length: 1)
-                    if char == "\"" && !isEscaped { inQuote = !inQuote }
+                    if char == "\"" && !isEscaped { inQuote = !inQuote }    // if Quote not escaped,
                     if inQuote {
                         if p == pCommentF {
                             pCommentF = aa.indexOf(searchforStr: "//", startPoint: p+1)
@@ -251,7 +251,7 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
                 if pCommentR < 0 { pCommentR = pCommentF }
 
                 if pCommentF != pCommentR {
-                    print("🔶\(lineNum) Comment mismatch \(aa)")
+                    print("⚠️\(lineNum) Comment mismatch \(aa)")
                 }
 
             }//endif pQuoteF >= 0
@@ -294,7 +294,7 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
                 print("🔶\(lineNum) Odd number of Quotes - \(aa)")
             }
             if (pQuoteF == pQuoteR) && (pQuoteF >= 0) {
-                print("🔶\(lineNum) Single Quote \(aa)")
+                print("🔶\(lineNum) Unmatched Quote \(aa)")
             }
             if pOpenCurlyF >= 0 && (pOpenCurlyF != pOpenCurlyR) {
                 print("🔶\(lineNum) multiple open curlys \(aa)")
@@ -361,11 +361,13 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
                         blockTypes[index].count += 1
                     } else {                            //private, internal, fileprivate, public
                         index = BlockType.Func.rawValue                                         // Func
-                        containerName = "free function"
+                        containerName = ""
                         if blockStack.count > 0 {
-                            containerName = "inside \(blockStack.last!.name)"
+                            containerName = (blockStack.last!.name)
+                            blockOnDeck.name = "\(containerName).\(blockOnDeck.name)"
                         }
-                        print("🔶func \(blockOnDeck.name) \(containerName)")
+
+                        print("🔶func \(blockOnDeck.name)")
                         blockTypes[index].count += 1
                     }
                     foundNamedBlock = true
@@ -451,9 +453,9 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
         paragraphStyleA1.addTabStop(tabStop0)
     }
 
-    let attributesLargeFont  = [NSFontAttributeName: NSFont.systemFont(ofSize: 20), NSParagraphStyleAttributeName: paragraphStyleA1]
-    let attributesMediumFont = [NSFontAttributeName: NSFont.systemFont(ofSize: 16), NSParagraphStyleAttributeName: paragraphStyleA1]
-    let attributesSmallFont  = [NSFontAttributeName: NSFont.systemFont(ofSize: 12), NSParagraphStyleAttributeName: paragraphStyleA1]
+    let attributesLargeFont  = [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 20), NSAttributedStringKey.paragraphStyle: paragraphStyleA1]
+    let attributesMediumFont = [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 16), NSAttributedStringKey.paragraphStyle: paragraphStyleA1]
+    let attributesSmallFont  = [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 12), NSAttributedStringKey.paragraphStyle: paragraphStyleA1]
 
     tx  = NSMutableAttributedString(string: "\t1\t2\t3\t4\t5\n", attributes: attributesSmallFont)
     txt.append(tx)

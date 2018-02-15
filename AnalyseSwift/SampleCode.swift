@@ -18,38 +18,38 @@ private func testNSString() {
 
     //: Initialize the Mutable Attributed String
     let myMuAttString = NSMutableAttributedString( string: myString,
-                                                   attributes: [NSFontAttributeName: NSFont(name: "Georgia", size: 18.0)!])
+                                                   attributes: [NSAttributedStringKey.font: NSFont(name: "Georgia", size: 18.0)!])
 
     //: Add more attributes here: Make the first Pizza in chalkduster 24 point
-    myMuAttString.addAttribute(NSFontAttributeName,
+    myMuAttString.addAttribute(NSAttributedStringKey.font,
                                value: NSFont(name: "Chalkduster",  size: 24.0)!,
                                range: NSRange(location: 9, length: 5))
 
     //: Make a big blue P
-    myMuAttString.addAttribute(NSFontAttributeName,
+    myMuAttString.addAttribute(NSAttributedStringKey.font,
                                value: NSFont(name: "AmericanTypewriter-Bold", size: 36.0)!,
                                range: NSRange(location:0, length:1))
-    myMuAttString.addAttribute(NSForegroundColorAttributeName,
+    myMuAttString.addAttribute(NSAttributedStringKey.foregroundColor,
                                value: NSColor.blue,
                                range: NSRange(location:0, length:1))
 
     //: Make the second pizza red and outlined in Helvetica Neue
-    myMuAttString.addAttribute(NSFontAttributeName,
+    myMuAttString.addAttribute(NSAttributedStringKey.font,
                                value: NSFont(name: "Helvetica Neue", size: 36.0)!,
                                range: NSRange(location: 19, length: 5))
 
-    myMuAttString.addAttribute(NSStrokeColorAttributeName,
+    myMuAttString.addAttribute(NSAttributedStringKey.strokeColor,
                                value: NSColor.red,
                                range:  NSRange(location: 19, length: 5))
 
-    myMuAttString.addAttribute(NSStrokeWidthAttributeName,
+    myMuAttString.addAttribute(NSAttributedStringKey.strokeWidth,
                                value: 4,
                                range: NSRange(location: 19, length: 5))
 
     //: Set the background color is attributes text.
     //: which is not the color of the background text.
     let  stringLength = myString.count
-    myMuAttString.addAttribute(NSBackgroundColorAttributeName,
+    myMuAttString.addAttribute(NSAttributedStringKey.backgroundColor,
                                value: NSColor.magenta,
                                range: NSRange(location: 0, length: stringLength))
 
@@ -62,20 +62,20 @@ private func testNSString() {
     shadow.shadowColor = NSColor.gray
 
     //: Add a drop shadow to the text
-    myMuAttString.addAttribute(NSShadowAttributeName,
+    myMuAttString.addAttribute(NSAttributedStringKey.shadow,
                                value: shadow,
                                range: NSRange(location: 27, length: 7))
 
     //:Change to 48 point Menlo
-    myMuAttString.addAttribute(NSFontAttributeName,
+    myMuAttString.addAttribute(NSAttributedStringKey.font,
                                value: NSFont(name: "Menlo", size: 48.0)!,
                                range: NSRange(location: 27, length: 7))
 
     //: Appending the String with !!! and an Attributed String
-    let myAddedStringAttributes:[String:AnyObject]? = [
-        NSFontAttributeName: NSFont(name: "AvenirNext-Heavy", size: 48.0)!,
-        NSForegroundColorAttributeName: NSColor.red,
-        NSShadowAttributeName: shadow
+    let myAddedStringAttributes:[NSAttributedStringKey:Any]? = [
+        NSAttributedStringKey.font: NSFont(name: "AvenirNext-Heavy", size: 48.0)!,
+        NSAttributedStringKey.foregroundColor: NSColor.red,
+        NSAttributedStringKey.shadow: shadow
     ]
     let myAddedString = NSAttributedString(string: "!!!", attributes: myAddedStringAttributes)
     myMuAttString.append(myAddedString)
