@@ -62,9 +62,9 @@
 			children = (
 				26ECD33A1E874B5C00380F56 /* AppDelegate.swift */,
 				26ECD33C1E874B5C00380F56 /* ViewController.swift */,
+				CEA6263B20068AA2000F923D /* AnalyseSwift.swift */,
 				CE83F8BA1FFD329C00C39EC8 /* MyFuncs.swift */,
 				CE67A6A31FFA066B00BD57BD /* StringExtension.swift */,
-				CEA6263B20068AA2000F923D /* AnalyseSwift.swift */,
 				CEA6263920067DCA000F923D /* SampleCode.swift */,
 				26ECD33E1E874B5C00380F56 /* Assets.xcassets */,
 				26ECD3401E874B5C00380F56 /* Main.storyboard */,

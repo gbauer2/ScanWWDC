@@ -79,7 +79,7 @@ class ViewController: NSViewController {
         }
     }
 
-    static var latestUrl: URL?
+    static var latestUrl: URL?      // Used by AnalyseSwift.swift as ViewController.latestUrl
     var selectedItemUrl: URL? {
         didSet {                                                // run whenever selectedItemUrl is changed ITEM
             ViewController.latestUrl = selectedItemUrl
@@ -167,14 +167,14 @@ extension ViewController {
         }
     }
 
-    // returns attributes of url (file or folder) as a FileAttributes
+    // returns attributes of url (file or folder) as a FileAttributes struct (defined above)
     func setFileInfo(url: URL) -> FileAttributes {
         let fileManager = FileManager.default
+        var key: FileAttributeKey
 
         do {
             let attributes = try fileManager.attributesOfItem(atPath: url.path)
             let name = url.lastPathComponent
-            var key: FileAttributeKey
 
             key = FileAttributeKey(rawValue: "NSFileCreationDate")
             let creationDate = attributes[key] as? Date
@@ -198,14 +198,14 @@ extension ViewController {
     // returns name, dates, size, type of url (file or folder) as a String
     func infoAbout(url: URL) -> String {
         let fileManager = FileManager.default
+        var key: FileAttributeKey
+        var value: Any
 
         do {
             let attributes = try fileManager.attributesOfItem(atPath: url.path)
             let name = url.lastPathComponent
             //var report = ["\(url.path)", ""]      // array: 1st items are path, blank
             var report = [name, ""]                 // array: 1st items are name, blank
-            var key: FileAttributeKey
-            var value: Any
 
             //key = FileAttributeKey(rawValue: "NSFileOwnerAccountName")
 
@@ -229,7 +229,7 @@ extension ViewController {
             value = attributes[key] as? Int ?? "????"
             report.append("\(key.rawValue):\t\(value)")
 
-            //NSFileType:    NSFileTypeDirectory
+            //NSFileType:    NSFileTypeDirectory            // List all attributes
             //            for (key, value) in attributes {
             //                if key.rawValue == "NSFileExtendedAttributes" { continue }  // bypass Extended
             //                report.append("\(key.rawValue):\t\(value)")
@@ -397,6 +397,7 @@ extension ViewController {
             }
         }//end if let
     }//end analyseContentsButtonClicked
+
 }//end class
 
 
@@ -484,7 +485,6 @@ extension ViewController {
         }
     }//end func selectUrlInTable
 
-
     // returns URL for ".../Application Support/AnalyseSwiftCode/StoredState.txt".  Called from saveCurrentSelections, restoreCurrentSelections
     private func urlForDataStorage() -> URL? {
         let fileManager = FileManager.default
@@ -512,6 +512,7 @@ extension ViewController {
         let dataFileUrl = appFolder.appendingPathComponent("StoredState.txt")
         return dataFileUrl
     }//end func urlForDataStorage
+
 }//end class ViewController
 
 // MARK: - Read file (GWB).
@@ -519,7 +520,6 @@ extension ViewController {
 
     // read contents of file & display them in infoTextView
     func showFileContents(url: URL) {
-        // Read file content. Example in Swift
         do {
             // Read file content
             let contentFromFile = try NSString(contentsOf: url, encoding: String.Encoding.utf8.rawValue)

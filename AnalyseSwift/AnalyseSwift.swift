@@ -46,6 +46,7 @@ struct BlockAggregate {
 struct BlockInfo {
     var blockType = BlockType.None
     var lineNum  = 0
+    var codeLinesAtStart = 0
     var name     = ""
     var extra    = ""
     var numLines = 0
@@ -86,7 +87,7 @@ private func showNamedBlock(name: String, blockType : BlockType, list: [BlockInf
     paragraphStyleA2.addTabStop(tabStop0)
     tabStop0 = NSTextTab(textAlignment: .right, location: 150)
     paragraphStyleA2.addTabStop(tabStop0)
-    tabStop0 = NSTextTab(textAlignment: .left, location: 200)
+    tabStop0 = NSTextTab(textAlignment: .left,  location: 200)
     paragraphStyleA2.addTabStop(tabStop0)
     let txt = "\n" + showCount(count: items.count, name: name, ifZero: "No") + ":\n"
     let nsAttTxt = NSMutableAttributedString(string: txt, attributes: [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 18), NSAttributedStringKey.paragraphStyle: paragraphStyleA1])
@@ -116,7 +117,7 @@ private func gotCloseCurly(lineNum: Int, nCodeLine: Int) {
     var block = blockStack.remove(at: 0)
     if block.blockType != .None {
         //print("\(block.name)")
-        block.numLines = lineNum - block.lineNum
+        block.numLines = nCodeLine - block.codeLinesAtStart // lineNum - block.lineNum
         codeElements.append(block)
     }
 }
@@ -227,10 +228,10 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
             nCodeLine += 1
             let codeLine: String
             //var codeType = BlockType.isNone
-            var pCommentF = aa.indexOf(searchforStr: "//")              // Leftmost "//"
-            var pCommentR = aa.indexOfRev(searchforStr: "//")           // Rightmost "//"
-            var pQuoteF = aa.indexOf(searchforStr: "\"")
-            var pQuoteR = aa.indexOfRev(searchforStr: "\"")
+            var pCommentF   = aa.indexOf(searchforStr: "//")              // Leftmost "//"
+            var pCommentR   = aa.indexOfRev(searchforStr: "//")           // Rightmost "//"
+            var pQuoteF     = aa.indexOf(searchforStr: "\"")
+            var pQuoteR     = aa.indexOfRev(searchforStr: "\"")
 
             if pQuoteF >= 0 {                                           // we have a Quote
                 var inQuote = false
@@ -349,14 +350,14 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
                     }
 
                     checkCurlys(codeName: codeName, itemName: itemName, posItem: posItem, pOpenCurlyF: pOpenCurlyF, pOpenCurlyR: pOpenCurlyR, pCloseCurlyF: pCloseCurlyF, pCloseCurlyR: pCloseCurlyR)
-                    blockOnDeck = BlockInfo(blockType: .Func, lineNum: lineNum, name: itemName, extra: "", numLines: 0)
+                    blockOnDeck = BlockInfo(blockType: .Func, lineNum: lineNum, codeLinesAtStart: nCodeLine, name: itemName, extra: "", numLines: 0)
                     //inFuncName = itemName
                     if words.first! == "override" {
-                        index = BlockType.Override_Func.rawValue                               // Override_Func
+                        index = BlockType.Override_Func.rawValue                                // Override_Func
                         blockOnDeck.blockType = .Override_Func
                         blockTypes[index].count += 1
                     } else if words.first! == "@IBAction" {
-                        index = BlockType.IBAction_Func.rawValue                               // IBAction_Func
+                        index = BlockType.IBAction_Func.rawValue                                // IBAction_Func
                         blockOnDeck.blockType = .IBAction_Func
                         blockTypes[index].count += 1
                     } else {                            //private, internal, fileprivate, public
@@ -374,7 +375,7 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
                 }//endif posFunc
             }//end contains "func"
 
-            for index in 4...8 {        // containers: Struct, Enum, Extension, Class, isProtocol
+            for index in 4...8 {        // containers: 4)Struct, 5)Enum, 6)Extension, 7)Class, 8)isProtocol
                 if foundNamedBlock { break }
                 codeName = blockTypes[index].codeName
                 if codeLine.contains(codeName) {
@@ -398,7 +399,7 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
                             whatViewController = words[2]
                         }
                         checkCurlys(codeName: codeName, itemName: itemName, posItem: posItem, pOpenCurlyF: pOpenCurlyF, pOpenCurlyR: pOpenCurlyR, pCloseCurlyF: pCloseCurlyF, pCloseCurlyR: pCloseCurlyR)
-                        blockOnDeck = BlockInfo(blockType: blockTypes[index].blockType, lineNum: lineNum, name: itemName, extra: extra, numLines: 0)
+                        blockOnDeck = BlockInfo(blockType: blockTypes[index].blockType, lineNum: lineNum, codeLinesAtStart: nCodeLine, name: itemName, extra: extra, numLines: 0)
 
                         inBlockName[index] = itemName                               // isStruct
 
