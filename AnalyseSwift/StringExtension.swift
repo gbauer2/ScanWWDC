@@ -4,8 +4,8 @@
 //
 //  Created by George Bauer on 10/11/17.
 //  Copyright © 2017 GeorgeBauer. All rights reserved.
-//
-// String, UIColor extensions
+//  Ver 1.1.1   2/16/2018
+// String extensions
 
 import Foundation
 

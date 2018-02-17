@@ -138,6 +138,52 @@ private func checkCurlys(codeName: String, itemName: String,posItem: Int, pOpenC
     }
 }
 
+// Strip comment from line, returning code portion and comment-including-leading-spaces
+func stripComment(fullLine: String, lineNum: Int) -> (codeLine: String, comment: String) {
+    if !fullLine.contains("//") { return (fullLine, "") }               // No comment here
+
+    var pCommentF   = fullLine.indexOf(searchforStr: "//")              // Leftmost "//"
+    var pCommentR   = fullLine.indexOfRev(searchforStr: "//")           // Rightmost "//"
+    let pQuoteF     = fullLine.indexOf(searchforStr: "\"")
+    //let pQuoteR     = fullLine.indexOfRev(searchforStr: "\"")
+
+    if pQuoteF >= 0 {                                           // we have a Quote
+        var inQuote = false
+        var isEscaped = false
+        for p in 0..<fullLine.count {
+            let char = fullLine.mid(begin: p, length: 1)
+            if char == "\"" && !isEscaped { inQuote = !inQuote }    // if Quote not escaped,
+            if inQuote {
+                if p == pCommentF {
+                    pCommentF = fullLine.indexOf(searchforStr: "//", startPoint: p+1)
+                }
+                if p == pCommentR { pCommentR = -1 }
+                isEscaped = (!isEscaped && (char == "\\"))
+            }
+        }
+
+        if pCommentF < 0 { pCommentF = pCommentR }
+        if pCommentR < 0 { pCommentR = pCommentF }
+
+        if pCommentF != pCommentR {
+            print("⚠️\(lineNum) Comment mismatch \(fullLine)")
+        }
+
+    }//endif pQuoteF >= 0
+
+    if pCommentF >= 0 {
+        let codeLinePlus = "^" + fullLine.left(pCommentF)
+        let codeLineP = codeLinePlus.trim()
+        let nSpaces  = codeLinePlus.count - codeLineP.count
+        let codeLine = String(codeLineP.dropFirst())
+        let spaces: String = String(repeating: " ", count: nSpaces)
+        let comment  = spaces + fullLine.mid(begin: pCommentF)
+        return (codeLine, comment)
+    }
+    return (fullLine, "")
+
+}
+
 // MARK: - the main event
 // called from analyseContentsButtonClicked
 func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttributedString {
@@ -167,6 +213,7 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
 
     var copyright       = ""
     var createdBy       = ""
+    var version         = ""
     var containerName   = ""
     var projectType     = ProjectType.unknown
     var whatViewController = ""
@@ -212,10 +259,14 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
 
         if aa.hasPrefix("//") || inMultiLineComment {   // "//"
             nCommentLine += 1
-            if line.contains("Copyright") {
-                copyright = line
-            } else if line.contains("Created by ") {
-                createdBy = line
+            if nCodeLine == 0 {
+                if line.contains("Copyright") {
+                    copyright = line
+                } else if line.contains("Created by ") {
+                    createdBy = line
+                } else if line.contains("Ver") {
+                    version = line
+                }
             }
         } else if aa.isEmpty {
             nBlankLine += 1
@@ -223,52 +274,17 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
             nBlankLine += 1
             if aa == "{" { gotOpenCurly(lineNum: lineNum) }                                 // single "{" on line
             if aa == "}" { gotCloseCurly(lineNum: lineNum, nCodeLine: nCodeLine) }          // single "}" on line
-        } else {                                        // code! 674 - 929
+        } else {                                        // code! 232 - 439
             // MARK: - Code!
             nCodeLine += 1
-            let codeLine: String
-            //var codeType = BlockType.isNone
-            var pCommentF   = aa.indexOf(searchforStr: "//")              // Leftmost "//"
-            var pCommentR   = aa.indexOfRev(searchforStr: "//")           // Rightmost "//"
-            var pQuoteF     = aa.indexOf(searchforStr: "\"")
-            var pQuoteR     = aa.indexOfRev(searchforStr: "\"")
+            var codeLine: String
+            let comment: String
 
-            if pQuoteF >= 0 {                                           // we have a Quote
-                var inQuote = false
-                var isEscaped = false
-                for p in 0..<aa.count {
-                    let char = aa.mid(begin: p, length: 1)
-                    if char == "\"" && !isEscaped { inQuote = !inQuote }    // if Quote not escaped,
-                    if inQuote {
-                        if p == pCommentF {
-                            pCommentF = aa.indexOf(searchforStr: "//", startPoint: p+1)
-                        }
-                        if p == pCommentR { pCommentR = -1 }
-                        isEscaped = (!isEscaped && (char == "\\"))
-                    }
-                }
+            (codeLine, comment) = stripComment(fullLine: aa, lineNum: lineNum)
+            if !comment.isEmpty { nTrailing += 1 }
 
-                if pCommentF < 0 { pCommentF = pCommentR }
-                if pCommentR < 0 { pCommentR = pCommentF }
-
-                if pCommentF != pCommentR {
-                    print("⚠️\(lineNum) Comment mismatch \(aa)")
-                }
-
-            }//endif pQuoteF >= 0
-
-            if pCommentF > 0 {
-                codeLine = aa.left(pCommentF).trim()
-                nTrailing += 1
-                if codeLine.count == 1 {
-
-                }
-            } else {
-                codeLine = aa
-            }
-
-            pQuoteF = codeLine.indexOf(searchforStr: "\"")
-            pQuoteR = codeLine.indexOfRev(searchforStr: "\"")
+            let pQuoteF = codeLine.indexOf(searchforStr: "\"")
+            let pQuoteR = codeLine.indexOfRev(searchforStr: "\"")
 
             var pOpenCurlyF = codeLine.indexOf(searchforStr: "{")
             var pOpenCurlyR = codeLine.indexOfRev(searchforStr: "{")
@@ -482,7 +498,7 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
 
     tx  = NSMutableAttributedString(string: "created: \(cDate)     modified: \(mDate)\n", attributes: attributesSmallFont)
     txt.append(tx)
-    tx  = NSMutableAttributedString(string: "\(createdBy)\n\(copyright)\n", attributes: attributesSmallFont)
+    tx  = NSMutableAttributedString(string: "\(createdBy)\n\(copyright)\n\(version)\n", attributes: attributesSmallFont)
     txt.append(tx)
 
 

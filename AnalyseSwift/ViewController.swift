@@ -7,7 +7,7 @@
 // when in full screen mode - Show file-path above window
 // remember state of "ShowAll" checkbox between runs 
 // for folders:     show subDirs & Swift files(w/size)
-// showContents: line numbers & truncation in swift file
+// showContents: colors & truncation in swift file
 // Aggregate all swift file data in selected dir  "*.xcodeproj/project.pbxproj"
 // recursivly find all file of type .swift or .xcodeproj
 // change state storage to userDefaults
@@ -87,12 +87,12 @@ class ViewController: NSViewController {
             saveInfoButton.isEnabled = false
             guard let selectedUrl = selectedItemUrl else { return }
             selecFileInfo = setFileInfo(url: selectedUrl)                       // set selecFileInfo (name,dates,size,type)
-            if selectedUrl.lastPathComponent.lowercased().hasSuffix(".swift") {         //    1 analyse swift
+            if selectedUrl.lastPathComponent.lowercased().hasSuffix(".swift") {         //    1) analyse swift
                 readContentsButton.isEnabled = true
                 analyseContentsButton.isEnabled = true
                 print("selectedItemUrl is Swift File: \(selectedUrl.lastPathComponent)")
                 analyseContentsButtonClicked(self)
-            } else if selecFileInfo.isDir {                                             // or 2 show dir contents
+            } else if selecFileInfo.isDir {                                             // or 2) show dir contents
                 readContentsButton.isEnabled = false
                 analyseContentsButton.isEnabled = false
                 let tempFilesList = myContentsOf(folder: selectedUrl)
@@ -101,7 +101,7 @@ class ViewController: NSViewController {
                     tempStr += "\(file.lastPathComponent)\n"
                 }
                 infoTextView.string = tempStr
-            } else {                                                                    // or 3 show file attributes
+            } else {                                                                    // or 3) show file attributes
                 readContentsButton.isEnabled = true
                 analyseContentsButton.isEnabled = false
                 let infoString = infoAbout(url: selectedUrl)
@@ -117,6 +117,15 @@ class ViewController: NSViewController {
     // MARK: - View Lifecycle & error dialog utility
     override func viewWillAppear() {
         super.viewWillAppear()
+
+/*
+        let fontFamilyNames = NSFontManager.shared.availableFontFamilies
+        //print("avaialble fonts is \(fontFamilyNames)")
+        for famName in fontFamilyNames{
+            let fontFamilysubs = NSFontManager.shared.availableMembers(ofFontFamily: famName)?.debugDescription
+            print(famName, ":  ", fontFamilysubs!)
+        }
+*/
         splitView.setPosition(222.0, ofDividerAt: 0)
         restoreCurrentSelections()
     }
@@ -240,46 +249,7 @@ extension ViewController {
             return "No information available for \(url.path)"
         }
     }
-
-    func formatInfoText(_ text: String) -> NSAttributedString {
-        let paragraphStyle = NSMutableParagraphStyle.default.mutableCopy() as? NSMutableParagraphStyle
-        paragraphStyle?.minimumLineHeight = 24
-        paragraphStyle?.alignment = .left
-        paragraphStyle?.tabStops = [ NSTextTab(type: .leftTabStopType, location: 240) ]
-
-        let textAttributes: [NSAttributedStringKey: Any] = [
-            NSAttributedStringKey.font: NSFont.systemFont(ofSize: 14),
-            NSAttributedStringKey.paragraphStyle: paragraphStyle ?? NSParagraphStyle.default
-        ]
-
-        let formattedText = NSMutableAttributedString(string: text, attributes: textAttributes)
-        var lengthLine1 = text.indexOf(searchforStr: "\n")
-        if lengthLine1 < 0 { lengthLine1 = 0 }
-        formattedText.addAttribute(NSAttributedStringKey.font,
-                                   value: NSFont.systemFont(ofSize: 20),
-                                   range: NSRange(location: 0, length: lengthLine1))
-        return formattedText
-    }
-}
-
-// not used
-func formatContentsText(_ text: String) -> NSAttributedString {
-    let paragraphStyle = NSMutableParagraphStyle.default.mutableCopy() as? NSMutableParagraphStyle
-    paragraphStyle?.minimumLineHeight = 24
-    paragraphStyle?.alignment = .left
-    paragraphStyle?.tabStops = [ NSTextTab(type: .leftTabStopType, location: 48),  NSTextTab(type: .leftTabStopType, location: 96) ]
-
-    let textAttributes: [NSAttributedStringKey: Any] = [
-        NSAttributedStringKey.font: NSFont.systemFont(ofSize: 14),
-        NSAttributedStringKey.paragraphStyle: paragraphStyle ?? NSParagraphStyle.default
-    ]
-
-    let formattedText = NSAttributedString(string: text, attributes: textAttributes)
-    return formattedText
-}
-
 // MARK: - @IBActions
-extension ViewController {
 
     //user clicked on SelectFolder button (brings up FileOpenDialog)
     @IBAction func selectFolderClicked(_ sender: Any) {
@@ -296,7 +266,6 @@ extension ViewController {
                 //print(self.selectedFolderUrl)
             }
         }
-
     }
 
     // user clicked on ShowAllFiles button
@@ -520,11 +489,29 @@ extension ViewController {
 
     // read contents of file & display them in infoTextView
     func showFileContents(url: URL) {
+        var showLineNumbers = false
+        if url.pathExtension == "swift" {
+            showLineNumbers = true
+        }
         do {
+            var formattedText = NSMutableAttributedString()
             // Read file content
             let contentFromFile = try NSString(contentsOf: url, encoding: String.Encoding.utf8.rawValue)
-            let formattedText = formatInfoText(contentFromFile as String)
-            infoTextView.textStorage?.setAttributedString(formattedText)
+            let lines = contentFromFile.components(separatedBy: "\n")
+
+            if showLineNumbers {
+
+                for i in 0..<lines.count {
+                    //let line = "\(i+1) \(lines[i])\n"
+                    let formattedLine = formatSwiftLine(lineNumber: i+1, text: lines[i])
+                    formattedText.append(formattedLine)
+                }
+                infoTextView.textStorage?.setAttributedString(formattedText)
+
+            } else {
+                formattedText = formatInfoText(contentFromFile as String) as! NSMutableAttributedString
+                infoTextView.textStorage?.setAttributedString(formattedText)
+            }
         }
         catch let error as NSError {
             let err = "😡showFileContents error: \(error.localizedDescription)"
@@ -534,6 +521,77 @@ extension ViewController {
             infoTextView.textStorage?.setAttributedString(formattedText)
         }
     }//end func showFileContents
+
+
+    // format 1st line to 20pt font; the rest to 14pt
+    func formatInfoText(_ text: String) -> NSAttributedString {
+        let paragraphStyle = NSMutableParagraphStyle.default.mutableCopy() as? NSMutableParagraphStyle
+        paragraphStyle?.minimumLineHeight = 24
+        paragraphStyle?.alignment = .left
+        paragraphStyle?.tabStops = [ NSTextTab(type: .leftTabStopType, location: 240) ]
+
+        let textAttributes: [NSAttributedStringKey: Any] = [
+            NSAttributedStringKey.font: NSFont.systemFont(ofSize: 14),
+            NSAttributedStringKey.paragraphStyle: paragraphStyle ?? NSParagraphStyle.default
+        ]
+
+        let formattedText = NSMutableAttributedString(string: text, attributes: textAttributes)
+        var lengthLine1 = text.indexOf(searchforStr: "\n")
+        if lengthLine1 < 0 { lengthLine1 = 0 }
+        formattedText.addAttribute(NSAttributedStringKey.font,
+                                   value: NSFont.systemFont(ofSize: 20),
+                                   range: NSRange(location: 0, length: lengthLine1))
+        return formattedText
+    }
+
+    //---- formatSwiftLine - Add line numbers and comment colors - format tabs at right26 & left32, font at 13pt
+    func formatSwiftLine(lineNumber: Int, text: String, maxLines: Int = 2222) -> NSAttributedString {
+
+        let (codeLine, comment) = stripComment(fullLine: text, lineNum: lineNumber)
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.minimumLineHeight = 2
+        paragraphStyle.alignment = .left
+        paragraphStyle.tabStops = [ NSTextTab(type: .rightTabStopType, location: 26),  NSTextTab(type: .leftTabStopType, location: 32) ]
+
+        let lineNumAttributes: [NSAttributedStringKey: Any] = [
+            //NSAttributedStringKey.font: NSFont.systemFont(ofSize: 10),
+            NSAttributedStringKey.font: NSFont(name: "Menlo", size: 10)!,
+            NSAttributedStringKey.foregroundColor: NSColor.gray,
+            NSAttributedStringKey.paragraphStyle: paragraphStyle
+        ]
+        let formattedLineNum = NSAttributedString(string: "\t\(lineNumber)", attributes: lineNumAttributes)
+
+        var textAttributes: [NSAttributedStringKey: Any] = [
+            NSAttributedStringKey.font: NSFont(name: "PT Mono", size: 12)!,
+            NSAttributedStringKey.paragraphStyle: paragraphStyle
+        ]
+        let formattedText = NSAttributedString(string: "\t\(codeLine)", attributes: textAttributes)
+
+        //green
+        textAttributes[NSAttributedStringKey.foregroundColor] = NSColor(calibratedRed: 0, green: 0.6, blue: 0.15, alpha: 1)
+        let formatedComment = NSMutableAttributedString(string: comment + "\n", attributes: textAttributes)
+
+        let output = NSMutableAttributedString(attributedString: formattedLineNum)
+        output.append(formattedText)
+        output.append(formatedComment)
+        return output
+    }
+
+    // format tabs at 48 & 96, font at 14pt
+    func formatContentsTextX(_ text: String) -> NSAttributedString {
+        let paragraphStyle = NSMutableParagraphStyle.default.mutableCopy() as? NSMutableParagraphStyle
+        paragraphStyle?.minimumLineHeight = 24
+        paragraphStyle?.alignment = .left
+        paragraphStyle?.tabStops = [ NSTextTab(type: .leftTabStopType, location: 48),  NSTextTab(type: .leftTabStopType, location: 96) ]
+
+        let textAttributes: [NSAttributedStringKey: Any] = [
+            NSAttributedStringKey.font: NSFont.systemFont(ofSize: 14),
+            NSAttributedStringKey.paragraphStyle: paragraphStyle ?? NSParagraphStyle.default
+        ]
+
+        let formattedText = NSAttributedString(string: text, attributes: textAttributes)
+        return formattedText
+    }
 
 }
 

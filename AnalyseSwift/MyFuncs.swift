@@ -4,7 +4,7 @@
 //
 //  Created by George Bauer on 9/29/17.
 //  Copyright © 2017 GeorgeBauer. All rights reserved.
-//
+//  Ver 1.1.1   2/16/2018
 //  ------ General Purpose Subroutines ------
 import Foundation
 
