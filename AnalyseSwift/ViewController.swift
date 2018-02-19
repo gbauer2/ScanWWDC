@@ -23,6 +23,8 @@
 // show methods vs free functions
 // allow for extensions other than class
 
+// fixed color of multiline comments
+
 import Cocoa
 
 struct FileAttributes {
@@ -490,6 +492,7 @@ extension ViewController {
     // read contents of file & display them in infoTextView
     func showFileContents(url: URL) {
         var showLineNumbers = false
+        var inMultiLineComment = false
         if url.pathExtension == "swift" {
             showLineNumbers = true
         }
@@ -503,7 +506,17 @@ extension ViewController {
 
                 for i in 0..<lines.count {
                     //let line = "\(i+1) \(lines[i])\n"
-                    let formattedLine = formatSwiftLine(lineNumber: i+1, text: lines[i])
+                    let aa = lines[i].trim()
+                    if aa.hasPrefix("/*") {                         // "/*"
+                        inMultiLineComment = true
+                    }
+
+                    if aa.hasPrefix("*/") {                         // "*/"
+                        inMultiLineComment = false
+                    }
+
+
+                    let formattedLine = formatSwiftLine(lineNumber: i+1, text: lines[i], inMultiLineComment: inMultiLineComment)
                     formattedText.append(formattedLine)
                 }
                 infoTextView.textStorage?.setAttributedString(formattedText)
@@ -545,9 +558,13 @@ extension ViewController {
     }
 
     //---- formatSwiftLine - Add line numbers and comment colors - format tabs at right26 & left32, font at 13pt
-    func formatSwiftLine(lineNumber: Int, text: String, maxLines: Int = 2222) -> NSAttributedString {
-
-        let (codeLine, comment) = stripComment(fullLine: text, lineNum: lineNumber)
+    func formatSwiftLine(lineNumber: Int, text: String, inMultiLineComment: Bool = false) -> NSAttributedString {
+        var (codeLine, comment) = ("","")
+        if inMultiLineComment {
+            (codeLine, comment) = ("",text)
+        } else {
+            (codeLine, comment) = stripComment(fullLine: text, lineNum: lineNumber)
+        }
         let paragraphStyle = NSMutableParagraphStyle()
         paragraphStyle.minimumLineHeight = 2
         paragraphStyle.alignment = .left

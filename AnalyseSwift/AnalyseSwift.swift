@@ -181,8 +181,7 @@ func stripComment(fullLine: String, lineNum: Int) -> (codeLine: String, comment:
         return (codeLine, comment)
     }
     return (fullLine, "")
-
-}
+}//end func stripComment
 
 // MARK: - the main event
 // called from analyseContentsButtonClicked
@@ -277,10 +276,8 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
         } else {                                        // code! 232 - 439
             // MARK: - Code!
             nCodeLine += 1
-            var codeLine: String
-            let comment: String
 
-            (codeLine, comment) = stripComment(fullLine: aa, lineNum: lineNum)
+            let (codeLine, comment) = stripComment(fullLine: aa, lineNum: lineNum)
             if !comment.isEmpty { nTrailing += 1 }
 
             let pQuoteF = codeLine.indexOf(searchforStr: "\"")
