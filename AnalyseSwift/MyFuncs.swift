@@ -1,22 +1,41 @@
 //
 //  MyFuncs.swift
-//  Weather Central
+//  Almanac
 //
 //  Created by George Bauer on 9/29/17.
 //  Copyright © 2017 GeorgeBauer. All rights reserved.
-//  Ver 1.1.1   2/16/2018
+
+//  Ver 1.5.3   5/14/2018   Fix replaceInString
+//      1.5.2   5/13/2018   Add replaceCharInString, replaceInString
+//      1.5.1   5/02/2018   Add Date stuff isSameDay() timeDiffSecs()
+//      1.5.0   4/22/2018   Add printDictionary(dict: [String: String],...), [String: Double], [String: Int], default:expandLevels=0,dashLen=0(auto)
+//      1.4.0   4/19/2018   Add Date extensions (from VBCompatability)
+//      1.3.0   4/16/2018   move GreatCircAng, GreatCircDist, formatLatLon, formatDistDir, degToCardinal to MapLibVB
+//      1.2.1   4/09/2018   Add printDictionary(dict: [String: Date], ...
+//      1.2.0   3/09/2018   Add File handling funcs, formatDbl(num,places), isCharDigit
 //  ------ General Purpose Subroutines ------
+
+//TODO:- Testing: 100%
+// printDictionary Dictionary not NSDictionary, Array not NSArray
+
 import Foundation
 
-//MARK: General Purpose 
+//MARK:- General Purpose 
+
+//---- Format Double "%#.#f" using fieldLen, places. ----
+public func formatDbl(_ number: Double, _ places: Int) -> String {
+    return String(format:"%.\(places)f", number)                            //String(format:%.2f",number)
+}
 
 //---- Format Double "%#.#f" using fieldLen, places. fieldLen!=0 to right justify - Truncates ----
 public func formatDbl(number: Double, fieldLen: Int = 0, places: Int) -> String {
+    let s: String
     if fieldLen == 0 {
-        return String(format:"%.\(places)f", number)                            //String(format:%.2f",number)
+        s = String(format:"%.\(places)f", number)                            //String(format:%.2f",number)
     } else {
-        return String(format:"%\(fieldLen).\(places)f", number).left(fieldLen)  //String(format:%6.2f",number)
+        s = String(format:"%\(fieldLen).\(places)f", number).left(fieldLen)  //String(format:%6.2f",number)
     }
+    return s
 }
 
 //---- Format Int using fieldLen ----
@@ -92,7 +111,7 @@ public func showCount(count: Int, name: String, ifZero: String = "0") -> String 
 public func isStringAnInt(_ string: String) -> Bool {
     return Int(string) != nil
 }
-public func isStringAnInt(_ char: Character) -> Bool {
+public func isCharDigit(_ char: Character) -> Bool {
     return Int(String(char)) != nil
 }
 
@@ -101,7 +120,46 @@ public func isNumeric(_ string: String) -> Bool {
     return Double(string) != nil
 }
 
-//MARK: Dictionaries
+public func replaceCharInString(string: String, pos: Int, newChar: Character) -> String {
+    let newString = String(string.prefix(pos)) + String(newChar) + string.dropFirst(pos + 1)
+    return newString
+}
+
+public func replaceInString(string: String, strToInsert: String, from: Int, length: Int) -> String {
+    let newStr = String(string.prefix(from)) + strToInsert + string.suffix(string.count - length - from)
+    return newStr
+}
+
+// MARK:- Date Handling
+
+public func isSameDay(_ date1: Date, _ date2: Date) -> Bool {
+    let dateC1 = date1.getComponents()
+    let dateC2 = date2.getComponents()
+    let sameDay = dateC1.day == dateC2.day && dateC1.month == dateC2.month && dateC1.year == dateC2.year
+    return sameDay
+}
+
+public func timeDiffSecs(date1: Date, date2: Date) -> Double {
+    let difference = date2.timeIntervalSince(date1)
+    return difference
+}
+
+// MARK:- File Handling
+
+//---- fileExists -
+public func fileExists(url: URL) -> Bool {
+    let fileExists = FileManager.default.fileExists(atPath: url.path)
+    return fileExists
+}
+
+//---- folderExists -
+public func folderExists(url: URL) -> Bool {
+    var isDirectory: ObjCBool = false
+    let folderExists = FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory)
+    return folderExists
+}
+
+// MARK:- Printing Dictionaries
 // =================== for Printing Dictionaries =====================
 public func formatDictionaryAny(title: String, obj: AnyObject, decimalPlace: Int = 1, titleLen: Int = 10, fillStr: String = ".") -> String {
     var str = "???"
@@ -128,14 +186,14 @@ public func formatDictionaryStr(title: String, str: String, titleLen: Int = 10, 
     if title == "" {
         return "\(str)"
     }
-    var nSpace = titleLen - title.count + 2
-    if nSpace < 0 { nSpace = 0 }
-    let space = String(repeating: fillStr, count: nSpace)
-    return "\(title) \(space) \(str)"
+    var nFill = titleLen - title.count + 2
+    if nFill < 0 { nFill = 0 }
+    let fill = String(repeating: fillStr, count: nFill)
+    return "\(title) \(fill) \(str)"
 }
 
 //=========================================================================================
-public func printDictionary(dict: [String: AnyObject]?, expandLevels: Int, dashLen: Int, title: String) {
+public func printDictionary(dict: [String: AnyObject]?, expandLevels: Int = 0, dashLen: Int = 0, title: String) {
     guard let d = dict else { print("\n\(title) is nil!"); return }
     let dictNS = d as NSDictionary
     printDictionaryNS(dictNS: dictNS, expandLevels: expandLevels, dashLen: dashLen, title: title)
@@ -143,20 +201,53 @@ public func printDictionary(dict: [String: AnyObject]?, expandLevels: Int, dashL
 }
 
 //=========================================================================================
-public func printDictionary(dict: [String: AnyObject], expandLevels: Int, dashLen: Int, title: String) {
+public func printDictionary(dict: [String: AnyObject], expandLevels: Int = 0, dashLen: Int = 0, title: String) {
         let dictNS = dict as NSDictionary
         printDictionaryNS(dictNS: dictNS, expandLevels: expandLevels, dashLen: dashLen, title: title)
         return
     }
 
 //=========================================================================================
+public func printDictionary(dict: [String: String], expandLevels: Int = 0, dashLen: Int = 0, title: String) {
+    let dictNS = dict as NSDictionary
+    printDictionaryNS(dictNS: dictNS, expandLevels: expandLevels, dashLen: dashLen, title: title)
+    return
+}
+
+//=========================================================================================
+public func printDictionary(dict: [String: Int], expandLevels: Int = 0, dashLen: Int = 0, title: String) {
+    let dictNS = dict as NSDictionary
+    printDictionaryNS(dictNS: dictNS, expandLevels: expandLevels, dashLen: dashLen, title: title)
+    return
+}
+
+//=========================================================================================
+public func printDictionary(dict: [String: Double], expandLevels: Int = 0, dashLen: Int = 0, title: String) {
+    let dictNS = dict as NSDictionary
+    printDictionaryNS(dictNS: dictNS, expandLevels: expandLevels, dashLen: dashLen, title: title)
+    return
+}
+
+//=========================================================================================
+public func printDictionary(dict: [String: Date], expandLevels: Int = 0, dashLen: Int = 0, title: String) {
+    let dictNS = dict as NSDictionary
+    printDictionaryNS(dictNS: dictNS, expandLevels: expandLevels, dashLen: dashLen, title: title)
+    return
+}
+
+//=========================================================================================
 public func printDictionaryNS(dictNS: NSDictionary,expandLevels: Int, dashLen: Int, title: String) {
     var length = dashLen
-    var type = "base"
-    if expandLevels > 0 { type = "expanded" }
+    let type = expandLevels > 0 ? "expanded": "base"
     print("========================== \(title) \(type) ===========================")
     
     if expandLevels == 0 {
+        if length == 0 {        // Automatic Length calculation
+            for (key, _) in dictNS {
+                let keyLen = String(describing: key).count + 1
+                if keyLen > length { length = keyLen }
+            }
+        }
         var isFirst = true
         var a1 = ""
         if length < 2 { length = 22 }
@@ -177,6 +268,8 @@ public func printDictionaryNS(dictNS: NSDictionary,expandLevels: Int, dashLen: I
                 //    str2 = String(db)
             } else if let db = value as? Double {
                 str2 = String(db)
+            } else if let db = value as? Date {
+                str2 = db.ToString("MM/dd/yyyy hh:mm:ss a zzz")
             } else if value is NSArray {
                 let n = (value as! NSArray).count
                 str2 = "(Array) with \(n) " + "item".pluralize(n)
@@ -188,7 +281,7 @@ public func printDictionaryNS(dictNS: NSDictionary,expandLevels: Int, dashLen: I
         }// next
         print(a1)
         
-    } else {
+    } else {                                    // expandLevels > 0
         if length < 2 { length = 14 }
         for (key, value) in dictNS {
             //print("\(key) --> \(value) ")
@@ -198,132 +291,42 @@ public func printDictionaryNS(dictNS: NSDictionary,expandLevels: Int, dashLen: I
     }
     print("======================== end \(title) \(type) =========================\n")
     if expandLevels > 0 { print() }
-}
+}//end func
 
 // Helper for printDictionaryNS
 func getDashes(key: String, length: Int) -> String {
-    let dashes: NSString = " ---------------------------------"
-    var i = length - key.count
-    if i < 2 { i = 2 }
-    if i > dashes.length { i = dashes.length }
-    return dashes.substring(to: i)
+    let i = max(1, length - key.count - 1)
+    let dashes = String(repeatElement("-", count: i))
+    return " " + dashes
 }
 
-//=========================================================================================
+//MARK:- Date Extensions
+extension Date {
 
-//MARK: Great Circle Distance & Direction
-//Returns Angle (heading) from A to B.  Needs Distance to be calculated 1st, and used as input.
-func greatCircAng(ALat: Double, ALon: Double, BLat: Double, BLon: Double, Dist: Double) -> Int {
-    if Dist == 0 { return 0 }
-    let degPerRad = 57.2958
-    let PA = (90.0 - ALat) / degPerRad
-    let PB = (90.0 - BLat) / degPerRad
-    let AB = Dist /  60.0  / degPerRad
-    
-    let HSA = (hSin(PB) - hSin(PA - AB)) / (sin(PA) * sin(AB))
-    
-    var ACOS = 1.0 - HSA - HSA
-    if ACOS > 1.0 { ACOS = 1.0}
-    if ACOS < -1.0 { ACOS = -1.0}
-    let ABTAN = sqrt(1.0 / (ACOS * ACOS) - 1.0)
-    
-    var iDeg = Int(atan(ABTAN) * degPerRad)
-    if BLat <  ALat && BLon >  ALon { iDeg = 180 - iDeg}
-    if BLat <  ALat && BLon <= ALon { iDeg = 180 + iDeg}
-    if BLat >= ALat && BLon <= ALon { iDeg = 360 - iDeg}
-    return iDeg
-    
-}//End func GreatCircAng
-
-
-//GREAT-CIRCLE DISTANCE in NM Point-A Lat/Lon to Point-B Lat/Lon
-public func greatCircDist(ALat: Double, ALon: Double, BLat: Double, BLon: Double) -> Double {
-    let degPerRad = 57.2958
-    let PA = (90.0 - ALat) / degPerRad
-    let PB = (90.0 - BLat) / degPerRad
-    let P  = (ALon - BLon) / degPerRad
-    
-    let HSAB = hSin(P) * sin(PA) * sin(PB) + hSin(PA - PB)
-    let ABCOS = 1.0 - HSAB - HSAB                           //AB_COS = 1 - 2 * HS_AB
-    let ABTAN = sqrt(1.0 / (ABCOS * ABCOS) - 1.0)
-    return atan(ABTAN) * degPerRad * 60.0
-}//End func
-
-// HyperSine
-func hSin(_ ang: Double) -> Double {
-    return (1.0 - cos(ang)) / 2.0
-}//End func
-
-// format lat/lon to e.g. "N28.51° W081.55°"
-public func formatLatLon(lat: Double, lon: Double, places: Int) -> String {
-    var ns = "N"
-    var alat = lat
-    if lat < 0 {
-        alat = -alat
-        ns = "S"
+    //---- Date.ToString - using formats like "MM/dd/yyyy hh:mm:ss"
+    func ToString(_ format: String) -> String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = format
+        let out = dateFormatter.string(from: self)
+        return out
     }
-    let fieldLenLat = places + 3
-    var latStr = formatDbl(number: alat,fieldLen: fieldLenLat , places: places)
-    latStr = latStr.replacingOccurrences(of: " ", with: "0")
-    latStr = ns + latStr + "°"
-    
-    var ew = "E"
-    var alon = lon
-    if lon < 0 {
-        alon = -alon
-        ew = "W"
-    }
-    let fieldLenLon = places + 4
-    var lonStr = formatDbl(number: alon,fieldLen: fieldLenLon, places: places)
-    lonStr = lonStr.replacingOccurrences(of: " ", with: "0")
-    lonStr = ew + lonStr + "°"
-    
-    return latStr + " " + lonStr
-}
 
-// From a pair of Lat/Lon's, return distance(mi or nm), direction, cardinal direction , and string e.g."14.2mi NNW"
-public func formatDistDir(latFrom: Double, lonFrom: Double, latTo: Double, lonTo: Double,
-                          doMi: Bool = true, doDeg: Bool = false)
-                            -> (dist: Double, deg: Int, cardinal: String, strDistDir: String) {
-        var distStr = "     "
-        var abrev = "nm"
-        let distNM = greatCircDist(ALat: latFrom, ALon: lonFrom, BLat: latTo, BLon: lonTo)
-        var dist = distNM
-        if doMi {
-            dist = distNM * 1.15
-            abrev = "mi"
-        }
-        let dirDeg = greatCircAng(ALat: latFrom, ALon: lonFrom, BLat: latTo, BLon: lonTo, Dist: distNM)
-        let dirCard = degToCardinal(deg: dirDeg, points: 16)
-        var dirStr = dirCard
-        if doDeg {
-            dirStr = "\(dirDeg)°"
-        }
-        if dist < 99 {
-            distStr = formatDbl(number: dist, fieldLen: 5, places: 1)
-        } else {
-            distStr = formatDbl(number: dist, fieldLen: 5, places: 0)
-        }
-        
-        let distDirStr = "\(distStr)\(abrev) \(dirStr)"
-        return (dist, dirDeg, dirCard, distDirStr)
-}
-
-// Return cardinal point (e.g. "NNW") from compass degrees. Use a 4, 8, or 16 point system.
-public func degToCardinal(deg: Int, points: Int = 8) -> String {
-    let cardinals1 = ["N",      "E",      "S",      "W",      "N"]
-    let cardinals2 = ["N ","NE","E ","SE","S ","SW","W ","NW","N "]
-    let cardinals3 = ["N  ","NNE","NE ","ENE","E  ","ESE","SE ","SSE","S  ","SSW","SW ","WSW","W  ","WNW","NW ","NNW","N  "]
-    if points == 4 {
-        return cardinals1[(deg + 45)/90]
-    } else if points == 8 {
-        return cardinals2[(deg + 22)/45]
-    } else if points == 16 {
-        return cardinals3[(deg * 10 + 112)/225]
-    } else {
-        return "?"
+    //---- Date.getComponants -
+    func getComponents() -> DateComponents {
+        let unitFlags:Set<Calendar.Component> = [ .year, .month, .day, .hour, .minute, .second, .calendar, .timeZone, .weekday, .weekdayOrdinal, .quarter, .weekOfMonth, .weekOfYear ]
+        let dateComponents = Calendar.current.dateComponents(unitFlags, from: self)
+        return dateComponents
     }
-}
+
+    var DateOnly: Date {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        let dateStr = dateFormatter.string(from: self)
+        let date = dateFormatter.date(from: dateStr)!
+        return date
+    }
+
+}//end Date extension
 
 
 /**/

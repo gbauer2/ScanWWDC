@@ -89,11 +89,18 @@ class ViewController: NSViewController {
             saveInfoButton.isEnabled = false
             guard let selectedUrl = selectedItemUrl else { return }
             selecFileInfo = setFileInfo(url: selectedUrl)                       // set selecFileInfo (name,dates,size,type)
-            if selectedUrl.lastPathComponent.lowercased().hasSuffix(".swift") {         //    1) analyse swift
+            if selectedUrl.pathExtension == "swift" {         //    1) analyse swift
                 readContentsButton.isEnabled = true
                 analyseContentsButton.isEnabled = true
                 print("selectedItemUrl is Swift File: \(selectedUrl.lastPathComponent)")
                 analyseContentsButtonClicked(self)
+
+            } else if selectedUrl.lastPathComponent.hasPrefix("WWDC-20") && selectedUrl.pathExtension == "txt" {
+                readContentsButton.isEnabled = true
+                analyseContentsButton.isEnabled = true
+                print("selectedItemUrl is WWDC20xx.txt File: \(selectedUrl.lastPathComponent)")
+
+
             } else if selecFileInfo.isDir {                                             // or 2) show dir contents
                 readContentsButton.isEnabled = false
                 analyseContentsButton.isEnabled = false
@@ -341,15 +348,27 @@ extension ViewController {
             do {
                 // Read file content
                 let contentFromFile = try NSString(contentsOf: url, encoding: String.Encoding.utf8.rawValue)
-
-                if url.pathExtension.lowercased() == "swift" {
+                var fileType = ""
+                if url.pathExtension == "swift" {
+                    fileType = "swift"
+                } else if url.lastPathComponent.hasPrefix("WWDC-20") &&  url.pathExtension == "txt"  {
+                    fileType = "WWDC"
+                }
+                if !fileType.isEmpty {
 
                     if analyseFuncLocked { return }                  // because analyseSwiftFile() is not thread-save
                     analyseFuncLocked = true
                     analyseContentsButton.isEnabled = false
                     infoTextView.string = "Analysing..."
                     DispatchQueue.global(qos: .userInitiated).async {
-                        let txt = analyseSwiftFile(contentFromFile as String, selecFileInfo: self.selecFileInfo )
+                        var txt: NSAttributedString
+                        if fileType == "swift" {
+                            txt = analyseSwiftFile(contentFromFile as String, selecFileInfo: self.selecFileInfo )
+                        } else if fileType == "WWDC" {
+                            txt = analyseWWDC(contentFromFile as String, selecFileInfo: self.selecFileInfo)
+                        } else {
+                            txt = NSAttributedString()
+                        }
                         DispatchQueue.main.async {
                             self.infoTextView.textStorage?.setAttributedString(txt)
                             self.analyseFuncLocked = false
@@ -357,17 +376,21 @@ extension ViewController {
                             self.displayedAnalysisUrl = url
                             if url != self.selectedItemUrl {
                                 self.urlMismatch = self.selectedItemUrl
-                            }
-                        }
-                    }
+                            }//endif url
+                        }//endif DispatchQueue.main
+                    }//endif DispatchQueue.global
+                }//endif "swift"
+            }//end try
 
-                }
-            }
             catch let error as NSError {
                 print("😡analyseContentsButtonClicked error: \(error)")
             }
         }//end if let
     }//end analyseContentsButtonClicked
+
+
+
+
 
 }//end class
 
@@ -496,6 +519,9 @@ extension ViewController {
         if url.pathExtension == "swift" {
             showLineNumbers = true
         }
+        if url.lastPathComponent.hasPrefix("WWDC-20") && url.pathExtension == "txt" {
+            showLineNumbers = true
+        }
         do {
             var formattedText = NSMutableAttributedString()
             // Read file content
@@ -506,7 +532,7 @@ extension ViewController {
 
                 for i in 0..<lines.count {
                     //let line = "\(i+1) \(lines[i])\n"
-                    let aa = lines[i].trim()
+                    let aa = lines[i].trim
                     if aa.hasPrefix("/*") {                         // "/*"
                         inMultiLineComment = true
                     }
@@ -549,7 +575,7 @@ extension ViewController {
         ]
 
         let formattedText = NSMutableAttributedString(string: text, attributes: textAttributes)
-        var lengthLine1 = text.indexOf(searchforStr: "\n")
+        var lengthLine1 = text.IndexOf("\n")
         if lengthLine1 < 0 { lengthLine1 = 0 }
         formattedText.addAttribute(NSAttributedStringKey.font,
                                    value: NSFont.systemFont(ofSize: 20),

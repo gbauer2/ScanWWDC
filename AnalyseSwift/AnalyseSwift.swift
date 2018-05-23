@@ -142,10 +142,10 @@ private func checkCurlys(codeName: String, itemName: String,posItem: Int, pOpenC
 func stripComment(fullLine: String, lineNum: Int) -> (codeLine: String, comment: String) {
     if !fullLine.contains("//") { return (fullLine, "") }               // No comment here
 
-    var pCommentF   = fullLine.indexOf(searchforStr: "//")              // Leftmost "//"
-    var pCommentR   = fullLine.indexOfRev(searchforStr: "//")           // Rightmost "//"
-    let pQuoteF     = fullLine.indexOf(searchforStr: "\"")
-    //let pQuoteR     = fullLine.indexOfRev(searchforStr: "\"")
+    var pCommentF   = fullLine.IndexOf("//")              // Leftmost "//"
+    var pCommentR   = fullLine.IndexOfRev("//")           // Rightmost "//"
+    let pQuoteF     = fullLine.IndexOf("\"")
+    //let pQuoteR     = fullLine.IndexOfRev("\"")
 
     if pQuoteF >= 0 {                                           // we have a Quote
         var inQuote = false
@@ -155,7 +155,7 @@ func stripComment(fullLine: String, lineNum: Int) -> (codeLine: String, comment:
             if char == "\"" && !isEscaped { inQuote = !inQuote }    // if Quote not escaped,
             if inQuote {
                 if p == pCommentF {
-                    pCommentF = fullLine.indexOf(searchforStr: "//", startPoint: p+1)
+                    pCommentF = fullLine.IndexOf(searchforStr: "//", startPoint: p+1)
                 }
                 if p == pCommentR { pCommentR = -1 }
                 isEscaped = (!isEscaped && (char == "\\"))
@@ -173,7 +173,7 @@ func stripComment(fullLine: String, lineNum: Int) -> (codeLine: String, comment:
 
     if pCommentF >= 0 {
         let codeLinePlus = "^" + fullLine.left(pCommentF)
-        let codeLineP = codeLinePlus.trim()
+        let codeLineP = codeLinePlus.trim
         let nSpaces  = codeLinePlus.count - codeLineP.count
         let codeLine = String(codeLineP.dropFirst())
         let spaces: String = String(repeating: " ", count: nSpaces)
@@ -182,6 +182,58 @@ func stripComment(fullLine: String, lineNum: Int) -> (codeLine: String, comment:
     }
     return (fullLine, "")
 }//end func stripComment
+
+func analyseWWDC(_ str: String, selecFileInfo: FileAttributes) -> NSAttributedString {
+    let lines = str.components(separatedBy: "\n")
+    var attTx: NSMutableAttributedString = NSMutableAttributedString(string: "")
+    let attTxt:NSMutableAttributedString = NSMutableAttributedString(string: "")
+    let attributesLargeFont  = [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 20), NSAttributedStringKey.paragraphStyle: paragraphStyleA1]
+    let attributesMediumFont = [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 16), NSAttributedStringKey.paragraphStyle: paragraphStyleA1]
+    let attributesSmallFont  = [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 12), NSAttributedStringKey.paragraphStyle: paragraphStyleA1]
+    var year = ""
+    for i in 0...4 {
+        let line = lines[i]
+        if line .hasPrefix("WWDC") {
+            attTx  = NSMutableAttributedString(string: lines[0] + "\n", attributes: attributesLargeFont)
+            attTxt.append(attTx)
+            let comps = line.components(separatedBy: " ")
+            if comps.count >= 3 {
+                year = comps[1]
+            }
+        }
+    }
+    if year.isEmpty {
+        print("😡 Bad format in \(selecFileInfo.url!.lastPathComponent)!")
+        return attTxt
+    }
+
+    var prevLine = ""
+    var flag = false
+    var str = ""
+    var text = "Year\tSess\tOSX\tiOS\tTitle\tDescription\n"
+    for line in lines {
+        if flag {
+            flag = false
+            text += "\(str)\t\(line.prefix(222))\n"
+        }
+        if line.hasPrefix("Session") {
+            let comps = line.split(separator: " ", maxSplits: 2, omittingEmptySubsequences: true)
+            let sessionNum = String(comps[1])
+            var listOS = ""
+            if comps.count > 2 { listOS = String(comps[2]) }
+            let iOS = listOS.contains("iOS") ? "1" : "0"
+            let macOS = listOS.contains("macOS") ? "1" : "0"
+            str = "\(year)\t\(sessionNum)\t\(macOS)\t\(iOS)\t\(prevLine)"
+            flag = true
+        }
+        prevLine = line
+    }
+
+    attTx  = NSMutableAttributedString(string: text, attributes: attributesSmallFont)
+    attTxt.append(attTx)
+    return attTxt
+}
+
 
 // MARK: - the main event
 // called from analyseContentsButtonClicked
@@ -247,7 +299,7 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
         }
         lineNum += 1
         var netCurlys = 0
-        let aa = line.trim()
+        let aa = line.trim
         if aa.hasPrefix("/*") {                         // "/*"
             inMultiLineComment = true
         }
@@ -280,13 +332,13 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
             let (codeLine, comment) = stripComment(fullLine: aa, lineNum: lineNum)
             if !comment.isEmpty { nTrailing += 1 }
 
-            let pQuoteF = codeLine.indexOf(searchforStr: "\"")
-            let pQuoteR = codeLine.indexOfRev(searchforStr: "\"")
+            let pQuoteF = codeLine.IndexOf("\"")
+            let pQuoteR = codeLine.IndexOfRev("\"")
 
-            var pOpenCurlyF = codeLine.indexOf(searchforStr: "{")
-            var pOpenCurlyR = codeLine.indexOfRev(searchforStr: "{")
-            var pCloseCurlyF = codeLine.indexOf(searchforStr: "}")
-            var pCloseCurlyR = codeLine.indexOfRev(searchforStr: "}")
+            var pOpenCurlyF = codeLine.IndexOf("{")
+            var pOpenCurlyR = codeLine.IndexOfRev("{")
+            var pCloseCurlyF = codeLine.IndexOf("}")
+            var pCloseCurlyR = codeLine.IndexOfRev("}")
 
             inQuote = false
             var isEscaped = false

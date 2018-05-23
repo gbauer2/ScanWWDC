@@ -1,20 +1,28 @@
 //
-//  myExtensions.swift
-//  Weather Central
+//  StringExtension.swift
+//  Almanac
 //
 //  Created by George Bauer on 10/11/17.
 //  Copyright © 2017 GeorgeBauer. All rights reserved.
-//  Ver 1.1.1   2/16/2018
-// String extensions
+//  Ver 1.5.1   5/23/2018 Add trimStart, trimEnd
+//  Ver 1.5.0   5/20/2018 change .indexOf(SearchforStr to .IndexOf(_ move PadLeft, PadRight from VBCompatability
+//      1.4.1   5/16/2018 Protect .mid(str,p,length) from negative length
+//      1.4.0   5/06/2018 Add Subscripts again
+//      1.3.1   5/06/2018 "Trim", leaving only "trim"
+//      1.3.0   5/03/2018 Change func trim() to var trim
+//      1.2.1   4/03/2018 Clean up .left, .right
+//      1.2.0   4/03/2018 remove subscript routines (not needed in Swift4)
+//      1.1.2   3/01/2018 fix .right for negative length
+// String extensions 100% tested
 
 import Foundation
 
 // String extensions: 
 // subscript(i), subscript(range), left(i), right(i), mid(i,len), rightJust(len),
-// indexOf(str), indexOfRev(str), trim(), contains(str), containsIgnoringCase(str), pluralize(n)
+// indexOf(str), indexOfRev(str), trim, contains(str), containsIgnoringCase(str), pluralize(n)
 extension String {
 
-    //------ subscript: allows string to be sliced be ints ------
+    //------ subscript: allows string to be sliced be ints: e.g. str[2] ------
     subscript (_ i: Int) -> Character {
         return self[index(startIndex, offsetBy: i)]
     }
@@ -32,28 +40,20 @@ extension String {
         return String(self[start...end])
     }
 
-    //------ left: get the 1st n characters from self ------
+    //---- left - get 1st n chars  (same as .prefix, but handles negative numbers) ------
     func left(_ length: Int) -> String {
-        if length <= 0          { return "" }
-        if length > self.count  { return self }
-        let end = index(startIndex, offsetBy: length)
-        return String(self[Range(startIndex ..< end)])
+        return String(self.prefix( max(length, 0)))
     }
-    //------ right: get the last n characters from self ------
+    //---- right - get last n chars (same as .suffix, but handles negative numbers) ------
     func right(_ length: Int) -> String {
-        let fullLen = self.count
-        if length > fullLen || length < 0 {
-            return self
-        }
-        let start = index(startIndex, offsetBy: fullLen - length)
-        let end = index(startIndex, offsetBy: fullLen)
-        return String(self[Range(start ..< end)])
+        return String(self.suffix(max(length, 0)))
     }
 
-    //------ mid: extract a string starting at 'begin', of length ------
+    //---- mid - extract a string starting at 'begin', of length (zero-based) ------
     func mid(begin: Int, length: Int = 0) -> String {
         let lenOrig = self.count                // length of subject str
-        if begin > lenOrig || begin < 0  { return "" }
+        if begin > lenOrig || begin < 0 || length < 0 { return "" }
+
 
         var lenNew = length                     // length of extracted string
         if length == 0 ||  begin + length > lenOrig {
@@ -65,15 +65,49 @@ extension String {
         return String(self[Range(startIndexNew ..< endIndex)])
     }
 
-    //------ rightJust: format right justify an int in self ------
+    //---- rightJust - format right justify an int in self ------
     func rightJust(_ fieldLen: Int) -> String {
         guard self.count < fieldLen else { return self }
         let maxStr = String(repeating: " ", count: fieldLen)
         return (maxStr + self).right(fieldLen)
     }
 
-    //------ indexOf, indexOfRev: find position of 2nd str in self ------
-    func indexOf(searchforStr: String, startPoint: Int = 0) -> Int {
+    //---- PadRight - add spaces to right
+    func PadRight(_ n: Int) -> String {
+        let len = self.count
+        if n <= len { return String(self.prefix(n)) }
+        let fill = String(repeating: " ", count: n - len)
+        return self + fill
+    }
+
+    //---- PadLeft - add spaces to left
+    func PadLeft(_ n: Int) -> String {
+        let len = self.count
+        if n <= len { return String(self.prefix(n)) }
+        let fill = String(repeating: " ", count: n - len)
+        return fill + self
+    }
+
+    //---- IndexOf - find position of str in self ------
+    func IndexOf( _ searchforStr: String) -> Int {
+        if self.contains(searchforStr) {
+            let lenOrig = self.count
+            let lenSearchFor = searchforStr.count
+            var p = 0
+            while p + lenSearchFor <= lenOrig {
+                if self.mid(begin: p, length: lenSearchFor) == searchforStr {
+                    return p
+                }
+                p += 1
+            }                       // Should never get here
+        }//endif                    // Should never get here
+        return -1
+    }//end func
+
+
+    //---- IndexOf - find position of str in self starting a startPoint ------
+    func IndexOf(searchforStr: String, startPoint: Int = 0) -> Int {
+        if !self.contains(searchforStr) { return -1 }
         let lenOrig = self.count
         let lenSearchFor = searchforStr.count
         var p = startPoint
@@ -85,37 +119,40 @@ extension String {
         }
         return -1
     }
-    func indexOfRev(searchforStr: String) -> Int {
-        let lenOrig = self.count
-        let lenSearchFor = searchforStr.count
-        var p = lenOrig - lenSearchFor
-        while p >= 0 {
-            if self.mid(begin: p, length: lenSearchFor) == searchforStr {
-                return p
-            }
-            p -= 1
-        }
+
+    //---- IndexOfRev - find position of str in self, seaching backwards from end ------
+    func IndexOfRev(_ searchforStr: String) -> Int {
+        if self.contains(searchforStr) {
+            let lenOrig = self.count
+            let lenSearchFor = searchforStr.count
+            var p = lenOrig - lenSearchFor
+            while p >= 0 {
+                if self.mid(begin: p, length: lenSearchFor) == searchforStr {
+                    return p
+                }
+                p -= 1
+            }                   // Should never get here
+        }                       // Should never get here
         return -1
     }
 
-    //------ trim(): remove whitespace at both ends ------
-    func trim() -> String {
-        return self.trimmingCharacters(in: .whitespacesAndNewlines)
-        //self.trimmingCharacters(in: .whitespaces)
+    //---- trim - remove whitespace (and newlines)) at both ends ------
+    var trim: String { return self.trimmingCharacters(in: .whitespacesAndNewlines) }
+
+    //---- trimStart & trimEnd - Remove ONLY whitespace from Left or Right
+    var trimStart: String {
+        return self.replacingOccurrences(of: "^\\s+", with: "", options: .regularExpression)
+    }
+    var trimEnd: String {
+        let trimmed = self.replacingOccurrences(of: "\\s+$", with: "", options: .regularExpression)
+        return trimmed
     }
 
-    //------ contains(str), containsIgnoringCase(str): does self contain str ------ Now Built-in to Swift
-//    func contains(_ find: String) -> Bool{
-//        return self.range(of: find) != nil
-//    }
-//    func containsIgnoringCase(_ find: String) -> Bool{
-//        return self.range(of: find, options: .caseInsensitive) != nil
-//    }
-
-    //------ Pluralize a word (English) ------
+    //---- pluralize - Pluralize a word (English) ------
     func pluralize(_ count: Int) -> String {
+        var s: String
         if count == 1 || self.count < 2 {
-            return self
+            s = self
         } else {
             let last2Chars =  self.right(2)
             let lastChar = last2Chars.right(1)
@@ -133,8 +170,9 @@ extension String {
                 prefix = self
                 suffix = "s"
             }
-            return prefix + (lastChar != lastChar.uppercased() ? suffix : suffix.uppercased())
+            s = prefix + (lastChar != lastChar.uppercased() ? suffix : suffix.uppercased())
         }
+        return s
     }
     private var vowels: [String] {
         get {
