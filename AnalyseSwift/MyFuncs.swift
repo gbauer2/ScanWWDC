@@ -5,12 +5,15 @@
 //  Created by George Bauer on 9/29/17.
 //  Copyright © 2017 GeorgeBauer. All rights reserved.
 
-//  Ver 1.5.3   5/14/2018   Fix replaceInString
+//  Ver 1.6.2   8/16/2018   Add: getContentsOf(directoryStr), getFileInfo(_ str), getFileInfo(url)
+//      1.6.1   7/11/2018   Fix isNumeric for leading/trailing whitespace
+//      1.6.0   6/16/2018   Add matches(for regex: String, in text: String) & isMatch(for regex: String, in text: String)
+//      1.5.3   5/14/2018   Fix replaceInString
 //      1.5.2   5/13/2018   Add replaceCharInString, replaceInString
 //      1.5.1   5/02/2018   Add Date stuff isSameDay() timeDiffSecs()
 //      1.5.0   4/22/2018   Add printDictionary(dict: [String: String],...), [String: Double], [String: Int], default:expandLevels=0,dashLen=0(auto)
 //      1.4.0   4/19/2018   Add Date extensions (from VBCompatability)
-//      1.3.0   4/16/2018   move GreatCircAng, GreatCircDist, formatLatLon, formatDistDir, degToCardinal to MapLibVB
+//      1.3.0   4/16/2018   Move GreatCircAng, GreatCircDist, formatLatLon, formatDistDir, degToCardinal to MapLibVB
 //      1.2.1   4/09/2018   Add printDictionary(dict: [String: Date], ...
 //      1.2.0   3/09/2018   Add File handling funcs, formatDbl(num,places), isCharDigit
 //  ------ General Purpose Subroutines ------
@@ -84,6 +87,7 @@ public func makeTimeStr(hrStr: String, minStr: String, to24: Bool) -> String {
 }
 
 //---- Rounds "number" to a number of decimal "places" e.g. (3.1426, 2) -> 3.14 ----
+// USE INSTEAD: print(String(format: "%.3f", totalWorkTimeInHours))
 //public func roundToPlaces(number: Double, places: Int) -> Double {
 //    let divisor = pow(10.0, Double(places))
 //    return (number * divisor).rounded() / divisor
@@ -117,7 +121,7 @@ public func isCharDigit(_ char: Character) -> Bool {
 
 // ---- Test if a String is a valid Number ---
 public func isNumeric(_ string: String) -> Bool {
-    return Double(string) != nil
+    return Double(string.trimmingCharacters(in: .whitespaces)) != nil
 }
 
 public func replaceCharInString(string: String, pos: Int, newChar: Character) -> String {
@@ -157,6 +161,79 @@ public func folderExists(url: URL) -> Bool {
     var isDirectory: ObjCBool = false
     let folderExists = FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory)
     return folderExists
+}
+
+//------ getContentsOf(directory:) - return full file names for Contents Of Directory
+func getContentsOf(directoryStr: String) -> [String] {
+    let url = URL(fileURLWithPath: directoryStr)
+    do {
+        let urls = try FileManager.default.contentsOfDirectory(at: url, includingPropertiesForKeys: [], options:  [.skipsHiddenFiles, .skipsSubdirectoryDescendants])
+        let fullNames = urls.map{ return $0.path}
+        return fullNames
+    } catch {
+        return []
+    }
+}
+
+//????? incorporate both getFileInfo() funcs into struct as inits
+public struct FileAttributes {
+    let url:            URL?
+    var name        = "????"
+    var creationDate:     Date?
+    var modificationDate: Date?
+    var size        = 0
+    var isDir       = false
+    //------ getFileInfo - returns attributes of fileName (file or folder) as a FileAttributes struct
+    static func getFileInfo(_ str: String) -> FileAttributes {
+        let url = URL(fileURLWithPath: str)
+        return getFileInfo(url: url)
+    }
+
+    //------ getFileInfo - returns attributes of url (file or folder) as a FileAttributes struct
+    static func getFileInfo(url: URL) -> FileAttributes {
+        do {
+            let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
+            let name             = url.lastPathComponent
+            let creationDate     = attributes[FileAttributeKey(rawValue: "NSFileCreationDate")]     as? Date
+            let modificationDate = attributes[FileAttributeKey(rawValue: "NSFileModificationDate")] as? Date
+            let size             = attributes[FileAttributeKey(rawValue: "NSFileSize")]             as? Int ?? 0
+            let fileType         = attributes[FileAttributeKey(rawValue: "NSFileType")] as? String
+            let isDir            = (fileType?.contains("Dir"))!
+            return FileAttributes(url: url, name: name, creationDate: creationDate, modificationDate: modificationDate, size: size, isDir: isDir)
+        } catch {
+            return FileAttributes(url: nil, name: "???", creationDate: nil, modificationDate: nil, size: 0, isDir: false)
+        }
+    }
+}// end struct FileAttributes
+
+
+// MARK:---- Regular Expression (RegEx) ----
+
+//---- Regular Expressions Matches ----
+func matches(for regex: String, in text: String) -> [String] {
+    do {
+        let regex = try NSRegularExpression(pattern: regex)
+        let results = regex.matches(in: text, range: NSRange(text.startIndex..., in: text))
+        let finalResult = results.map {
+            String(text[Range($0.range, in: text)!])
+        }
+        return finalResult
+    } catch let error {
+        print("⛔️invalid regex: \"\(regex)\" \(error.localizedDescription)")
+        return []
+    }
+}
+
+//---- Regular Expressions Matches ----
+func isMatch(for regex: String, in text: String) -> Bool {
+    do {
+        let regex = try NSRegularExpression(pattern: regex)
+        let result = regex.firstMatch(in: text, options: [], range: NSRange(text.startIndex..., in: text))
+        return result != nil
+    } catch let error {
+        print("⛔️invalid regex: \"\(regex)\" \(error.localizedDescription)")
+        return false
+    }
 }
 
 // MARK:- Printing Dictionaries
@@ -311,7 +388,7 @@ extension Date {
         return out
     }
 
-    //---- Date.getComponants -
+    //---- Date.getComponents -
     func getComponents() -> DateComponents {
         let unitFlags:Set<Calendar.Component> = [ .year, .month, .day, .hour, .minute, .second, .calendar, .timeZone, .weekday, .weekdayOrdinal, .quarter, .weekOfMonth, .weekOfYear ]
         let dateComponents = Calendar.current.dateComponents(unitFlags, from: self)

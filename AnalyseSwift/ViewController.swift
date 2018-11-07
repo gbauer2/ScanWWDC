@@ -27,20 +27,11 @@
 
 import Cocoa
 
-struct FileAttributes {
-    let url:  URL?
-    var name   = "????"
-    var creationDate:     Date?
-    var modificationDate: Date?
-    var size   = 0
-    var isDir  = false
-}
-
 class ViewController: NSViewController {
 
     // MARK: - Outlets
     
-    @IBOutlet weak var splitView: NSSplitView!
+    @IBOutlet weak var splitView:    NSSplitView!
     @IBOutlet weak var tableView:    NSTableView!
     @IBOutlet weak var infoTextView: NSTextView!
     @IBOutlet weak var saveInfoButton:          NSButton!
