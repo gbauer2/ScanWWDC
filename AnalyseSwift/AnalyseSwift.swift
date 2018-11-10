@@ -211,7 +211,7 @@ func analyseWWDC(_ str: String, selecFileInfo: FileAttributes) -> NSAttributedSt
     var prevLine = ""
     var flag = false
     var str = ""
-    var text = "Year\tSess\tOSX\tiOS\tTitle\tKeyword\twant\tfin\tlang\tDescription\n"
+    var text = "Year \tSess\tOSX\tiOS\tTitle \tKeyword \twant \tfin \tlang \tDescription\n"
     var totalSessions = 0
 
     if year == "2018" {
@@ -379,7 +379,7 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
 
     var inMultiLineComment  = false
     var inQuote             = false
-    var inTripleQuote       = false
+    //var inTripleQuote       = false
 
     var inBlockName         = ["","","","","","","","",""]
 
@@ -459,16 +459,16 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
                 }
             }
             if inQuote {
-                print("🔶\(lineNum) Odd number of Quotes - \(aa)")
+                print("⚠️\(lineNum) Odd number of Quotes - \(aa)")
             }
             if (pQuoteF == pQuoteR) && (pQuoteF >= 0) {
-                print("🔶\(lineNum) Unmatched Quote \(aa)")
+                print("⚠️\(lineNum) Unmatched Quote - \(aa)")
             }
             if pOpenCurlyF >= 0 && (pOpenCurlyF != pOpenCurlyR) {
-                print("🔶\(lineNum) multiple open curlys \(aa)")
+                print("⚠️\(lineNum) multiple open curlys.   \"\(aa)\"")
             }
             if pCloseCurlyF >= 0 && (pCloseCurlyF != pCloseCurlyR) {
-                print("🔶\(lineNum) multiple close curlys \(aa)")
+                print("⚠️\(lineNum) multiple close curlys.  \"\(aa)\"")
             }
             // Create a CharacterSet of delimiters.
             let separators = CharacterSet(charactersIn: "\t (:")
@@ -535,7 +535,7 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
                             blockOnDeck.name = "\(containerName).\(blockOnDeck.name)"
                         }
 
-                        print("🔶func \(blockOnDeck.name)")
+                        print("✅ func \(blockOnDeck.name)")
                         blockTypes[index].count += 1
                     }
                     foundNamedBlock = true

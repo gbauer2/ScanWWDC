@@ -15,6 +15,7 @@
 		CE83F8BB1FFD329D00C39EC8 /* MyFuncs.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE83F8BA1FFD329C00C39EC8 /* MyFuncs.swift */; };
 		CEA6263A20067DCA000F923D /* SampleCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEA6263920067DCA000F923D /* SampleCode.swift */; };
 		CEA6263D20068AA2000F923D /* AnalyseSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEA6263B20068AA2000F923D /* AnalyseSwift.swift */; };
+		CEBAD4A42194A8E600CBBCBA /* AnalyseXcodeproj.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEBAD4A32194A8E600CBBCBA /* AnalyseXcodeproj.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +29,7 @@
 		CE83F8BA1FFD329C00C39EC8 /* MyFuncs.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MyFuncs.swift; sourceTree = "<group>"; };
 		CEA6263920067DCA000F923D /* SampleCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleCode.swift; sourceTree = "<group>"; };
 		CEA6263B20068AA2000F923D /* AnalyseSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyseSwift.swift; sourceTree = "<group>"; };
+		CEBAD4A32194A8E600CBBCBA /* AnalyseXcodeproj.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyseXcodeproj.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -63,14 +65,23 @@
 				26ECD33A1E874B5C00380F56 /* AppDelegate.swift */,
 				26ECD33C1E874B5C00380F56 /* ViewController.swift */,
 				CEA6263B20068AA2000F923D /* AnalyseSwift.swift */,
-				CE83F8BA1FFD329C00C39EC8 /* MyFuncs.swift */,
-				CE67A6A31FFA066B00BD57BD /* StringExtension.swift */,
+				CEBAD4A32194A8E600CBBCBA /* AnalyseXcodeproj.swift */,
 				CEA6263920067DCA000F923D /* SampleCode.swift */,
+				CEE7D49A2197560D005B0559 /* MyLibrary */,
 				26ECD33E1E874B5C00380F56 /* Assets.xcassets */,
 				26ECD3401E874B5C00380F56 /* Main.storyboard */,
 				26ECD3431E874B5C00380F56 /* Info.plist */,
 			);
 			path = AnalyseSwift;
+			sourceTree = "<group>";
+		};
+		CEE7D49A2197560D005B0559 /* MyLibrary */ = {
+			isa = PBXGroup;
+			children = (
+				CE83F8BA1FFD329C00C39EC8 /* MyFuncs.swift */,
+				CE67A6A31FFA066B00BD57BD /* StringExtension.swift */,
+			);
+			path = MyLibrary;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -148,6 +159,7 @@
 			files = (
 				26ECD33D1E874B5C00380F56 /* ViewController.swift in Sources */,
 				CE83F8BB1FFD329D00C39EC8 /* MyFuncs.swift in Sources */,
+				CEBAD4A42194A8E600CBBCBA /* AnalyseXcodeproj.swift in Sources */,
 				CEA6263A20067DCA000F923D /* SampleCode.swift in Sources */,
 				CEA6263D20068AA2000F923D /* AnalyseSwift.swift in Sources */,
 				26ECD33B1E874B5C00380F56 /* AppDelegate.swift in Sources */,

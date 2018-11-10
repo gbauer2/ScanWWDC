@@ -29,6 +29,13 @@ import Cocoa
 
 class ViewController: NSViewController {
 
+    enum AnalyseMode {
+        case none
+        case WWDC
+        case swift
+        case xcodeproj
+    }
+
     // MARK: - Outlets
     
     @IBOutlet weak var splitView:    NSSplitView!
@@ -47,6 +54,7 @@ class ViewController: NSViewController {
 
     var analyseFuncLocked = false               // because analyseSwiftFile() is not thread-save
     var displayedAnalysisUrl: URL?
+    var analyseMode = AnalyseMode.none
 
     // MARK: - Properties with didSet property observer
     var urlMismatch: URL? {
@@ -79,30 +87,43 @@ class ViewController: NSViewController {
             infoTextView.string = ""
             saveInfoButton.isEnabled = false
             guard let selectedUrl = selectedItemUrl else { return }
-            selecFileInfo = setFileInfo(url: selectedUrl)                       // set selecFileInfo (name,dates,size,type)
-            if selectedUrl.pathExtension == "swift" {         //    1) analyse swift
+            selecFileInfo = setFileInfo(url: selectedUrl)       // set selecFileInfo (name,dates,size,type)
+            if selectedUrl.pathExtension == "swift" {           //  1) analyse Swift
                 readContentsButton.isEnabled = true
+                analyseMode = .swift
                 analyseContentsButton.isEnabled = true
-                print("selectedItemUrl is Swift File: \(selectedUrl.lastPathComponent)")
+                print("🔷 selectedItemUrl is Swift File: \(selectedUrl.lastPathComponent)")
                 analyseContentsButtonClicked(self)
 
             } else if selectedUrl.lastPathComponent.hasPrefix("WWDC-20") && selectedUrl.pathExtension == "txt" {
                 readContentsButton.isEnabled = true
+                analyseMode = .WWDC                             //  2) analyse WWDC-20xx.txt
                 analyseContentsButton.isEnabled = true
-                print("selectedItemUrl is WWDC20xx.txt File: \(selectedUrl.lastPathComponent)")
+                print("🔷 selectedItemUrl is WWDC20xx.txt File: \(selectedUrl.lastPathComponent)")
 
+            } else if selecFileInfo.isDir {                     // isDir
+                if selectedUrl.pathExtension == "xcodeproj" {
+                    readContentsButton.isEnabled = false
+                    analyseMode = .xcodeproj                    //  3) analyse FileName.xcodeproj
+                    analyseContentsButton.isEnabled = true
+                    print("🔷 selectedItemUrl is xcodeproj File: \(selectedUrl.lastPathComponent)")
+                    analyseContentsButtonClicked(self)
 
-            } else if selecFileInfo.isDir {                                             // or 2) show dir contents
-                readContentsButton.isEnabled = false
-                analyseContentsButton.isEnabled = false
-                let tempFilesList = myContentsOf(folder: selectedUrl)
-                var tempStr = ""
-                for file in tempFilesList {
-                    tempStr += "\(file.lastPathComponent)\n"
+                } else {                                        //  4) show dir contents
+                    readContentsButton.isEnabled = false
+                    analyseContentsButton.isEnabled = false
+                    let tempFilesList = myContentsOf(folder: selectedUrl)
+                    var tempStr = ""
+                    tempStr = " \(tempFilesList.count) \("item".pluralize(tempFilesList.count)) in folder."
+//                    for file in tempFilesList {
+//                        tempStr += "\(file.lastPathComponent)\n"
+//                    }
+                    let formattedText = formatInfoText(tempStr)
+                    infoTextView.textStorage?.setAttributedString(formattedText)
                 }
-                infoTextView.string = tempStr
-            } else {                                                                    // or 3) show file attributes
+            } else {                                            //  5) show file attributes
                 readContentsButton.isEnabled = true
+                analyseMode = .none
                 analyseContentsButton.isEnabled = false
                 let infoString = infoAbout(url: selectedUrl)
                 if !infoString.isEmpty {
@@ -164,7 +185,7 @@ extension ViewController {
                 urlsFiltered = urls
             } else {                                                // if NOT showAllFiles: show only folders & swift files
                 for url in urls {
-                    if url.hasDirectoryPath || url.pathExtension == "swift" {
+                    if url.hasDirectoryPath || url.pathExtension == "swift" || (url.path.contains("WWDC") && url.pathExtension == "txt" ) {
                         urlsFiltered.append(url)
                     }
                 }
@@ -336,16 +357,10 @@ extension ViewController {
 
     @IBAction func analyseContentsButtonClicked(_ sender: Any) {
         if let url = selectedItemUrl {
-            do {
-                // Read file content
-                let contentFromFile = try NSString(contentsOf: url, encoding: String.Encoding.utf8.rawValue)
-                var fileType = ""
-                if url.pathExtension == "swift" {
-                    fileType = "swift"
-                } else if url.lastPathComponent.hasPrefix("WWDC-20") &&  url.pathExtension == "txt"  {
-                    fileType = "WWDC"
-                }
-                if !fileType.isEmpty {
+            if analyseMode == .swift || analyseMode == .WWDC {
+                do {
+                    // Read file content
+                    let contentFromFile = try NSString(contentsOf: url, encoding: String.Encoding.utf8.rawValue)
 
                     if analyseFuncLocked { return }                  // because analyseSwiftFile() is not thread-save
                     analyseFuncLocked = true
@@ -353,9 +368,9 @@ extension ViewController {
                     infoTextView.string = "Analysing..."
                     DispatchQueue.global(qos: .userInitiated).async {
                         var txt: NSAttributedString
-                        if fileType == "swift" {
+                        if  self.analyseMode == .swift {
                             txt = analyseSwiftFile(contentFromFile as String, selecFileInfo: self.selecFileInfo )
-                        } else if fileType == "WWDC" {
+                        } else if self.analyseMode == .WWDC {
                             txt = analyseWWDC(contentFromFile as String, selecFileInfo: self.selecFileInfo)
                         } else {
                             txt = NSAttributedString()
@@ -370,12 +385,18 @@ extension ViewController {
                             }//endif url
                         }//endif DispatchQueue.main
                     }//endif DispatchQueue.global
-                }//endif "swift"
-            }//end try
 
-            catch let error as NSError {
-                print("😡analyseContentsButtonClicked error: \(error)")
-            }
+                }//end try do
+
+                catch let error as NSError {
+                    print("😡analyseContentsButtonClicked error: \(error)")
+                }//end try catch
+
+            } else if analyseMode == .xcodeproj {
+                let txt = analyseXcodeproj(url: url)
+                self.infoTextView.textStorage?.setAttributedString(txt)
+            }//endif analyseMode
+
         }//end if let
     }//end analyseContentsButtonClicked
 
@@ -479,7 +500,7 @@ extension ViewController {
         // It is unlikely to return more than one URL, but you only want to take the first one.
         // You can use this method with different parameters to locate many different folders.
         guard let folder = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else { return nil }
-        print("\(folder)")
+        print("✅ dataFileUrl = \(folder)")
         // append a path component to create an app-specific folder URL and check to see if it exists.
         let appFolder = folder.appendingPathComponent("AnalyseSwiftCode")
         var isDirectory: ObjCBool = false
