@@ -58,7 +58,7 @@ public func analyseXcodeproj(url: URL) -> NSAttributedString {
                 if gotBuildSettings {
                     if line.contains("SDKROOT") {
                         (_, xcodeProj.sdkRoot) = keyValDecode(line)
-                        print("✅ \(line)")
+                        if idx < 11 { print("✅ \(line)") }
                     } else if line.contains("DEPLOYMENT_TARGET") {
                         let (key, val) = keyValDecode(line)
                         xcodeProj.deploymentTarget = key + " = " + val
@@ -164,8 +164,11 @@ public func analyseXcodeproj(url: URL) -> NSAttributedString {
     text += "createdOnToolsVersion = \(xcodeProj.createdOnToolsVersion)\n"
     text += "sdkRoot = \(xcodeProj.sdkRoot)\n"
     text += "\(xcodeProj.deploymentTarget)\n"    // deploymentTarget
-    let attTx  = NSMutableAttributedString(string: "", attributes: attributesSmallFont)
-    attTxt  = NSMutableAttributedString(string: text, attributes: attributesSmallFont)
-    attTxt.append(attTx)
-    return attTxt
+
+    let textAttributes: [NSAttributedStringKey: Any] = [
+        NSAttributedStringKey.font: NSFont.systemFont(ofSize: 18),
+        NSAttributedStringKey.paragraphStyle: NSParagraphStyle.default
+    ]
+    let formattedText = NSMutableAttributedString(string: text, attributes: textAttributes)
+    return formattedText
 }

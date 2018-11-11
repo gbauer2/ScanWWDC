@@ -12,6 +12,8 @@
 // recursivly find all file of type .swift or .xcodeproj
 // change state storage to userDefaults
 
+// Change View/Analyse buttons to segmented button
+
 // analyse:
 // inTripleQuote """
 // dependency
@@ -26,6 +28,8 @@
 // fixed color of multiline comments
 
 import Cocoa
+
+//#warning("This code is incomplete.")
 
 class ViewController: NSViewController {
 
@@ -52,7 +56,7 @@ class ViewController: NSViewController {
 
     var selecFileInfo = FileAttributes(url: nil, name: "???", creationDate: nil, modificationDate: nil, size: 0, isDir: false)
 
-    var analyseFuncLocked = false               // because analyseSwiftFile() is not thread-save
+    var analyseFuncLocked = false               // because analyseSwiftFile() is not thread-safe
     var displayedAnalysisUrl: URL?
     var analyseMode = AnalyseMode.none
 
@@ -118,7 +122,12 @@ class ViewController: NSViewController {
 //                    for file in tempFilesList {
 //                        tempStr += "\(file.lastPathComponent)\n"
 //                    }
-                    let formattedText = formatInfoText(tempStr)
+                    let textAttributes: [NSAttributedStringKey: Any] = [
+                        NSAttributedStringKey.font: NSFont.systemFont(ofSize: 18),
+                        NSAttributedStringKey.paragraphStyle: NSParagraphStyle.default
+                    ]
+                    let formattedText = NSMutableAttributedString(string: tempStr, attributes: textAttributes)
+
                     infoTextView.textStorage?.setAttributedString(formattedText)
                 }
             } else {                                            //  5) show file attributes
@@ -169,16 +178,16 @@ class ViewController: NSViewController {
 // MARK: - Getting file or folder information
 extension ViewController {
 
-    // returns a list of urls in s
+    // returns a list of urls in folder - sorted alphabetically
     func myContentsOf(folder: URL) -> [URL] {
         let fileManager = FileManager.default
 
         do {
-            let contents = try fileManager.contentsOfDirectory(atPath: folder.path)
+            let contents = try fileManager.contentsOfDirectory(atPath: folder.path) // fileNames
 
             let urls = contents
-                .filter({ return showAllFiles ? true : !$0.hasPrefix(".") })
-                .map { return folder.appendingPathComponent($0) }
+                .filter({ return showAllFiles ? true : !$0.hasPrefix(".") })    // filter out hidden (or not)
+                .map { return folder.appendingPathComponent($0) }           // create array with full path
 
             var urlsFiltered = [URL]()
             if showAllFiles {
@@ -190,6 +199,10 @@ extension ViewController {
                     }
                 }
             }
+            // .sort closure returns true when the first element passed should be ordered before the second
+            //urlsFiltered.sort(by: { $0.path.lowercased() < $1.path.lowercased() })    // sort alphabetically
+            //urlsFiltered.sort(by: { ($0.hasDirectoryPath && !$1.hasDirectoryPath)})   // sort folders 1st
+            urlsFiltered.sort(by: { ($0.hasDirectoryPath && !$1.hasDirectoryPath) || (($0.hasDirectoryPath == $1.hasDirectoryPath) && ($0.path.lowercased() < $1.path.lowercased())) })
             return urlsFiltered
 
         } catch {
