@@ -32,7 +32,7 @@ private func keyValDecode(_ str: String) -> (String, String) {
 public func analyseXcodeproj(url: URL) -> NSAttributedString {
     //let attributesLargeFont  = [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 20), NSAttributedStringKey.paragraphStyle: paragraphStyleA1]
     //let attributesMediumFont = [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 16), NSAttributedStringKey.paragraphStyle: paragraphStyleA1]
-    let attributesSmallFont  = [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 12), NSAttributedStringKey.paragraphStyle: paragraphStyleA1]
+    let attributesSmallFont  = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 12), NSAttributedString.Key.paragraphStyle: paragraphStyleA1]
     var attTxt  = NSMutableAttributedString(string: "", attributes: attributesSmallFont)
     var newURL = url
     var gotNewURL = false
@@ -165,9 +165,9 @@ public func analyseXcodeproj(url: URL) -> NSAttributedString {
     text += "sdkRoot = \(xcodeProj.sdkRoot)\n"
     text += "\(xcodeProj.deploymentTarget)\n"    // deploymentTarget
 
-    let textAttributes: [NSAttributedStringKey: Any] = [
-        NSAttributedStringKey.font: NSFont.systemFont(ofSize: 18),
-        NSAttributedStringKey.paragraphStyle: NSParagraphStyle.default
+    let textAttributes: [NSAttributedString.Key: Any] = [
+        NSAttributedString.Key.font: NSFont.systemFont(ofSize: 18),
+        NSAttributedString.Key.paragraphStyle: NSParagraphStyle.default
     ]
     let formattedText = NSMutableAttributedString(string: text, attributes: textAttributes)
     return formattedText

@@ -64,12 +64,12 @@ private struct LineItem {
 private func showLineItems(name: String, items: [LineItem]) -> NSMutableAttributedString {
 
     let txt = "\n" + showCount(count: items.count, name: name, ifZero: "No") + ":\n"
-    let nsAttTxt = NSMutableAttributedString(string: txt, attributes: [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 18), NSAttributedStringKey.paragraphStyle: paragraphStyleA1])
+    let nsAttTxt = NSMutableAttributedString(string: txt, attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 18), NSAttributedString.Key.paragraphStyle: paragraphStyleA1])
     for item in items {
         var tx = "      \t@ line # \(item.lineNum)    \t\(item.name)"
         if !item.extra.isEmpty {tx += "  (\(item.extra) )"}
         tx += "\n"
-        let nsAttTx = NSAttributedString(string: tx, attributes: [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 14), NSAttributedStringKey.paragraphStyle: paragraphStyleA1])
+        let nsAttTx = NSAttributedString(string: tx, attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 14), NSAttributedString.Key.paragraphStyle: paragraphStyleA1])
         nsAttTxt.append(nsAttTx)
     }
     return nsAttTxt
@@ -90,12 +90,12 @@ private func showNamedBlock(name: String, blockType : BlockType, list: [BlockInf
     tabStop0 = NSTextTab(textAlignment: .left,  location: 200)
     paragraphStyleA2.addTabStop(tabStop0)
     let txt = "\n" + showCount(count: items.count, name: name, ifZero: "No") + ":\n"
-    let nsAttTxt = NSMutableAttributedString(string: txt, attributes: [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 18), NSAttributedStringKey.paragraphStyle: paragraphStyleA1])
+    let nsAttTxt = NSMutableAttributedString(string: txt, attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 18), NSAttributedString.Key.paragraphStyle: paragraphStyleA1])
     for item in items {
         var tx = "\t\(formatInt(number: item.numLines, fieldLen: 5))\t lines @\t\(item.lineNum) \t\(item.name)"
         if !item.extra.isEmpty {tx += "  (\(item.extra) )"}
         tx += "\n"
-        let nsAttTx = NSAttributedString(string: tx, attributes: [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 14), NSAttributedStringKey.paragraphStyle: paragraphStyleA2])
+        let nsAttTx = NSAttributedString(string: tx, attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 14), NSAttributedString.Key.paragraphStyle: paragraphStyleA2])
         nsAttTxt.append(nsAttTx)
     }
     return nsAttTxt
@@ -187,9 +187,9 @@ func analyseWWDC(_ str: String, selecFileInfo: FileAttributes) -> NSAttributedSt
     let lines = str.components(separatedBy: "\n")
     var attTx: NSMutableAttributedString = NSMutableAttributedString(string: "")
     let attTxt:NSMutableAttributedString = NSMutableAttributedString(string: "")
-    let attributesLargeFont  = [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 20), NSAttributedStringKey.paragraphStyle: paragraphStyleA1]
+    let attributesLargeFont  = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 20), NSAttributedString.Key.paragraphStyle: paragraphStyleA1]
     //let attributesMediumFont = [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 16), NSAttributedStringKey.paragraphStyle: paragraphStyleA1]
-    let attributesSmallFont  = [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 12), NSAttributedStringKey.paragraphStyle: paragraphStyleA1]
+    let attributesSmallFont  = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 12), NSAttributedString.Key.paragraphStyle: paragraphStyleA1]
     var year = ""
     for i in 0...2 {
         let line = lines[i]
@@ -621,9 +621,9 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
         paragraphStyleA1.addTabStop(tabStop0)
     }
 
-    let attributesLargeFont  = [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 20), NSAttributedStringKey.paragraphStyle: paragraphStyleA1]
-    let attributesMediumFont = [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 16), NSAttributedStringKey.paragraphStyle: paragraphStyleA1]
-    let attributesSmallFont  = [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 12), NSAttributedStringKey.paragraphStyle: paragraphStyleA1]
+    let attributesLargeFont  = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 20), NSAttributedString.Key.paragraphStyle: paragraphStyleA1]
+    let attributesMediumFont = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 16), NSAttributedString.Key.paragraphStyle: paragraphStyleA1]
+    let attributesSmallFont  = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 12), NSAttributedString.Key.paragraphStyle: paragraphStyleA1]
 
     tx  = NSMutableAttributedString(string: "\t1\t2\t3\t4\t5\n", attributes: attributesSmallFont)
     txt.append(tx)

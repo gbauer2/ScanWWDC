@@ -122,9 +122,9 @@ class ViewController: NSViewController {
 //                    for file in tempFilesList {
 //                        tempStr += "\(file.lastPathComponent)\n"
 //                    }
-                    let textAttributes: [NSAttributedStringKey: Any] = [
-                        NSAttributedStringKey.font: NSFont.systemFont(ofSize: 18),
-                        NSAttributedStringKey.paragraphStyle: NSParagraphStyle.default
+                    let textAttributes: [NSAttributedString.Key: Any] = [
+                        NSAttributedString.Key.font: NSFont.systemFont(ofSize: 18),
+                        NSAttributedString.Key.paragraphStyle: NSParagraphStyle.default
                     ]
                     let formattedText = NSMutableAttributedString(string: tempStr, attributes: textAttributes)
 
@@ -594,15 +594,15 @@ extension ViewController {
         paragraphStyle?.alignment = .left
         paragraphStyle?.tabStops = [ NSTextTab(type: .leftTabStopType, location: 240) ]
 
-        let textAttributes: [NSAttributedStringKey: Any] = [
-            NSAttributedStringKey.font: NSFont.systemFont(ofSize: 14),
-            NSAttributedStringKey.paragraphStyle: paragraphStyle ?? NSParagraphStyle.default
+        let textAttributes: [NSAttributedString.Key: Any] = [
+            NSAttributedString.Key.font: NSFont.systemFont(ofSize: 14),
+            NSAttributedString.Key.paragraphStyle: paragraphStyle ?? NSParagraphStyle.default
         ]
 
         let formattedText = NSMutableAttributedString(string: text, attributes: textAttributes)
         var lengthLine1 = text.IndexOf("\n")
         if lengthLine1 < 0 { lengthLine1 = 0 }
-        formattedText.addAttribute(NSAttributedStringKey.font,
+        formattedText.addAttribute(NSAttributedString.Key.font,
                                    value: NSFont.systemFont(ofSize: 20),
                                    range: NSRange(location: 0, length: lengthLine1))
         return formattedText
@@ -621,22 +621,22 @@ extension ViewController {
         paragraphStyle.alignment = .left
         paragraphStyle.tabStops = [ NSTextTab(type: .rightTabStopType, location: 26),  NSTextTab(type: .leftTabStopType, location: 32) ]
 
-        let lineNumAttributes: [NSAttributedStringKey: Any] = [
+        let lineNumAttributes: [NSAttributedString.Key: Any] = [
             //NSAttributedStringKey.font: NSFont.systemFont(ofSize: 10),
-            NSAttributedStringKey.font: NSFont(name: "Menlo", size: 10)!,
-            NSAttributedStringKey.foregroundColor: NSColor.gray,
-            NSAttributedStringKey.paragraphStyle: paragraphStyle
+            NSAttributedString.Key.font: NSFont(name: "Menlo", size: 10)!,
+            NSAttributedString.Key.foregroundColor: NSColor.gray,
+            NSAttributedString.Key.paragraphStyle: paragraphStyle
         ]
         let formattedLineNum = NSAttributedString(string: "\t\(lineNumber)", attributes: lineNumAttributes)
 
-        var textAttributes: [NSAttributedStringKey: Any] = [
-            NSAttributedStringKey.font: NSFont(name: "PT Mono", size: 12)!,
-            NSAttributedStringKey.paragraphStyle: paragraphStyle
+        var textAttributes: [NSAttributedString.Key: Any] = [
+            NSAttributedString.Key.font: NSFont(name: "PT Mono", size: 12)!,
+            NSAttributedString.Key.paragraphStyle: paragraphStyle
         ]
         let formattedText = NSAttributedString(string: "\t\(codeLine)", attributes: textAttributes)
 
         //green
-        textAttributes[NSAttributedStringKey.foregroundColor] = NSColor(calibratedRed: 0, green: 0.6, blue: 0.15, alpha: 1)
+        textAttributes[NSAttributedString.Key.foregroundColor] = NSColor(calibratedRed: 0, green: 0.6, blue: 0.15, alpha: 1)
         let formatedComment = NSMutableAttributedString(string: comment + "\n", attributes: textAttributes)
 
         let output = NSMutableAttributedString(attributedString: formattedLineNum)
@@ -652,9 +652,9 @@ extension ViewController {
         paragraphStyle?.alignment = .left
         paragraphStyle?.tabStops = [ NSTextTab(type: .leftTabStopType, location: 48),  NSTextTab(type: .leftTabStopType, location: 96) ]
 
-        let textAttributes: [NSAttributedStringKey: Any] = [
-            NSAttributedStringKey.font: NSFont.systemFont(ofSize: 14),
-            NSAttributedStringKey.paragraphStyle: paragraphStyle ?? NSParagraphStyle.default
+        let textAttributes: [NSAttributedString.Key: Any] = [
+            NSAttributedString.Key.font: NSFont.systemFont(ofSize: 14),
+            NSAttributedString.Key.paragraphStyle: paragraphStyle ?? NSParagraphStyle.default
         ]
 
         let formattedText = NSAttributedString(string: text, attributes: textAttributes)
