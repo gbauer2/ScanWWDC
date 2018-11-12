@@ -18,7 +18,6 @@ public struct XcodeProj {
     var sdkRoot         = ""
     var deploymentTarget = ""
 }
-public var xcodeProj = XcodeProj()
 
 private func keyValDecode(_ str: String) -> (String, String) {
     let comps = str.components(separatedBy: "=")
@@ -29,7 +28,7 @@ private func keyValDecode(_ str: String) -> (String, String) {
     return (key, val)
 }
 
-public func analyseXcodeproj(url: URL) -> NSAttributedString {
+public func analyseXcodeproj(url: URL) -> (String, XcodeProj) {
     //let attributesLargeFont  = [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 20), NSAttributedStringKey.paragraphStyle: paragraphStyleA1]
     //let attributesMediumFont = [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 16), NSAttributedStringKey.paragraphStyle: paragraphStyleA1]
     let attributesSmallFont  = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 12), NSAttributedString.Key.paragraphStyle: paragraphStyleA1]
@@ -38,7 +37,7 @@ public func analyseXcodeproj(url: URL) -> NSAttributedString {
     var gotNewURL = false
 
     let fileManager = FileManager.default
-    xcodeProj = XcodeProj()
+    var xcodeProj = XcodeProj()
     do {
         let contents = try fileManager.contentsOfDirectory(atPath: url.path)
         print("🤠\(contents)")
@@ -145,15 +144,17 @@ public func analyseXcodeproj(url: URL) -> NSAttributedString {
 
  */
         } else {
-            attTxt  = NSMutableAttributedString(string: "\"project.pbxproj\" not found in \(url.path)", attributes: attributesSmallFont)
-            return attTxt
+            return ( "\"project.pbxproj\" not found in \(url.path)",xcodeProj)
         }
     } catch {
-        attTxt  = NSMutableAttributedString(string: "Error in \(url.path)", attributes: attributesSmallFont)
-        return attTxt
+        return  ( "Error in \(url.path)",xcodeProj)
     }
 
+    return ( "", xcodeProj)
 
+}//end func analyseXcodeproj
+
+public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {
     var text = "Oldest Swift Version used = \(xcodeProj.swiftVerMin)\n"
     if xcodeProj.swiftVerMin == 0.0 { text = "No Swift Version found!\n" }
     if xcodeProj.swiftVer1 != xcodeProj.swiftVer2 {

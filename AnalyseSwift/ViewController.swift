@@ -49,6 +49,7 @@ class ViewController: NSViewController {
     @IBOutlet weak var moveUpButton:            NSButton!
     @IBOutlet weak var readContentsButton:      NSButton!
     @IBOutlet weak var analyseContentsButton:   NSButton!
+    @IBOutlet weak var btnFindAllxcodeproj: NSButton!
 
     // MARK: - Properties
     var filesList:[URL] = []                    // selectedFolder{didSet}, toggleshowAllFiles, tableViewDoubleClicked, tableView stuff, etc
@@ -119,15 +120,8 @@ class ViewController: NSViewController {
                     let tempFilesList = myContentsOf(folder: selectedUrl)
                     var tempStr = ""
                     tempStr = " \(tempFilesList.count) \("item".pluralize(tempFilesList.count)) in folder."
-//                    for file in tempFilesList {
-//                        tempStr += "\(file.lastPathComponent)\n"
-//                    }
-                    let textAttributes: [NSAttributedString.Key: Any] = [
-                        NSAttributedString.Key.font: NSFont.systemFont(ofSize: 18),
-                        NSAttributedString.Key.paragraphStyle: NSParagraphStyle.default
-                    ]
+                    let textAttributes = setFontSizeAttribute(size: 18)
                     let formattedText = NSMutableAttributedString(string: tempStr, attributes: textAttributes)
-
                     infoTextView.textStorage?.setAttributedString(formattedText)
                 }
             } else {                                            //  5) show file attributes
@@ -143,6 +137,14 @@ class ViewController: NSViewController {
             }//endif
         }//end didSet
     }//var selectedItemUrl
+
+    func setFontSizeAttribute(size: CGFloat) -> [NSAttributedString.Key: Any] {
+        let textAttributes: [NSAttributedString.Key: Any] = [
+            NSAttributedString.Key.font: NSFont.systemFont(ofSize: size),
+            NSAttributedString.Key.paragraphStyle: NSParagraphStyle.default
+        ]
+        return textAttributes
+    }
 
     // MARK: - View Lifecycle & error dialog utility
     override func viewWillAppear() {
@@ -280,10 +282,49 @@ extension ViewController {
             return report.joined(separator: "\n")
 
         } catch {
-            return "No information available for \(url.path)"
+            return "⛔️No information available for \(url.path)"
         }
     }
 // MARK: - @IBActions
+
+    @IBAction func btnFindAllXcodeprojClicked(_ sender: Any) {
+        xcodeprojURLs = [URL]()
+        let dirPaths = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask)
+        //let dirPaths = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask)
+        let desktopURL = dirPaths[0]
+
+        var tempStr = "Reading through Folders ..."
+        let textAttributes = setFontSizeAttribute(size: 18)
+        var formattedText = NSMutableAttributedString(string: tempStr, attributes: textAttributes)
+        infoTextView.textStorage?.setAttributedString(formattedText)
+
+        findAllXcodeprojFiles(desktopURL)      // NSHomeDirectory() + Desktop
+
+        tempStr = "\(xcodeprojURLs.count) xcodeproj files found\n"
+        print(tempStr)
+
+        formattedText = NSMutableAttributedString(string: tempStr, attributes: textAttributes)
+        infoTextView.textStorage?.setAttributedString(formattedText)
+
+        var dictVersions = [String:Int]()
+        for url in xcodeprojURLs {
+            let (errCode, xcodeProj) = analyseXcodeproj(url: url)
+            if errCode.isEmpty {
+                var ver = xcodeProj.swiftVer1
+                if ver.isEmpty { ver = "???" }
+                if dictVersions[ver] == nil {
+                     dictVersions[ver] = 1
+                } else {
+                     dictVersions[ver] = dictVersions[ver]! + 1
+                }
+            }
+        }//next url
+        for (key,val) in dictVersions {
+            tempStr += "\(key):   \(val)\n"
+        }
+        formattedText = NSMutableAttributedString(string: tempStr, attributes: textAttributes)
+        infoTextView.textStorage?.setAttributedString(formattedText)
+    }//end func
 
     //user clicked on SelectFolder button (brings up FileOpenDialog)
     @IBAction func selectFolderClicked(_ sender: Any) {
@@ -406,16 +447,18 @@ extension ViewController {
                 }//end try catch
 
             } else if analyseMode == .xcodeproj {
-                let txt = analyseXcodeproj(url: url)
-                self.infoTextView.textStorage?.setAttributedString(txt)
+                let (errCode, xcodeProj) = analyseXcodeproj(url: url)
+                let formattedText: NSAttributedString
+                if errCode.isEmpty {
+                    formattedText = showXcodeproj(xcodeProj)
+                } else {
+                    formattedText = NSAttributedString(string: errCode)    // let formattedText = NSAttributedString(string: text, attributes: textAttributes)
+                }
+                self.infoTextView.textStorage?.setAttributedString(formattedText)
             }//endif analyseMode
 
         }//end if let
     }//end analyseContentsButtonClicked
-
-
-
-
 
 }//end class
 
