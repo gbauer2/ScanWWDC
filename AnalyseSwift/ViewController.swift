@@ -49,7 +49,7 @@ class ViewController: NSViewController {
     @IBOutlet weak var moveUpButton:            NSButton!
     @IBOutlet weak var readContentsButton:      NSButton!
     @IBOutlet weak var analyseContentsButton:   NSButton!
-    @IBOutlet weak var btnFindAllxcodeproj: NSButton!
+    @IBOutlet weak var btnFindAllxcodeproj:     NSButton!
 
     // MARK: - Properties
     var filesList:[URL] = []                    // selectedFolder{didSet}, toggleshowAllFiles, tableViewDoubleClicked, tableView stuff, etc
@@ -175,12 +175,12 @@ class ViewController: NSViewController {
         alert.beginSheetModal(for: window, completionHandler: nil)
     }
 
-}
+}//end class
 
 // MARK: - Getting file or folder information
 extension ViewController {
 
-    // returns a list of urls in folder - sorted alphabetically
+    // myContentsOf - returns a list of urls in folder, sorted folder/file, then alphabetically
     func myContentsOf(folder: URL) -> [URL] {
         let fileManager = FileManager.default
 
@@ -274,44 +274,50 @@ extension ViewController {
             value = attributes[key] as? Int ?? "????"
             report.append("\(key.rawValue):\t\(value)")
 
-            //NSFileType:    NSFileTypeDirectory            // List all attributes
-            //            for (key, value) in attributes {
-            //                if key.rawValue == "NSFileExtendedAttributes" { continue }  // bypass Extended
-            //                report.append("\(key.rawValue):\t\(value)")
-            //            }
             return report.joined(separator: "\n")
 
         } catch {
             return "⛔️No information available for \(url.path)"
         }
     }
-// MARK: - @IBActions
+
+    // MARK: - @IBActions
 
     @IBAction func btnFindAllXcodeprojClicked(_ sender: Any) {
         xcodeprojURLs = [URL]()
         let dirPaths = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask)
+        //let dirPaths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
         //let dirPaths = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask)
         let desktopURL = dirPaths[0]
+        let dirName = desktopURL.lastPathComponent
 
         var tempStr = "Reading through Folders ..."
-        let textAttributes = setFontSizeAttribute(size: 18)
+        var textAttributes = setFontSizeAttribute(size: 18)
         var formattedText = NSMutableAttributedString(string: tempStr, attributes: textAttributes)
         infoTextView.textStorage?.setAttributedString(formattedText)
 
         findAllXcodeprojFiles(desktopURL)      // NSHomeDirectory() + Desktop
 
-        tempStr = "\(xcodeprojURLs.count) xcodeproj files found\n"
+        tempStr = "\(xcodeprojURLs.count) xcodeproj files found under \(dirName)\n\n"
         print(tempStr)
 
         formattedText = NSMutableAttributedString(string: tempStr, attributes: textAttributes)
         infoTextView.textStorage?.setAttributedString(formattedText)
 
         var dictVersions = [String:Int]()
+        var printPaths   = [String]()
         for url in xcodeprojURLs {
             let (errCode, xcodeProj) = analyseXcodeproj(url: url)
             if errCode.isEmpty {
                 var ver = xcodeProj.swiftVer1
-                if ver.isEmpty { ver = "???" }
+                if ver.isEmpty { ver = "2.x" }
+                let barePath = url.deletingPathExtension().path
+                var comps = barePath.components(separatedBy: "/")
+                comps.removeFirst(3)
+                let pathName = comps.joined(separator: "/")
+                let verPath = ver + " " + pathName
+                printPaths.append(verPath)
+
                 if dictVersions[ver] == nil {
                      dictVersions[ver] = 1
                 } else {
@@ -319,9 +325,23 @@ extension ViewController {
                 }
             }
         }//next url
-        for (key,val) in dictVersions {
+
+        let dictSorted = dictVersions.sorted {$0.key < $1.key}
+        for (key,val) in dictSorted {
             tempStr += "\(key):   \(val)\n"
         }
+
+        printPaths.sort()
+        var prevPrefix = ""
+        for str in printPaths {
+            if str.prefix(3) != prevPrefix {
+                prevPrefix = String(str.prefix(3))
+                tempStr += "\n"
+            }
+            tempStr += str + "\n"
+        }
+        textAttributes = setFontSizeAttribute(size: 14)
+
         formattedText = NSMutableAttributedString(string: tempStr, attributes: textAttributes)
         infoTextView.textStorage?.setAttributedString(formattedText)
     }//end func

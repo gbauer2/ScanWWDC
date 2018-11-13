@@ -142,17 +142,17 @@ private func checkCurlys(codeName: String, itemName: String,posItem: Int, pOpenC
 func stripComment(fullLine: String, lineNum: Int) -> (codeLine: String, comment: String) {
     if !fullLine.contains("//") { return (fullLine, "") }               // No comment here
 
-    var pCommentF   = fullLine.IndexOf("//")              // Leftmost "//"
-    var pCommentR   = fullLine.IndexOfRev("//")           // Rightmost "//"
+    var pCommentF   = fullLine.IndexOf("//")                            // Leftmost "//"
+    var pCommentR   = fullLine.IndexOfRev("//")                         // Rightmost "//"
     let pQuoteF     = fullLine.IndexOf("\"")
-    //let pQuoteR     = fullLine.IndexOfRev("\"")
+    //let pQuoteR   = fullLine.IndexOfRev("\"")
 
-    if pQuoteF >= 0 {                                           // we have a Quote
+    if pQuoteF >= 0 {                                                   // we have a Quote
         var inQuote = false
         var isEscaped = false
         for p in 0..<fullLine.count {
             let char = fullLine.mid(begin: p, length: 1)
-            if char == "\"" && !isEscaped { inQuote = !inQuote }    // if Quote not escaped,
+            if char == "\"" && !isEscaped { inQuote = !inQuote }        // if Quote not escaped,
             if inQuote {
                 if p == pCommentF {
                     pCommentF = fullLine.IndexOf(searchforStr: "//", startPoint: p+1)
@@ -281,7 +281,6 @@ func analyseWWDC(_ str: String, selecFileInfo: FileAttributes) -> NSAttributedSt
                 if allText.contains("Siri")             { keyWord = "Siri" }
 
                 if title.hasPrefix("Platforms")         { keyWord = "Platforms" }
-
 
                 if title.contains("HomeKit")            { keyWord = "HomeKit" }
                 if title.contains("Notification")       { keyWord = "Notifications" }

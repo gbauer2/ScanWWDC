@@ -28,7 +28,7 @@ public func findAllXcodeprojFiles(_ folder: URL) {
             }
         }
     }
-        catch {
-            print("⛔️\(error) Error listing contents of \(folder)")
+    catch {
+        print("⛔️\(error) Error listing contents of \(folder)")
     }
 }
