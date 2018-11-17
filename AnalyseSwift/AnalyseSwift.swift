@@ -8,7 +8,7 @@
 
 import Cocoa
 
-// MARK: - Properties for analyseSwiftFile 
+// MARK: - Properties of analyseSwiftFile
 var curlyDepth      = 0                     //accessed from gotOpenCurly, gotCloseCurly, getSelecFileInfo
 var blockOnDeck     = BlockInfo()           //accessed from gotOpenCurly,                analyseSwiftFile
 var blockStack      = [BlockInfo]()         //accessed from gotOpenCurly, gotCloseCurly, analyseSwiftFile
@@ -160,7 +160,7 @@ func stripComment(fullLine: String, lineNum: Int) -> (codeLine: String, comment:
                 if p == pCommentR { pCommentR = -1 }
                 isEscaped = (!isEscaped && (char == "\\"))
             }
-        }
+        }//next p
 
         if pCommentF < 0 { pCommentF = pCommentR }
         if pCommentR < 0 { pCommentR = pCommentF }
@@ -356,7 +356,7 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
         if i != ty.blockType.rawValue {
             print("⛔️ Error \(ty.blockType) \(i) <> \(ty.blockType.rawValue)")
         }
-    }
+    }//next i
 
     curlyDepth   = 0
     blockOnDeck  = BlockInfo()
@@ -378,17 +378,18 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
 
     var inMultiLineComment  = false
     var inQuote             = false
-    //var inTripleQuote       = false
+    //var inTripleQuote     = false
 
     var inBlockName         = ["","","","","","","","",""]
 
-    var imports         = [LineItem]()
+    var imports             = [LineItem]()
 
-    //var enums           = [LineItem]()
-    //var classes         = [LineItem]()
-    //var extensions      = [LineItem]()
+    //var enums             = [LineItem]()
+    //var classes           = [LineItem]()
+    //var extensions        = [LineItem]()
 
     //infoTextView.string = "Analysing..."
+
     // MARK: - Main Loop
     for line in lines {
         if selecFileInfo.url != ViewController.latestUrl {
@@ -599,13 +600,10 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
 
         }//end is CodeLine
     }//next line
-
     //MARK:- end Main Loop
+
     //MARK:- Analysis display: NSMutableAttributedString
 
-    // class: (superclass), (protocols)
-    // extension: (protocols)
-    // protocol, struct, enum
     var tx: NSMutableAttributedString = NSMutableAttributedString(string: "")
     let txt:NSMutableAttributedString = NSMutableAttributedString(string: "")
 
@@ -690,7 +688,7 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
         print("⛔️ Error - \(blockTypes.count) blockTypes,  but \(printOrder.count) items in printOrder")
     }
 
-    // for each named blockType, show the list of blocks in printOrder
+    // foreach named blockType, show the list of blocks in printOrder
     for i in 0..<blockTypes.count - 1 {
         let b = blockTypes[printOrder[i]]
         tx = showNamedBlock(name: b.displayName, blockType: b.blockType, list: codeElements)

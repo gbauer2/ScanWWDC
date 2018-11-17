@@ -31,8 +31,8 @@ private func keyValDecode(_ str: String) -> (String, String) {
 public func analyseXcodeproj(url: URL) -> (String, XcodeProj) {
     //let attributesLargeFont  = [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 20), NSAttributedStringKey.paragraphStyle: paragraphStyleA1]
     //let attributesMediumFont = [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 16), NSAttributedStringKey.paragraphStyle: paragraphStyleA1]
-    let attributesSmallFont  = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 12), NSAttributedString.Key.paragraphStyle: paragraphStyleA1]
-    var attTxt  = NSMutableAttributedString(string: "", attributes: attributesSmallFont)
+    //let attributesSmallFont  = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 12), NSAttributedString.Key.paragraphStyle: paragraphStyleA1]
+    //var attTxt  = NSMutableAttributedString(string: "", attributes: attributesSmallFont)
     var newURL = url
     var gotNewURL = false
 
@@ -86,7 +86,7 @@ public func analyseXcodeproj(url: URL) -> (String, XcodeProj) {
                         print("✅ \(line)")
                     }
                 }
-            }
+            }//next line
             print("🍎 \(xcodeProj)")
             // PRODUCT_BUNDLE_IDENTIFIER = com.georgebauer.PorfolioSummary;
             /*

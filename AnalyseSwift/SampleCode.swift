@@ -14,7 +14,7 @@ private func testNSString() {
     //  Revised Swift 3.0 7/1/16
     //  Copyright (c) 2014,2016 MakeAppPie.Com. All rights reserved.
 
-    let myString = "P is for Pizza and Pizza is for me"
+    let myString = "P is Pizza and Pizza is me"
 
     //: Initialize the Mutable Attributed String
     let myMuAttString = NSMutableAttributedString( string: myString,

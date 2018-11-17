@@ -6,7 +6,7 @@
 // make ">" companion to "< Up"
 // when in full screen mode - Show file-path above window
 // remember state of "ShowAll" checkbox between runs 
-// for folders:     show subDirs & Swift files(w/size)
+// folders:     show subDirs & Swift files(w/size)
 // showContents: colors & truncation in swift file
 // Aggregate all swift file data in selected dir  "*.xcodeproj/project.pbxproj"
 // recursivly find all file of type .swift or .xcodeproj
@@ -23,7 +23,7 @@
 // analysis: organize by MARK: or by extension
 // selectively enable View & Analyse buttons
 // show methods vs free functions
-// allow for extensions other than class
+// allow extensions other than class
 
 // fixed color of multiline comments
 
@@ -149,15 +149,6 @@ class ViewController: NSViewController {
     // MARK: - View Lifecycle & error dialog utility
     override func viewWillAppear() {
         super.viewWillAppear()
-
-/*
-        let fontFamilyNames = NSFontManager.shared.availableFontFamilies
-        //print("avaialble fonts is \(fontFamilyNames)")
-        for famName in fontFamilyNames{
-            let fontFamilysubs = NSFontManager.shared.availableMembers(ofFontFamily: famName)?.debugDescription
-            print(famName, ":  ", fontFamilysubs!)
-        }
-*/
         splitView.setPosition(222.0, ofDividerAt: 0)
         restoreCurrentSelections()
     }
@@ -194,12 +185,8 @@ extension ViewController {
             var urlsFiltered = [URL]()
             if showAllFiles {
                 urlsFiltered = urls
-            } else {                                                // if NOT showAllFiles: show only folders & swift files
-                for url in urls {
-                    if url.hasDirectoryPath || url.pathExtension == "swift" || (url.path.contains("WWDC") && url.pathExtension == "txt" ) {
-                        urlsFiltered.append(url)
-                    }
-                }
+            } else {                                // if NOT showAllFiles: show only folders & swift files
+                urlsFiltered = urls.filter({  $0.hasDirectoryPath || $0.pathExtension == "swift" || ($0.path.contains("WWDC") && $0.pathExtension == "txt" ) })
             }
             // .sort closure returns true when the first element passed should be ordered before the second
             //urlsFiltered.sort(by: { $0.path.lowercased() < $1.path.lowercased() })    // sort alphabetically
@@ -277,30 +264,30 @@ extension ViewController {
             return report.joined(separator: "\n")
 
         } catch {
-            return "⛔️No information available for \(url.path)"
+            return "⛔️No information available on \(url.path)"
         }
     }
 
     // MARK: - @IBActions
 
+    // Find all ".xcodeproj" files & display them in infoTextView
     @IBAction func btnFindAllXcodeprojClicked(_ sender: Any) {
-        xcodeprojURLs = [URL]()
-        let dirPaths = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask)
-        //let dirPaths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
-        //let dirPaths = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask)
-        let desktopURL = dirPaths[0]
-        let dirName = desktopURL.lastPathComponent
+        let baseFolderURLs = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask)        // Desktop
+        //let baseFolderURLs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)     // Documents
+        //let baseFolderURLs = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask)    // Downloads
+        let baseFolderURL = baseFolderURLs[0]                // URL of folder to search (and its subfolders)
+        let baseFolderName = baseFolderURL.lastPathComponent  // short name of that folder
 
         var tempStr = "Reading through Folders ..."
         var textAttributes = setFontSizeAttribute(size: 18)
         var formattedText = NSMutableAttributedString(string: tempStr, attributes: textAttributes)
         infoTextView.textStorage?.setAttributedString(formattedText)
 
-        findAllXcodeprojFiles(desktopURL)      // NSHomeDirectory() + Desktop
+        xcodeprojURLs = [URL]()
+        findAllXcodeprojFiles(baseFolderURL) // Recursive func finds .xcodeproj files & lists them in xcodprojURLs
 
-        tempStr = "\(xcodeprojURLs.count) xcodeproj files found under \(dirName)\n\n"
+        tempStr = "\(xcodeprojURLs.count) xcodeproj files found under \(baseFolderName)\n\n"
         print(tempStr)
-
         formattedText = NSMutableAttributedString(string: tempStr, attributes: textAttributes)
         infoTextView.textStorage?.setAttributedString(formattedText)
 
@@ -326,10 +313,12 @@ extension ViewController {
             }
         }//next url
 
-        let dictSorted = dictVersions.sorted {$0.key < $1.key}
-        for (key,val) in dictSorted {
-            tempStr += "\(key):   \(val)\n"
-        }
+        // List the Swift Versions found in version-order, with counts
+        let sortedVersions = dictVersions.sorted {$0.key < $1.key}
+        tempStr      = sortedVersions.reduce(tempStr,{ $0 + "\($1.0):   \($1.1)\n" })
+//        for (key,val) in sortedVersions {
+//            tempStr += "\(key):   \(val)\n"
+//        }
 
         printPaths.sort()
         var prevPrefix = ""
@@ -339,7 +328,7 @@ extension ViewController {
                 tempStr += "\n"
             }
             tempStr += str + "\n"
-        }
+        }//next str
         textAttributes = setFontSizeAttribute(size: 14)
 
         formattedText = NSMutableAttributedString(string: tempStr, attributes: textAttributes)
@@ -400,7 +389,7 @@ extension ViewController {
 
         // Create an NSSavePanel
         let panel = NSSavePanel()
-        // Set directoryURL to home Directory for CurrentUser
+        // Set directoryURL to home Directory
         panel.directoryURL = FileManager.default.homeDirectoryForCurrentUser
         // Set default name of file to write to: "*.fs.txt"
         panel.nameFieldStringValue = selectedItemUrl
@@ -408,7 +397,7 @@ extension ViewController {
             .appendingPathExtension("fs.txt")
             .lastPathComponent
 
-        // Show SavePanel & wait in a closure for user to finish
+        // Show SavePanel & wait in a closure until user finishes
         panel.beginSheetModal(for: window) { (result) in
             if result.rawValue == NSFileHandlingPanelOKButton,
                 let url = panel.url {
@@ -567,12 +556,12 @@ extension ViewController {
         }
     }//end func selectUrlInTable
 
-    // returns URL for ".../Application Support/AnalyseSwiftCode/StoredState.txt".  Called from saveCurrentSelections, restoreCurrentSelections
+    // returns URL from ".../Application Support/AnalyseSwiftCode/StoredState.txt".  Called from saveCurrentSelections, restoreCurrentSelections
     private func urlForDataStorage() -> URL? {
         let fileManager = FileManager.default
 
-        // The FileManager class has a method for returning a list of appropriate URLs for specific uses.
-        // In this case, you are looking for the applicationSupportDirectory in the current user's directory.
+        // The FileManager class has a method that returns a list of appropriate URLs with specific uses.
+        // In this case, you are seeking the applicationSupportDirectory in the current user's directory.
         // It is unlikely to return more than one URL, but you only want to take the first one.
         // You can use this method with different parameters to locate many different folders.
         guard let folder = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else { return nil }
@@ -590,7 +579,7 @@ extension ViewController {
             }
         }
 
-        // Append another path component to create the full URL for the data file and return that.
+        // Append another path component to create the full URL of the data file and return that.
         let dataFileUrl = appFolder.appendingPathComponent("StoredState.txt")
         return dataFileUrl
     }//end func urlForDataStorage
@@ -618,21 +607,17 @@ extension ViewController {
 
             if showLineNumbers {
 
-                for i in 0..<lines.count {
-                    //let line = "\(i+1) \(lines[i])\n"
-                    let aa = lines[i].trim
-                    if aa.hasPrefix("/*") {                         // "/*"
+                for (i, line) in lines.enumerated() {
+                    let aa = line.trim
+                    if aa.hasPrefix("/*") {                             // "/*"
                         inMultiLineComment = true
-                    }
-
-                    if aa.hasPrefix("*/") {                         // "*/"
+                    } else if aa.hasPrefix("*/") {                      // "*/"
                         inMultiLineComment = false
                     }
 
-
-                    let formattedLine = formatSwiftLine(lineNumber: i+1, text: lines[i], inMultiLineComment: inMultiLineComment)
+                    let formattedLine = formatSwiftLine(lineNumber: i+1, text: aa, inMultiLineComment: inMultiLineComment)
                     formattedText.append(formattedLine)
-                }
+                }//next line
                 infoTextView.textStorage?.setAttributedString(formattedText)
 
             } else {
@@ -643,7 +628,7 @@ extension ViewController {
         catch let error as NSError {
             let err = "😡showFileContents error: \(error.localizedDescription)"
             print(err)
-            let str = "\(selecFileInfo.name)\n\n'View' only works for text-based files."
+            let str = "\(selecFileInfo.name)\n\n'View' only works in text-based files."
             let formattedText = formatInfoText(str)
             infoTextView.textStorage?.setAttributedString(formattedText)
         }
@@ -724,7 +709,7 @@ extension ViewController {
         return formattedText
     }
 
-}
+}//end Extension
 
 
 
