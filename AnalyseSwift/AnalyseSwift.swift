@@ -16,6 +16,7 @@ var codeElements    = [BlockInfo]()         //accessed from               gotClo
 let paragraphStyleA1 = NSMutableParagraphStyle()    //accessed from showLineItems, showNamedBlock, analyseSwiftFile
 
 // MARK: - Block Structs & Enums
+
 enum BlockType: Int {
     case None           = 0
     case Func           = 1
@@ -60,6 +61,7 @@ private struct LineItem {
 
 
 // MARK: - Helper funcs
+
 // Returns NSMutableAttributedString showing name as a title, followed by list of items (line#, name, extra)
 private func showLineItems(name: String, items: [LineItem]) -> NSMutableAttributedString {
 
@@ -402,13 +404,13 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
         lineNum += 1
         var netCurlys = 0
         let aa = line.trim
-        if aa.hasPrefix("/*") {                         // "/*"
-            inMultiLineComment = true
-        }
 
-        if aa.hasPrefix("*/") {                         // "*/"
+        if aa.hasPrefix("/*") {                             // "/*"
+            inMultiLineComment = true
+        } else if aa.hasPrefix("*/") {                      // "*/"
             inMultiLineComment = false
         }
+        if inMultiLineComment && aa.contains("*/") { inMultiLineComment = false }
 
         if aa.hasPrefix("//") || inMultiLineComment {   // "//"
             nCommentLine += 1

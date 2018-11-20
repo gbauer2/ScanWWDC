@@ -9,7 +9,7 @@
 // folders:     show subDirs & Swift files(w/size)
 // showContents: colors & truncation in swift file
 // Aggregate all swift file data in selected dir  "*.xcodeproj/project.pbxproj"
-// recursivly find all file of type .swift or .xcodeproj
+// recursivly find all file of type .swift
 // change state storage to userDefaults
 
 // Change View/Analyse buttons to segmented button
@@ -24,24 +24,26 @@
 // selectively enable View & Analyse buttons
 // show methods vs free functions
 // allow extensions other than class
+// Indent blocks
 
 // fixed color of multiline comments
 
-import Cocoa
+import Cocoa    /* partial-line Block Comment does not work.*/
+/* single-line Block Comment does not work.*/
 
+// To generate compiler warnings:
 //#warning("This code is incomplete.")
 
 class ViewController: NSViewController {
 
     enum AnalyseMode {
-        case none
+        case /* embedded Block Comment does not work.*/ none
         case WWDC
         case swift
         case xcodeproj
     }
 
     // MARK: - Outlets
-    
     @IBOutlet weak var splitView:    NSSplitView!
     @IBOutlet weak var tableView:    NSTableView!
     @IBOutlet weak var infoTextView: NSTextView!
@@ -275,8 +277,8 @@ extension ViewController {
         let baseFolderURLs = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask)        // Desktop
         //let baseFolderURLs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)     // Documents
         //let baseFolderURLs = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask)    // Downloads
-        let baseFolderURL = baseFolderURLs[0]                // URL of folder to search (and its subfolders)
-        let baseFolderName = baseFolderURL.lastPathComponent  // short name of that folder
+        let baseFolderURL  = baseFolderURLs[0]                  // URL of folder to search (and its subfolders)
+        let baseFolderName = baseFolderURL.lastPathComponent    // short name of that folder
 
         var tempStr = "Reading through Folders ..."
         var textAttributes = setFontSizeAttribute(size: 18)
@@ -291,49 +293,46 @@ extension ViewController {
         formattedText = NSMutableAttributedString(string: tempStr, attributes: textAttributes)
         infoTextView.textStorage?.setAttributedString(formattedText)
 
-        var dictVersions = [String:Int]()
-        var printPaths   = [String]()
+        var dictVersions   = [String:Int]()
+        var printablePaths = [String]()
         for url in xcodeprojURLs {
-            let (errCode, xcodeProj) = analyseXcodeproj(url: url)
+            let (errCode, xcodeProj) = analyseXcodeproj(url)
             if errCode.isEmpty {
-                var ver = xcodeProj.swiftVer1
-                if ver.isEmpty { ver = "2.x" }
+                let verStr = xcodeProj.swiftVer1.isEmpty ? "2.x" : xcodeProj.swiftVer1
                 let barePath = url.deletingPathExtension().path
                 var comps = barePath.components(separatedBy: "/")
-                comps.removeFirst(3)
+                comps.removeFirst(3)                                // Remove "", "Users", "george"
                 let pathName = comps.joined(separator: "/")
-                let verPath = ver + " " + pathName
-                printPaths.append(verPath)
+                let verPath = verStr + " " + pathName
+                printablePaths.append(verPath)
 
-                if dictVersions[ver] == nil {
-                     dictVersions[ver] = 1
+                if dictVersions[verStr] == nil {
+                     dictVersions[verStr] = 1
                 } else {
-                     dictVersions[ver] = dictVersions[ver]! + 1
+                     dictVersions[verStr] = dictVersions[verStr]! + 1
                 }
             }
         }//next url
 
         // List the Swift Versions found in version-order, with counts
         let sortedVersions = dictVersions.sorted {$0.key < $1.key}
-        tempStr      = sortedVersions.reduce(tempStr,{ $0 + "\($1.0):   \($1.1)\n" })
-//        for (key,val) in sortedVersions {
-//            tempStr += "\(key):   \(val)\n"
-//        }
+        tempStr = sortedVersions.reduce(tempStr,{ $0 + "\($1.0):   \($1.1)\n" })
+        // for (key,val) in sortedVersions { tempStr += "\(key):   \(val)\n" }  // alternative method using loop
 
-        printPaths.sort()
+        printablePaths.sort()
         var prevPrefix = ""
-        for str in printPaths {
+        for str in printablePaths {
             if str.prefix(3) != prevPrefix {
                 prevPrefix = String(str.prefix(3))
-                tempStr += "\n"
+                tempStr += "\n"                         // add a blank line
             }
-            tempStr += str + "\n"
+            tempStr += str + "\n"                       // append this line
         }//next str
-        textAttributes = setFontSizeAttribute(size: 14)
 
+        textAttributes = setFontSizeAttribute(size: 14)
         formattedText = NSMutableAttributedString(string: tempStr, attributes: textAttributes)
         infoTextView.textStorage?.setAttributedString(formattedText)
-    }//end func
+    }//end func btnFindAllXcodeprojClicked
 
     //user clicked on SelectFolder button (brings up FileOpenDialog)
     @IBAction func selectFolderClicked(_ sender: Any) {
@@ -350,7 +349,7 @@ extension ViewController {
                 //print(self.selectedFolderUrl)
             }
         }
-    }
+    }//end func
 
     // user clicked on ShowAllFiles button
     @IBAction func toggleshowAllFiles(_ sender: NSButton) {
@@ -360,7 +359,7 @@ extension ViewController {
             //selectedItemUrl = nil
             tableView.reloadData()
         }
-    }
+    }//end func
 
     // user DoubleClicked on file/dir in tableView, so show contents
     @IBAction func tableViewDoubleClicked(_ sender: Any) {
@@ -373,7 +372,7 @@ extension ViewController {
         } else {
             showFileContents(url: selectedItem)
         }
-    }
+    }//end func
 
     // user clicked on UpOneLevel button, so select parent
     @IBAction func moveUpClicked(_ sender: Any) {
@@ -416,7 +415,7 @@ extension ViewController {
         if let selectedItemUrl = selectedItemUrl {
             showFileContents(url: selectedItemUrl)
         }
-    }
+    }//end func
 
     @IBAction func analyseContentsButtonClicked(_ sender: Any) {
         if let url = selectedItemUrl {
@@ -456,7 +455,7 @@ extension ViewController {
                 }//end try catch
 
             } else if analyseMode == .xcodeproj {
-                let (errCode, xcodeProj) = analyseXcodeproj(url: url)
+                let (errCode, xcodeProj) = analyseXcodeproj(url)
                 let formattedText: NSAttributedString
                 if errCode.isEmpty {
                     formattedText = showXcodeproj(xcodeProj)
@@ -467,18 +466,19 @@ extension ViewController {
             }//endif analyseMode
 
         }//end if let
-    }//end analyseContentsButtonClicked
+    }//end func analyseContentsButtonClicked
 
 }//end class
 
 
 // MARK: - NSTableViewDataSource
 extension ViewController: NSTableViewDataSource {
+
     func numberOfRows(in tableView: NSTableView) -> Int {
         return filesList.count
-    }
+    }//end func
 
-}
+}//end extension
 
 // MARK: - NSTableViewDelegate
 extension ViewController: NSTableViewDelegate {
@@ -495,7 +495,7 @@ extension ViewController: NSTableViewDelegate {
             return cell
         }
         return nil
-    }
+    }//end func
 
     func tableViewSelectionDidChange(_ notification: Notification) {
         if tableView.selectedRow < 0 {
@@ -503,9 +503,9 @@ extension ViewController: NSTableViewDelegate {
             return
         }
         selectedItemUrl = filesList[tableView.selectedRow]
-    }
+    }//end func
 
-}
+}//end extension
 
 // MARK: - Save & Restore previous selection
 extension ViewController {
@@ -519,7 +519,7 @@ extension ViewController {
         let completeData = "\(parentForStorage)\n\(fileForStorage)\n"
 
         try? completeData.write(to: dataFileUrl, atomically: true, encoding: .utf8)
-    }
+    }//end func
 
     // called from viewWillAppear
     func restoreCurrentSelections() {
@@ -540,13 +540,10 @@ extension ViewController {
         } catch {
             print("😡restoreCurrentSelections error: \(error)")
         }
-    }//end func restoreCurrentSelections
+    }//end func
 
     private func selectUrlInTable(_ url: URL?) {
-        guard let url = url else {
-            tableView.deselectAll(nil)
-            return
-        }
+        guard let url = url else { tableView.deselectAll(nil); return }
 
         if let rowNumber = filesList.index(of: url) {
             let indexSet = IndexSet(integer: rowNumber)
@@ -614,7 +611,7 @@ extension ViewController {
                     } else if aa.hasPrefix("*/") {                      // "*/"
                         inMultiLineComment = false
                     }
-
+                    if inMultiLineComment && aa.contains("*/") { inMultiLineComment = false }
                     let formattedLine = formatSwiftLine(lineNumber: i+1, text: aa, inMultiLineComment: inMultiLineComment)
                     formattedText.append(formattedLine)
                 }//next line
@@ -624,14 +621,15 @@ extension ViewController {
                 formattedText = formatInfoText(contentFromFile as String) as! NSMutableAttributedString
                 infoTextView.textStorage?.setAttributedString(formattedText)
             }
-        }
+        }//end do
         catch let error as NSError {
             let err = "😡showFileContents error: \(error.localizedDescription)"
             print(err)
             let str = "\(selecFileInfo.name)\n\n'View' only works in text-based files."
             let formattedText = formatInfoText(str)
             infoTextView.textStorage?.setAttributedString(formattedText)
-        }
+        }//end catch
+
     }//end func showFileContents
 
 
@@ -654,7 +652,7 @@ extension ViewController {
                                    value: NSFont.systemFont(ofSize: 20),
                                    range: NSRange(location: 0, length: lengthLine1))
         return formattedText
-    }
+    }//end func
 
     //---- formatSwiftLine - Add line numbers and comment colors - format tabs at right26 & left32, font at 13pt
     func formatSwiftLine(lineNumber: Int, text: String, inMultiLineComment: Bool = false) -> NSAttributedString {
@@ -691,7 +689,7 @@ extension ViewController {
         output.append(formattedText)
         output.append(formatedComment)
         return output
-    }
+    }//end func formatSwiftLine
 
     // format tabs at 48 & 96, font at 14pt
     func formatContentsTextX(_ text: String) -> NSAttributedString {
@@ -707,7 +705,7 @@ extension ViewController {
 
         let formattedText = NSAttributedString(string: text, attributes: textAttributes)
         return formattedText
-    }
+    }//end func
 
 }//end Extension
 
