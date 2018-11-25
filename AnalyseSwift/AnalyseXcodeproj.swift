@@ -9,16 +9,18 @@
 import Cocoa
 
 public struct XcodeProj {
+    var url: URL?
+    var name            = ""
     var archiveVersion  = ""
     var objectVersion   = ""
     var createdOnToolsVersion = ""
-    var swiftVer1       = ""
-    var swiftVer2       = ""
     var swiftVerMin     = 0.0
+    var swiftVerMax     = 0.0
     var sdkRoot         = ""
     var deploymentTarget = ""
 }
 
+// Decode "  xxx  =   yyy ; " into ("xxx","yyy")
 private func keyValDecode(_ str: String) -> (String, String) {
     let comps = str.components(separatedBy: "=")
     if comps.count < 2  { return ("","")}
@@ -28,6 +30,7 @@ private func keyValDecode(_ str: String) -> (String, String) {
     return (key, val)
 }
 
+// Analyse a .xcodeproj file, returning an errorText and an XcodeProj instance
 public func analyseXcodeproj(_ url: URL) -> (String, XcodeProj) {
     //let attributesLargeFont  = [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 20), NSAttributedStringKey.paragraphStyle: paragraphStyleA1]
     //let attributesMediumFont = [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 16), NSAttributedStringKey.paragraphStyle: paragraphStyleA1]
@@ -38,6 +41,8 @@ public func analyseXcodeproj(_ url: URL) -> (String, XcodeProj) {
 
     let fileManager = FileManager.default
     var xcodeProj = XcodeProj()
+    xcodeProj.url = url
+    xcodeProj.name = url.lastPathComponent
     do {
         let contents = try fileManager.contentsOfDirectory(atPath: url.path)
         print("🤠\(contents)")
@@ -63,14 +68,17 @@ public func analyseXcodeproj(_ url: URL) -> (String, XcodeProj) {
                         xcodeProj.deploymentTarget = key + " = " + val
                     } else if line.contains("SWIFT_VERSION") {
                         let (_, val) = keyValDecode(line)
-                        if val != xcodeProj.swiftVer1 {
-                            xcodeProj.swiftVer1 = val
-                        } else if val != xcodeProj.swiftVer2 {
-                            xcodeProj.swiftVer2 = val
+
+                        let ver = getVersionNumber(text: val)
+                        if val.count > 3 && ver == 0 {
+                            print("😡 Could not decode Version: \(val)")       //Debug Trap
                         }
 
-                        if xcodeProj.swiftVerMin == 0.0 || Double(val)! < xcodeProj.swiftVerMin {
-                            xcodeProj.swiftVerMin = Double(val)!
+                        if xcodeProj.swiftVerMin == 0.0 || ver < xcodeProj.swiftVerMin {
+                            xcodeProj.swiftVerMin = ver
+                        }
+                        if ver > xcodeProj.swiftVerMax {
+                            xcodeProj.swiftVerMax = ver
                         }
 
                         print("✅✅ \(line)")
@@ -154,11 +162,24 @@ public func analyseXcodeproj(_ url: URL) -> (String, XcodeProj) {
 
 }//end func analyseXcodeproj
 
+func getVersionNumber(text: String) -> Double {
+    var txt = text
+    if txt.hasPrefix("\"") { txt.removeFirst() }
+    if txt.hasSuffix("\"") { txt.removeLast()  }
+
+    let comps = txt.components(separatedBy: ".")
+    if comps.count > 2 {
+        txt = comps[0] + "." + comps[1]
+    }
+    let version = Double(txt) ?? 0
+    return version
+}
+
 public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {
     var text = "Oldest Swift Version used = \(xcodeProj.swiftVerMin)\n"
     if xcodeProj.swiftVerMin == 0.0 { text = "No Swift Version found!\n" }
-    if xcodeProj.swiftVer1 != xcodeProj.swiftVer2 {
-        text += "Multiple Swift Versions: \(xcodeProj.swiftVer1) & \(xcodeProj.swiftVer2)\n"
+    if xcodeProj.swiftVerMin != xcodeProj.swiftVerMax {
+        text += "Multiple Swift Versions: \(xcodeProj.swiftVerMin) & \(xcodeProj.swiftVerMax)\n"
     }
     text += "ArchiveVersion = \(xcodeProj.archiveVersion)\n"
     text += "ObjectVersion = \(xcodeProj.objectVersion)\n"

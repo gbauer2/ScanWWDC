@@ -402,6 +402,9 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
             }
         }
         lineNum += 1
+//        if lineNum == 546 {
+//            print("\(lineNum) \(line)") // Debug Trap
+//        }
         var netCurlys = 0
         let aa = line.trim
 
@@ -472,12 +475,20 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
             if pCloseCurlyF >= 0 && (pCloseCurlyF != pCloseCurlyR) {
                 print("⚠️\(lineNum) multiple close curlys.  \"\(aa)\"")
             }
+
+            var codeLineClean = codeLine
+            if pQuoteF >= 0 && pQuoteR > pQuoteF+1 {
+                codeLineClean = codeLine.prefix(pQuoteF + 1) + "x" + codeLine.dropFirst(pQuoteR)
+                print(lineNum,codeLine," -> ",codeLineClean)
+            }
+
             // Create a CharacterSet of delimiters.
-            let separators = CharacterSet(charactersIn: "\t (:")
+            let separators = CharacterSet(charactersIn: "\t (:")    //tab, space, openParen, colon
+
             // Split based on characters.
-            let wordsWithEmpty = codeLine.components(separatedBy: separators)
+            let wordsWithEmpty = codeLineClean.components(separatedBy: separators)
             // Use filter to eliminate empty strings.
-            let words = wordsWithEmpty.filter { (x) -> Bool in !x.isEmpty }
+            let words = wordsWithEmpty.filter { !$0.isEmpty }
 
             //if words.count < 2 { continue }                         // if less than 2 words, fogetaboutit
 
@@ -515,7 +526,7 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
                     //codeType = BlockType.isFunc
                     var itemName = "????"
                     if posItem < words.count {
-                        itemName = words[posItem + 1]
+                        itemName = words[posItem + 1]   // get the word that follows "func"
                     }
 
                     checkCurlys(codeName: codeName, itemName: itemName, posItem: posItem, pOpenCurlyF: pOpenCurlyF, pOpenCurlyR: pOpenCurlyR, pCloseCurlyF: pCloseCurlyF, pCloseCurlyR: pCloseCurlyR)

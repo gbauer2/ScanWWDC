@@ -16,7 +16,6 @@
 		CEA6263A20067DCA000F923D /* SampleCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEA6263920067DCA000F923D /* SampleCode.swift */; };
 		CEA6263D20068AA2000F923D /* AnalyseSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEA6263B20068AA2000F923D /* AnalyseSwift.swift */; };
 		CEBAD4A42194A8E600CBBCBA /* AnalyseXcodeproj.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEBAD4A32194A8E600CBBCBA /* AnalyseXcodeproj.swift */; };
-		CEE7D49C2198B5DF005B0559 /* FindFiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEE7D49B2198B5DF005B0559 /* FindFiles.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,7 +30,6 @@
 		CEA6263920067DCA000F923D /* SampleCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleCode.swift; sourceTree = "<group>"; };
 		CEA6263B20068AA2000F923D /* AnalyseSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyseSwift.swift; sourceTree = "<group>"; };
 		CEBAD4A32194A8E600CBBCBA /* AnalyseXcodeproj.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyseXcodeproj.swift; sourceTree = "<group>"; };
-		CEE7D49B2198B5DF005B0559 /* FindFiles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FindFiles.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -69,7 +67,6 @@
 				CEA6263B20068AA2000F923D /* AnalyseSwift.swift */,
 				CEBAD4A32194A8E600CBBCBA /* AnalyseXcodeproj.swift */,
 				CEA6263920067DCA000F923D /* SampleCode.swift */,
-				CEE7D49B2198B5DF005B0559 /* FindFiles.swift */,
 				CEE7D49A2197560D005B0559 /* MyLibrary */,
 				26ECD33E1E874B5C00380F56 /* Assets.xcassets */,
 				26ECD3401E874B5C00380F56 /* Main.storyboard */,
@@ -166,7 +163,6 @@
 				CEA6263A20067DCA000F923D /* SampleCode.swift in Sources */,
 				CEA6263D20068AA2000F923D /* AnalyseSwift.swift in Sources */,
 				26ECD33B1E874B5C00380F56 /* AppDelegate.swift in Sources */,
-				CEE7D49C2198B5DF005B0559 /* FindFiles.swift in Sources */,
 				CE67A6A41FFA066B00BD57BD /* StringExtension.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

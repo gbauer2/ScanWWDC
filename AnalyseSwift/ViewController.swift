@@ -15,7 +15,6 @@
 // Change View/Analyse buttons to segmented button
 
 // analyse:
-// inTripleQuote """
 // dependency
 // computed variables, var observer
 // analysis: show func params
@@ -24,9 +23,12 @@
 // selectively enable View & Analyse buttons
 // show methods vs free functions
 // allow extensions other than class
-// Indent blocks
 
-// fixed color of multiline comments
+//Requiring complex reading of lines (quotes & comments)
+// In  AnalyseSwift make handling quotes more robust - (codeLineClean)
+//  Fix color of embedded block comments
+//  Indent blocks (count curlys)
+//  inTripleQuote """
 
 import Cocoa    /* partial-line Block Comment does not work.*/
 /* single-line Block Comment does not work.*/
@@ -52,6 +54,7 @@ class ViewController: NSViewController {
     @IBOutlet weak var readContentsButton:      NSButton!
     @IBOutlet weak var analyseContentsButton:   NSButton!
     @IBOutlet weak var btnFindAllxcodeproj:     NSButton!
+    @IBOutlet weak var popupBaseDir:            NSPopUpButton!
 
     // MARK: - Properties
     var filesList:[URL] = []                    // selectedFolder{didSet}, toggleshowAllFiles, tableViewDoubleClicked, tableView stuff, etc
@@ -149,6 +152,13 @@ class ViewController: NSViewController {
     }
 
     // MARK: - View Lifecycle & error dialog utility
+
+    override func viewDidLoad() {
+        popupBaseDir.removeAllItems()
+        popupBaseDir.addItems(withTitles: ["Desktop","Downloads","Documents","All"])
+        popupBaseDir.selectItem(at: 0)
+    }
+
     override func viewWillAppear() {
         super.viewWillAppear()
         splitView.setPosition(222.0, ofDividerAt: 0)
@@ -167,6 +177,44 @@ class ViewController: NSViewController {
         alert.alertStyle        = .critical
         alert.beginSheetModal(for: window, completionHandler: nil)
     }
+
+    var xcodeprojURLs = [URL]()
+
+    let baseURL = URL(fileURLWithPath: "~")
+
+    // Recursive func to find .xcodeproj files & list them in Global var xcodprojURLs
+    public func findAllXcodeprojFiles(_ folder: URL) {
+        do {
+            let contents = try FileManager.default.contentsOfDirectory(atPath: folder.path) // fileNames
+            let urls = contents
+                .filter({ return !$0.hasPrefix(".") })                      // filter out hidden
+                .map { return folder.appendingPathComponent($0) }           // create array with full path
+
+            for url in urls {
+                if url.pathExtension == "xcodeproj" {
+                    xcodeprojURLs.append((url))
+                } else if url.hasDirectoryPath {
+
+                    let tuple = truncateURL(url: url, maxLength: 80)
+                    let truncPath = tuple.truncPath
+                    let str = "Finding all .xcodeproj files in:\n\(truncPath)"
+                    //let textAttributes = setFontSizeAttribute(size: 18)
+                    //let formattedText = NSMutableAttributedString(string: tempStr, attributes: textAttributes)
+
+                    DispatchQueue.main.async {
+                        //self.infoTextView.textStorage?.setAttributedString(formattedText)
+                        self.infoTextView.string = str
+                    }
+
+                    findAllXcodeprojFiles(url)                              // Recursive call
+                }
+            }
+        }
+        catch {
+            print("⛔️\(error) Error listing contents of \(folder)")
+        }
+    }
+
 
 }//end class
 
@@ -274,64 +322,99 @@ extension ViewController {
 
     // Find all ".xcodeproj" files & display them in infoTextView
     @IBAction func btnFindAllXcodeprojClicked(_ sender: Any) {
-        let baseFolderURLs = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask)        // Desktop
-        //let baseFolderURLs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)     // Documents
-        //let baseFolderURLs = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask)    // Downloads
-        let baseFolderURL  = baseFolderURLs[0]                  // URL of folder to search (and its subfolders)
-        let baseFolderName = baseFolderURL.lastPathComponent    // short name of that folder
+        var baseDir = FileManager.SearchPathDirectory.userDirectory
+        switch popupBaseDir.title {
+        case "Desktop":
+            baseDir = .desktopDirectory
+        case "Downloads":
+            baseDir = .downloadsDirectory
+        case "Documents":
+            baseDir = .documentDirectory
+        default:
+            break
+        }
 
-        var tempStr = "Reading through Folders ..."
-        var textAttributes = setFontSizeAttribute(size: 18)
-        var formattedText = NSMutableAttributedString(string: tempStr, attributes: textAttributes)
+        let baseFolderURL: URL
+        let baseFolderName: String
+        if popupBaseDir.title == "All" {
+            baseFolderURL = FileManager.default.homeDirectoryForCurrentUser
+            baseFolderName = baseFolderURL.lastPathComponent    // short name of that folder
+        } else {
+            let baseFolderURLs = FileManager.default.urls(for: baseDir, in: .userDomainMask)        // Desktop
+            baseFolderURL  = baseFolderURLs[0]                  // URL of folder to search (and its subfolders)
+            baseFolderName = baseFolderURL.lastPathComponent    // short name of that folder
+        }
+
+        let str = "Reading through Folders ..."
+        var textAttributes = setFontSizeAttribute(size: 12)
+        var formattedText = NSMutableAttributedString(string: str, attributes: textAttributes)
         infoTextView.textStorage?.setAttributedString(formattedText)
 
         xcodeprojURLs = [URL]()
-        findAllXcodeprojFiles(baseFolderURL) // Recursive func finds .xcodeproj files & lists them in xcodprojURLs
 
-        tempStr = "\(xcodeprojURLs.count) xcodeproj files found under \(baseFolderName)\n\n"
-        print(tempStr)
-        formattedText = NSMutableAttributedString(string: tempStr, attributes: textAttributes)
-        infoTextView.textStorage?.setAttributedString(formattedText)
+        DispatchQueue.global(qos: .userInitiated).async {
 
-        var dictVersions   = [String:Int]()
-        var printablePaths = [String]()
-        for url in xcodeprojURLs {
-            let (errCode, xcodeProj) = analyseXcodeproj(url)
-            if errCode.isEmpty {
-                let verStr = xcodeProj.swiftVer1.isEmpty ? "2.x" : xcodeProj.swiftVer1
-                let barePath = url.deletingPathExtension().path
-                var comps = barePath.components(separatedBy: "/")
-                comps.removeFirst(3)                                // Remove "", "Users", "george"
-                let pathName = comps.joined(separator: "/")
-                let verPath = verStr + " " + pathName
-                printablePaths.append(verPath)
+            // Recursive func finds .xcodeproj files & lists them in xcodprojURLs
+            self.findAllXcodeprojFiles(baseFolderURL)
 
-                if dictVersions[verStr] == nil {
-                     dictVersions[verStr] = 1
-                } else {
-                     dictVersions[verStr] = dictVersions[verStr]! + 1
+            let str = "Now reading through the .xcodeproj files."
+            DispatchQueue.main.async {
+                self.infoTextView.string = str
+            }
+            let xcodeprojCount = self.xcodeprojURLs.count
+            var tempStr = "\(xcodeprojCount) xcodeproj files found under \(baseFolderName)\n\n"
+            print(tempStr)
+
+            var dictVersions   = [String:Int]()
+            var printablePaths = [String]()
+
+            for (i,url) in self.xcodeprojURLs.enumerated() {
+                let str = "Reading \(i) of \(xcodeprojCount) \(url.lastPathComponent)"
+                DispatchQueue.main.async {
+                    self.infoTextView.string = str
                 }
+                let (errCode, xcodeProj) = analyseXcodeproj(url)
+                if errCode.isEmpty {
+                    let verStr = xcodeProj.swiftVerMin == 0 ? "2.x" : String(format: "%.1f", xcodeProj.swiftVerMin)
+                    let barePath = url.deletingPathExtension().path
+                    var comps = barePath.components(separatedBy: "/")
+                    comps.removeFirst(3)                                // Remove: "", "Users", "george"
+                    let pathName = comps.joined(separator: "/")
+                    let verPath = verStr + " " + pathName
+                    printablePaths.append(verPath)
+
+                    if dictVersions[verStr] == nil {
+                        dictVersions[verStr] = 1
+                    } else {
+                        dictVersions[verStr] = dictVersions[verStr]! + 1
+                    }
+                }
+            }//next url
+
+            // List the Swift Versions found in version-order, with counts
+            tempStr += "Swift  Count\n"
+            let sortedVersions = dictVersions.sorted {$0.key < $1.key}
+            tempStr = sortedVersions.reduce(tempStr,{ $0 + "\($1.0):      \($1.1)\n" })
+            // for (key,val) in sortedVersions { tempStr += "\(key):      \(val)\n" }  // alternative method using loop
+
+            //printablePaths.sort { $0.localizedCaseInsensitiveCompare($1) == ComparisonResult.orderedAscending }
+            printablePaths.sort { $0.caseInsensitiveCompare($1) == .orderedAscending }
+            var prevPrefix = ""
+            for str in printablePaths {
+                if str.prefix(3) != prevPrefix {
+                    prevPrefix = String(str.prefix(3))
+                    tempStr += "\n"                         // add a blank line
+                }
+                tempStr += str + "\n"                       // append this line
+            }//next str
+
+            textAttributes = self.setFontSizeAttribute(size: 14)
+            formattedText = NSMutableAttributedString(string: tempStr, attributes: textAttributes)
+            DispatchQueue.main.async {
+                self.infoTextView.textStorage?.setAttributedString(formattedText)
             }
-        }//next url
+        }//end DispatchQueue.global
 
-        // List the Swift Versions found in version-order, with counts
-        let sortedVersions = dictVersions.sorted {$0.key < $1.key}
-        tempStr = sortedVersions.reduce(tempStr,{ $0 + "\($1.0):   \($1.1)\n" })
-        // for (key,val) in sortedVersions { tempStr += "\(key):   \(val)\n" }  // alternative method using loop
-
-        printablePaths.sort()
-        var prevPrefix = ""
-        for str in printablePaths {
-            if str.prefix(3) != prevPrefix {
-                prevPrefix = String(str.prefix(3))
-                tempStr += "\n"                         // add a blank line
-            }
-            tempStr += str + "\n"                       // append this line
-        }//next str
-
-        textAttributes = setFontSizeAttribute(size: 14)
-        formattedText = NSMutableAttributedString(string: tempStr, attributes: textAttributes)
-        infoTextView.textStorage?.setAttributedString(formattedText)
     }//end func btnFindAllXcodeprojClicked
 
     //user clicked on SelectFolder button (brings up FileOpenDialog)
@@ -350,6 +433,23 @@ extension ViewController {
             }
         }
     }//end func
+
+    func truncateURL(url: URL, maxLength: Int) -> (truncPath: String, name: String) {
+        let fileName = url.lastPathComponent
+        let barePath = url.path     // url.deletingPathExtension().path
+        var comps = barePath.components(separatedBy: "/")
+        comps.removeFirst(3)                                // Remove: "", "Users", "george"
+        var pathName = ""
+        if barePath.count > maxLength {
+            for comp in comps {
+                if pathName.count + comp.count > maxLength { break }
+                pathName += "/" + comp
+            }
+        } else{
+            pathName = comps.joined(separator: "/")
+        }
+        return (pathName, fileName)
+    }
 
     // user clicked on ShowAllFiles button
     @IBAction func toggleshowAllFiles(_ sender: NSButton) {
