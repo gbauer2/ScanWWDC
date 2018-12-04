@@ -3,39 +3,39 @@
  *
  */
 
-// make ">" companion to "< Up"
-// when in full screen mode - Show file-path above window
-// remember state of "ShowAll" checkbox between runs 
-// folders:     show subDirs & Swift files(w/size)
-// showContents: colors & truncation in swift file
+// Make ">" companion to "< Up"
+// When in full screen mode - Show file-path above window
 // Aggregate all swift file data in selected dir  "*.xcodeproj/project.pbxproj"
 // recursivly find all file of type .swift
 // change state storage to userDefaults
+// make btnFindAllxcodeproj the default if popup touched.
+// toggle btnFindAllxcodeproj to "Abort" when running, (and disable other buttons).
+// selectively enable View & Analyse buttons or use segmented button.
 
-// Change View/Analyse buttons to segmented button
+// showContents - Swift file:
+// Make handling quotes more robust - (codeLineClean)
+//  inTripleQuote """
+//  Fix color of embedded block comments
+//  Indent blocks (count curlys)
+//  colors & truncation
 
-// analyse:
+// AnalyseSwift:
+// Make handling quotes more robust - (codeLineClean)
+// inTripleQuote """
 // dependency
 // computed variables, var observer
 // analysis: show func params
 // analysis: show global vars, instance vars
 // analysis: organize by MARK: or by extension
-// selectively enable View & Analyse buttons
 // show methods vs free functions
 // allow extensions other than class
-
-//Requiring complex reading of lines (quotes & comments)
-// In  AnalyseSwift make handling quotes more robust - (codeLineClean)
-//  Fix color of embedded block comments
-//  Indent blocks (count curlys)
-//  inTripleQuote """
 
 import Cocoa    /* partial-line Block Comment does not work.*/
 /* single-line Block Comment does not work.*/
 
-// To generate compiler warnings:
-//#warning("This code is incomplete.")
-
+/* To generate compiler warnings:
+ #warning("This code is incomplete.")
+*/
 class ViewController: NSViewController {
 
     enum AnalyseMode {
@@ -92,15 +92,15 @@ class ViewController: NSViewController {
 
     static var latestUrl: URL?      // Used by AnalyseSwift.swift as ViewController.latestUrl
     var selectedItemUrl: URL? {
-        didSet {                                                // run whenever selectedItemUrl is changed ITEM
+        didSet {                                                // run whenever selectedItemUrl is changed
             ViewController.latestUrl = selectedItemUrl
             infoTextView.string = ""
             saveInfoButton.isEnabled = false
             guard let selectedUrl = selectedItemUrl else { return }
             selecFileInfo = setFileInfo(url: selectedUrl)       // set selecFileInfo (name,dates,size,type)
             if selectedUrl.pathExtension == "swift" {           //  1) analyse Swift
-                readContentsButton.isEnabled = true
                 analyseMode = .swift
+                readContentsButton.isEnabled    = true
                 analyseContentsButton.isEnabled = true
                 print("🔷 selectedItemUrl is Swift File: \(selectedUrl.lastPathComponent)")
                 analyseContentsButtonClicked(self)
@@ -165,6 +165,15 @@ class ViewController: NSViewController {
         restoreCurrentSelections()
     }
 
+    override func viewDidAppear() {
+//        let presOptions: NSApplication.PresentationOptions = ([.fullScreen,.autoHideMenuBar])
+//        print(presOptions)
+//        let optionsDictionary = [NSView.FullScreenModeOptionKey.fullScreenModeApplicationPresentationOptions : NSNumber(value: presOptions.rawValue)]
+//        self.view.enterFullScreenMode(NSScreen.main!, withOptions:optionsDictionary)
+//        self.view.wantsLayer = true
+    }
+
+
     override func viewWillDisappear() {
         saveCurrentSelections()
         super.viewWillDisappear()
@@ -195,8 +204,7 @@ class ViewController: NSViewController {
                     xcodeprojURLs.append((url))
                 } else if url.hasDirectoryPath {
 
-                    let tuple = truncateURL(url: url, maxLength: 80)
-                    let truncPath = tuple.truncPath
+                    let truncPath = truncateURL(url: url, maxLength: 80)
                     let str = "Finding all .xcodeproj files in:\n\(truncPath)"
                     //let textAttributes = setFontSizeAttribute(size: 18)
                     //let formattedText = NSMutableAttributedString(string: tempStr, attributes: textAttributes)
@@ -434,7 +442,7 @@ extension ViewController {
         }
     }//end func
 
-    func truncateURL(url: URL, maxLength: Int) -> (truncPath: String, name: String) {
+    func truncateURL(url: URL, maxLength: Int) -> String {
         let fileName = url.lastPathComponent
         let barePath = url.path     // url.deletingPathExtension().path
         var comps = barePath.components(separatedBy: "/")
@@ -445,10 +453,11 @@ extension ViewController {
                 if pathName.count + comp.count > maxLength { break }
                 pathName += "/" + comp
             }
+            pathName += "/.../" + fileName
         } else{
             pathName = comps.joined(separator: "/")
         }
-        return (pathName, fileName)
+        return pathName
     }
 
     // user clicked on ShowAllFiles button
@@ -689,7 +698,7 @@ extension ViewController {
     // read contents of file & display them in infoTextView
     func showFileContents(url: URL) {
         var showLineNumbers = false
-        var inMultiLineComment = false
+
         if url.pathExtension == "swift" {
             showLineNumbers = true
         }
@@ -703,16 +712,19 @@ extension ViewController {
             let lines = contentFromFile.components(separatedBy: "\n")
 
             if showLineNumbers {
-
+                var formattedLine: NSAttributedString
+                var inBlockComment = false
+                var inTripleQuote  = false
+                var curlyDepth = 0
                 for (i, line) in lines.enumerated() {
                     let aa = line.trim
                     if aa.hasPrefix("/*") {                             // "/*"
-                        inMultiLineComment = true
+                        inBlockComment = true
                     } else if aa.hasPrefix("*/") {                      // "*/"
-                        inMultiLineComment = false
+                        inBlockComment = false
                     }
-                    if inMultiLineComment && aa.contains("*/") { inMultiLineComment = false }
-                    let formattedLine = formatSwiftLine(lineNumber: i+1, text: aa, inMultiLineComment: inMultiLineComment)
+                    if inBlockComment && aa.contains("*/") { inBlockComment = false }
+                    formattedLine = formatSwiftLine(lineNumber: i+1, text: aa, inBlockComment: &inBlockComment, inTripleQuote: &inTripleQuote, curlyDepth: &curlyDepth)
                     formattedText.append(formattedLine)
                 }//next line
                 infoTextView.textStorage?.setAttributedString(formattedText)
@@ -755,9 +767,9 @@ extension ViewController {
     }//end func
 
     //---- formatSwiftLine - Add line numbers and comment colors - format tabs at right26 & left32, font at 13pt
-    func formatSwiftLine(lineNumber: Int, text: String, inMultiLineComment: Bool = false) -> NSAttributedString {
+    func formatSwiftLine(lineNumber: Int, text: String, inBlockComment: inout Bool, inTripleQuote: inout Bool, curlyDepth: inout Int) -> NSAttributedString {
         var (codeLine, comment) = ("","")
-        if inMultiLineComment {
+        if inBlockComment {
             (codeLine, comment) = ("",text)
         } else {
             (codeLine, comment) = stripComment(fullLine: text, lineNum: lineNumber)
