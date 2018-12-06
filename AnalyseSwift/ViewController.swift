@@ -25,10 +25,12 @@
 // dependency
 // computed variables, var observer
 // analysis: show func params
+// analysis: show non-camelCased params
 // analysis: show global vars, instance vars
 // analysis: organize by MARK: or by extension
 // show methods vs free functions
 // allow extensions other than class
+
 
 import Cocoa    /* partial-line Block Comment does not work.*/
 /* single-line Block Comment does not work.*/

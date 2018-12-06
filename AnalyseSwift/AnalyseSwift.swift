@@ -144,7 +144,7 @@ private func checkCurlys(codeName: String, itemName: String,posItem: Int, pOpenC
 func stripComment(fullLine: String, lineNum: Int) -> (codeLine: String, comment: String) {
     if !fullLine.contains("//") { return (fullLine, "") }               // No comment here
 
-    var pCommentF   = fullLine.IndexOf("//")                            // Leftmost "//"
+    var pCommentF   = fullLine.IndexOf("//")                            // Leftmost  "//"
     var pCommentR   = fullLine.IndexOfRev("//")                         // Rightmost "//"
     let pQuoteF     = fullLine.IndexOf("\"")
     //let pQuoteR   = fullLine.IndexOfRev("\"")
@@ -185,13 +185,20 @@ func stripComment(fullLine: String, lineNum: Int) -> (codeLine: String, comment:
     return (fullLine, "")
 }//end func stripComment
 
+func isCamelCase(_ word: String) -> Bool {
+    let firstLetter = word.prefix(1)
+    if firstLetter != firstLetter.lowercased()  { return false }
+    if word.contains("_") && firstLetter != "_" { return false }
+    return true
+}
+
 func analyseWWDC(_ str: String, selecFileInfo: FileAttributes) -> NSAttributedString {
     let lines = str.components(separatedBy: "\n")
     var attTx: NSMutableAttributedString = NSMutableAttributedString(string: "")
     let attTxt:NSMutableAttributedString = NSMutableAttributedString(string: "")
-    let attributesLargeFont  = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 20), NSAttributedString.Key.paragraphStyle: paragraphStyleA1]
+    let attributesLargeFont   = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 20), NSAttributedString.Key.paragraphStyle: paragraphStyleA1]
     //let attributesMediumFont = [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 16), NSAttributedStringKey.paragraphStyle: paragraphStyleA1]
-    let attributesSmallFont  = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 12), NSAttributedString.Key.paragraphStyle: paragraphStyleA1]
+    let attributesSmallFont   = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 12), NSAttributedString.Key.paragraphStyle: paragraphStyleA1]
     var year = ""
     for i in 0...2 {
         let line = lines[i]
@@ -385,6 +392,7 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
     var inBlockName         = ["","","","","","","","",""]
 
     var imports             = [LineItem]()
+    var nonCamelVars        = [LineItem]()
 
     //var enums             = [LineItem]()
     //var classes           = [LineItem]()
@@ -611,6 +619,32 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
                 }
             }
 
+            //print("➡️ \(codeLineClean)")
+            if codeLineClean.hasPrefix("let ") || codeLineClean.hasPrefix("var ") {
+                let comps1 = codeLineClean.components(separatedBy: "=")
+                var assignee = comps1[0]
+                let comps2 = assignee.components(separatedBy: ":")
+                assignee = comps2[0]
+                let comps3 = assignee.components(separatedBy: " ")
+                let nonempty = comps3.filter { (x) -> Bool in !x.isEmpty }    // Use filter to eliminate empty strings.
+                var i = 1
+                var done = false
+                while i < nonempty.count {
+                    assignee = nonempty[i]
+                    if assignee.hasSuffix(",") {
+                        assignee = String(assignee.dropLast())
+                    } else {
+                        done = true
+                    }
+                    if !isCamelCase(assignee) {
+                        let lineItem = LineItem(lineNum: lineNum, name: assignee, extra: "")
+                        print("➡️ \(lineItem.lineNum) \(assignee)")
+                        nonCamelVars.append(lineItem)
+                    }
+                    if done { break }
+                    i += 1
+                }
+            }
         }//end is CodeLine
     }//next line
     //MARK:- end Main Loop
@@ -621,9 +655,9 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
     let txt:NSMutableAttributedString = NSMutableAttributedString(string: "")
 
     print()
-    //paragraphStyleA1
+
+    // Set the Tab-stops
     let tabInterval: CGFloat = 100.0
-    //var tabStops = [NSTextTab]()
     var tabStop0 = NSTextTab(textAlignment: .left, location: 0)
     paragraphStyleA1.tabStops = [ tabStop0 ]
     for i in 1...8 {
@@ -631,13 +665,16 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
         paragraphStyleA1.addTabStop(tabStop0)
     }
 
+    // Set the Fonts
     let attributesLargeFont  = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 20), NSAttributedString.Key.paragraphStyle: paragraphStyleA1]
     let attributesMediumFont = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 16), NSAttributedString.Key.paragraphStyle: paragraphStyleA1]
     let attributesSmallFont  = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 12), NSAttributedString.Key.paragraphStyle: paragraphStyleA1]
 
+    // Test the Tabs
     tx  = NSMutableAttributedString(string: "\t1\t2\t3\t4\t5\n", attributes: attributesSmallFont)
     txt.append(tx)
 
+    // Print the OS
     if projectType == ProjectType.OSX {
         tx = NSMutableAttributedString(string: "Mac OSX  ", attributes: attributesLargeFont)
         txt.append(tx)
@@ -646,23 +683,25 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
         txt.append(tx)
     }
 
+    // Print File Name
     tx  = NSMutableAttributedString(string: "\(selecFileInfo.name) \(whatViewController)\n", attributes: attributesLargeFont)
     txt.append(tx)
 
+    // Print dateCreated, dateModified, createdBy, copyright, version
     let dateFormatter = DateFormatter()
     dateFormatter.dateStyle = .medium
     dateFormatter.timeStyle = .none
-    let cDate = dateFormatter.string(from: selecFileInfo.creationDate!)
+    let dateCreated = dateFormatter.string(from: selecFileInfo.creationDate!)
 
     dateFormatter.timeStyle = .short
-    let mDate = dateFormatter.string(from: selecFileInfo.modificationDate!)
+    let dateModified = dateFormatter.string(from: selecFileInfo.modificationDate!)
 
-    tx  = NSMutableAttributedString(string: "created: \(cDate)     modified: \(mDate)\n", attributes: attributesSmallFont)
+    tx  = NSMutableAttributedString(string: "created: \(dateCreated)     modified: \(dateModified)\n", attributes: attributesSmallFont)
     txt.append(tx)
     tx  = NSMutableAttributedString(string: "\(createdBy)\n\(copyright)\n\(version)\n", attributes: attributesSmallFont)
     txt.append(tx)
 
-
+    // Print FileSize & various line counts.
     let numberFormatter = NumberFormatter()
     numberFormatter.numberStyle = .decimal
     //numberFormatter.locale = unitedStatesLocale
@@ -683,8 +722,8 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
     txt.append(tx)
     //print()
 
+    // Print Imports
     tx = showLineItems(name: "Import", items: imports)
-    //print(tx.string)
     txt.append(tx)
 
     let printOrder = [BlockType.Enum.rawValue,
@@ -720,5 +759,18 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
         print("# \(c.lineNum),\t\(c.numLines) lines, \t\(cType)\t\(c.name)  \(c.extra)  \(i)")
     }
     print()
+
+    // print non-camelCased variables
+    if nonCamelVars.count > 0 {
+        print("\n😡 \(nonCamelVars.count) non-CamelCased variables")
+        for nonCamel in nonCamelVars {
+            print("😡   \(nonCamel.lineNum) \(nonCamel.name)")
+        }
+        print("\n")
+        tx = showLineItems(name: "Non-CamelCased Var", items: nonCamelVars)
+        txt.append(tx)
+
+    }
+
     return txt
 }//end func analyseSwiftFile
