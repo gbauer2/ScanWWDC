@@ -31,9 +31,8 @@
 // show methods vs free functions
 // allow extensions other than class
 
-
 import Cocoa    /* partial-line Block Comment does not work.*/
-/* single-line Block Comment does not work.*/
+/* single-line Block Comment does work. */
 
 /* To generate compiler warnings:
  #warning("This code is incomplete.")
@@ -65,19 +64,18 @@ class ViewController: NSViewController {
     var selecFileInfo = FileAttributes(url: nil, name: "???", creationDate: nil, modificationDate: nil, size: 0, isDir: false)
 
     var analyseFuncLocked = false               // because analyseSwiftFile() is not thread-safe
-    var displayedAnalysisUrl: URL?
-    var analyseMode = AnalyseMode.none
+    var analyseMode = AnalyseMode.none          // .WWDC, .swift, or .xcodeproj
 
     // MARK: - Properties with didSet property observer
     var urlMismatch: URL? {
         didSet {
             let t = selectedItemUrl
-            selectedItemUrl = nil
+            selectedItemUrl = nil               // Force a "didSet" for selectedItemUrl
             selectedItemUrl = t
         }
     }
     var selectedFolderUrl: URL? {
-        didSet {                                                // run whenever selectedFolderUrl is changed FOLDER
+        didSet {                                            // run whenever selectedFolderUrl is changed FOLDER
             if let selectedFolderUrl = selectedFolderUrl {
                 filesList = myContentsOf(folder: selectedFolderUrl)
                 selectedItemUrl = nil
@@ -100,8 +98,8 @@ class ViewController: NSViewController {
             saveInfoButton.isEnabled = false
             guard let selectedUrl = selectedItemUrl else { return }
             selecFileInfo = setFileInfo(url: selectedUrl)       // set selecFileInfo (name,dates,size,type)
-            if selectedUrl.pathExtension == "swift" {           //  1) analyse Swift
-                analyseMode = .swift
+            if selectedUrl.pathExtension == "swift" {
+                analyseMode = .swift                            //  1) analyse Swift
                 readContentsButton.isEnabled    = true
                 analyseContentsButton.isEnabled = true
                 print("🔷 selectedItemUrl is Swift File: \(selectedUrl.lastPathComponent)")
@@ -493,6 +491,8 @@ extension ViewController {
 
     // saveInfo Clicked
     @IBAction func saveInfoClicked(_ sender: Any) {
+//        test()
+//        return
         // Make sure we have a view.window and a selectedItemUrl
         guard let window = view.window else { return }
         guard let selectedItemUrl = selectedItemUrl else { return }
@@ -536,7 +536,7 @@ extension ViewController {
                     let contentFromFile = try NSString(contentsOf: url, encoding: String.Encoding.utf8.rawValue)
 
                     if analyseFuncLocked { return }                  // because analyseSwiftFile() is not thread-save
-                    analyseFuncLocked = true
+                    analyseFuncLocked = true                         // Lock the button
                     analyseContentsButton.isEnabled = false
                     infoTextView.string = "Analysing..."
                     DispatchQueue.global(qos: .userInitiated).async {
@@ -549,10 +549,9 @@ extension ViewController {
                             txt = NSAttributedString()
                         }
                         DispatchQueue.main.async {
-                            self.infoTextView.textStorage?.setAttributedString(txt)
-                            self.analyseFuncLocked = false
-                            self.analyseContentsButton.isEnabled = true
-                            self.displayedAnalysisUrl = url
+                            self.infoTextView.textStorage?.setAttributedString(txt) // Show txt in infoTextView
+                            self.analyseFuncLocked = false                          // Unlock the button...
+                            self.analyseContentsButton.isEnabled = true             // and Enable it.
                             if url != self.selectedItemUrl {
                                 self.urlMismatch = self.selectedItemUrl
                             }//endif url
@@ -632,7 +631,7 @@ extension ViewController {
         try? completeData.write(to: dataFileUrl, atomically: true, encoding: .utf8)
     }//end func
 
-    // called from viewWillAppear
+    // called from viewWillAppear - ???? Change to UserDefaults?
     func restoreCurrentSelections() {
         guard let dataFileUrl = urlForDataStorage() else {print("😡No dataFileUrl!"); return }
 
@@ -653,6 +652,7 @@ extension ViewController {
         }
     }//end func
 
+    // Helper for restoreCurrentSelections
     private func selectUrlInTable(_ url: URL?) {
         guard let url = url else { tableView.deselectAll(nil); return }
 
@@ -664,7 +664,8 @@ extension ViewController {
         }
     }//end func selectUrlInTable
 
-    // returns URL from ".../Application Support/AnalyseSwiftCode/StoredState.txt".  Called from saveCurrentSelections, restoreCurrentSelections
+    // returns URL from ".../Application Support/AnalyseSwiftCode/StoredState.txt".
+    // Called from saveCurrentSelections, restoreCurrentSelections
     private func urlForDataStorage() -> URL? {
         let fileManager = FileManager.default
 
@@ -700,16 +701,18 @@ extension ViewController {
     // read contents of file & display them in infoTextView
     func showFileContents(url: URL) {
         var showLineNumbers = false
+        var isSwiftSource   = false
 
         if url.pathExtension == "swift" {
             showLineNumbers = true
+            isSwiftSource   = true
         }
         if url.lastPathComponent.hasPrefix("WWDC-20") && url.pathExtension == "txt" {
             showLineNumbers = true
         }
         do {
             var formattedText = NSMutableAttributedString()
-            // Read file content
+            // Read file content & populate "lines"
             let contentFromFile = try NSString(contentsOf: url, encoding: String.Encoding.utf8.rawValue)
             let lines = contentFromFile.components(separatedBy: "\n")
 
@@ -719,19 +722,13 @@ extension ViewController {
                 var inTripleQuote  = false
                 var curlyDepth = 0
                 for (i, line) in lines.enumerated() {
-                    let aa = line.trim
-                    if aa.hasPrefix("/*") {                             // "/*"
-                        inBlockComment = true
-                    } else if aa.hasPrefix("*/") {                      // "*/"
-                        inBlockComment = false
-                    }
-                    if inBlockComment && aa.contains("*/") { inBlockComment = false }
-                    formattedLine = formatSwiftLine(lineNumber: i+1, text: aa, inBlockComment: &inBlockComment, inTripleQuote: &inTripleQuote, curlyDepth: &curlyDepth)
+                    formattedLine = formatSwiftLine(lineNumber: i+1, text: line, inBlockComment: &inBlockComment, inTripleQuote: &inTripleQuote, curlyDepth: &curlyDepth)
                     formattedText.append(formattedLine)
                 }//next line
                 infoTextView.textStorage?.setAttributedString(formattedText)
 
             } else {
+                // Show raw text as read
                 formattedText = formatInfoText(contentFromFile as String) as! NSMutableAttributedString
                 infoTextView.textStorage?.setAttributedString(formattedText)
             }
@@ -769,39 +766,22 @@ extension ViewController {
     }//end func
 
     //---- formatSwiftLine - Add line numbers and comment colors - format tabs at right26 & left32, font at 13pt
+    // called from showFileContents()
     func formatSwiftLine(lineNumber: Int, text: String, inBlockComment: inout Bool, inTripleQuote: inout Bool, curlyDepth: inout Int) -> NSAttributedString {
-        var (codeLine, comment) = ("","")
-        if inBlockComment {
-            (codeLine, comment) = ("",text)
-        } else {
-            (codeLine, comment) = stripComment(fullLine: text, lineNum: lineNumber)
-        }
         let paragraphStyle = NSMutableParagraphStyle()
         paragraphStyle.minimumLineHeight = 2
         paragraphStyle.alignment = .left
         paragraphStyle.tabStops = [ NSTextTab(type: .rightTabStopType, location: 26),  NSTextTab(type: .leftTabStopType, location: 32) ]
 
         let lineNumAttributes: [NSAttributedString.Key: Any] = [
-            //NSAttributedStringKey.font: NSFont.systemFont(ofSize: 10),
             NSAttributedString.Key.font: NSFont(name: "Menlo", size: 10)!,
             NSAttributedString.Key.foregroundColor: NSColor.gray,
             NSAttributedString.Key.paragraphStyle: paragraphStyle
         ]
-        let formattedLineNum = NSAttributedString(string: "\t\(lineNumber)", attributes: lineNumAttributes)
-
-        var textAttributes: [NSAttributedString.Key: Any] = [
-            NSAttributedString.Key.font: NSFont(name: "PT Mono", size: 12)!,
-            NSAttributedString.Key.paragraphStyle: paragraphStyle
-        ]
-        let formattedText = NSAttributedString(string: "\t\(codeLine)", attributes: textAttributes)
-
-        //green
-        textAttributes[NSAttributedString.Key.foregroundColor] = NSColor(calibratedRed: 0, green: 0.6, blue: 0.15, alpha: 1)
-        let formatedComment = NSMutableAttributedString(string: comment + "\n", attributes: textAttributes)
-
+        let n4 = "\(lineNumber)".PadLeft(4)
+        let formattedLineNum = NSAttributedString(string: "\(n4) ", attributes: lineNumAttributes)
         let output = NSMutableAttributedString(attributedString: formattedLineNum)
-        output.append(formattedText)
-        output.append(formatedComment)
+        output.append(formatCodeLine(codeLine: text, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment))
         return output
     }//end func formatSwiftLine
 
@@ -820,6 +800,100 @@ extension ViewController {
         let formattedText = NSAttributedString(string: text, attributes: textAttributes)
         return formattedText
     }//end func
+
+    func test() {
+        let str = "a👿b🇩🇪c"
+        let range1 = str.range(of: "b🇩🇪")!
+        print(str[range1])                                  // b🇩🇪
+
+        // String range to NSRange:
+        let nsRange = NSRange(range1, in: str)
+        print((str as NSString).substring(with: nsRange))   // b🇩🇪
+
+        // NSRange back to String range:
+        let range2 = Range(nsRange, in: str)!
+        print(str[range2])                                  // b🇩🇪
+
+        let codeLines = [
+                        "  This is a code line // With a trailing comment",
+                        "  This is a /*embedded block comment*/ more code",
+                        "  // This is a Comment Line",
+                        "       // This is a Comment Line",
+                        "  This is 2nd code line",
+                        "  /*  Start Block  ",
+                        "  Block Comment Line#1",
+                        "  Block Comment Line#2",
+                        "  */"  ,
+                        "  This is 3rd code line",
+                        "  /* Block Comment whole line */  ",
+                        "  This is 4th code line",
+        ]
+
+        let combined = NSMutableAttributedString()
+
+        var inTripleQuote = false
+        var inBlockComment = false
+        for codeLine in codeLines {
+            combined.append(formatCodeLine(codeLine: codeLine, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment))
+        }
+
+        infoTextView.textStorage?.setAttributedString(combined)
+
+    }//end func test
+
+    func formatCodeLine(codeLine: String, inTripleQuote: inout Bool, inBlockComment: inout Bool) -> NSAttributedString {
+        var textAttributes: [NSAttributedString.Key: Any] = [NSAttributedString.Key.font: NSFont(name: "PT Mono", size: 12)!]
+        var formattedText = NSMutableAttributedString(string: "\(codeLine)\n", attributes: textAttributes)
+        let trimmedLine = codeLine.trim
+        let codeColor    = NSColor.black
+        let commentColor = NSColor(calibratedRed: 0, green: 0.6, blue: 0.15, alpha: 1)  //Green
+        var isComment = false
+        if trimmedLine.hasPrefix("/*") && !trimmedLine.contains("*/") { inBlockComment = true }
+        if inBlockComment && (!trimmedLine.contains("*/") || trimmedLine.hasSuffix("*/")) { isComment = true }
+
+        if trimmedLine.hasPrefix("//") || isComment {
+            if trimmedLine.hasSuffix("*/") { inBlockComment = false}
+            textAttributes[NSAttributedString.Key.foregroundColor] = commentColor
+            formattedText = NSMutableAttributedString(string: "\(codeLine)\n", attributes: textAttributes)
+            return formattedText    // "//" or "/*" Full Comment Line
+        }
+
+        if trimmedLine.hasPrefix("/*") && !trimmedLine.contains("*/") { inBlockComment = true }
+        // if no comment chars in line
+        if !trimmedLine.contains("//") && !trimmedLine.contains("/*") && !trimmedLine.contains("*/") {
+            if inBlockComment {
+                textAttributes[NSAttributedString.Key.foregroundColor] = commentColor
+            } else {
+                textAttributes[NSAttributedString.Key.foregroundColor] = codeColor
+            }
+            formattedText = NSMutableAttributedString(string: "\(codeLine)\n", attributes: textAttributes)
+            return formattedText    // AllCode or AllComment
+        }
+
+        if trimmedLine.hasSuffix("*/") {
+            inBlockComment = false
+            textAttributes[NSAttributedString.Key.foregroundColor] = commentColor
+            formattedText = NSMutableAttributedString(string: "\(codeLine)\n", attributes: textAttributes)
+            return formattedText    // AllCode or AllComment
+        }
+
+        let comps = codeLine.components(separatedBy: "//")
+        if comps.count < 2 {
+            textAttributes[NSAttributedString.Key.foregroundColor] = codeColor
+            formattedText = NSMutableAttributedString(string: "\(codeLine)\n", attributes: textAttributes)
+            return formattedText        // All Code
+        }
+
+        textAttributes[NSAttributedString.Key.foregroundColor] = codeColor
+        formattedText = NSMutableAttributedString(string: "\(comps[0])", attributes: textAttributes)
+        textAttributes[NSAttributedString.Key.foregroundColor] = commentColor
+        let cmt = NSMutableAttributedString(string: "//\(comps[1])\n", attributes: textAttributes)
+        formattedText.append(cmt)
+        return formattedText        // Code with trailing comment
+
+    }
+
+
 
 }//end Extension
 
