@@ -498,7 +498,7 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
             // Use filter to eliminate empty strings.
             let words = wordsWithEmpty.filter { !$0.isEmpty }
 
-            //if words.count < 2 { continue }                         // if less than 2 words, fogetaboutit
+            if words.isEmpty { continue }                         // if no words, fogetaboutit
 
             var codeName = "import"
             if words.first! == codeName {
@@ -535,6 +535,7 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
                     var itemName = "????"
                     if posItem < words.count {
                         itemName = words[posItem + 1]   // get the word that follows "func"
+                        if !isCamelCase(itemName) {nonCamelVars.append(LineItem(lineNum: lineNum, name: itemName, extra: ""))}
                     }
 
                     checkCurlys(codeName: codeName, itemName: itemName, posItem: posItem, pOpenCurlyF: pOpenCurlyF, pOpenCurlyR: pOpenCurlyR, pCloseCurlyF: pCloseCurlyF, pCloseCurlyR: pCloseCurlyR)
@@ -621,29 +622,28 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
 
             //print("➡️ \(codeLineClean)")
             if codeLineClean.hasPrefix("let ") || codeLineClean.hasPrefix("var ") {
+                codeLineClean = String(codeLineClean.dropFirst(4))
                 let comps1 = codeLineClean.components(separatedBy: "=")
-                var assignee = comps1[0]
-                let comps2 = assignee.components(separatedBy: ":")
-                assignee = comps2[0]
-                let comps3 = assignee.components(separatedBy: " ")
-                let nonempty = comps3.filter { (x) -> Bool in !x.isEmpty }    // Use filter to eliminate empty strings.
-                var i = 1
-                var done = false
-                while i < nonempty.count {
-                    assignee = nonempty[i]
-                    if assignee.hasSuffix(",") {
-                        assignee = String(assignee.dropLast())
-                    } else {
-                        done = true
+                var assigneeList = comps1.first!                                // Strip off right side of "="
+                let comps2 = assigneeList.components(separatedBy: ":")
+                assigneeList = comps2.first!                                    // Strip off right side of ":"
+                let assignees = assigneeList.components(separatedBy: ",")
+                //assignees = assignees.map { $0.trim }
+                //print(codeLineClean, assignees)
+                for assignee in assignees {
+                    var name = assignee.trim
+                    if name.hasPrefix("(") {
+                        name = String(name.dropFirst()).trim
                     }
-                    if !isCamelCase(assignee) {
-                        let lineItem = LineItem(lineNum: lineNum, name: assignee, extra: "")
-                        print("➡️ \(lineItem.lineNum) \(assignee)")
+                    if name.hasSuffix(")") {
+                        name = String(name.dropLast()).trim
+                    }
+                    if !isCamelCase(name) {
+                        let lineItem = LineItem(lineNum: lineNum, name: name, extra: "")
+                        print("➡️ \(lineItem.lineNum) \(name)")
                         nonCamelVars.append(lineItem)
                     }
-                    if done { break }
-                    i += 1
-                }
+                }//next assignee
             }
         }//end is CodeLine
     }//next line

@@ -13,10 +13,9 @@
 // selectively enable View & Analyse buttons or use segmented button.
 
 // showContents - Swift file:
-// Make handling quotes more robust - (codeLineClean)
+//  Make handling quotes more robust - (codeLineClean)
 //  inTripleQuote """
 //  Fix color of embedded block comments
-//  Indent blocks (count curlys)
 //  colors & truncation
 
 // AnalyseSwift:
@@ -30,6 +29,9 @@
 // analysis: organize by MARK: or by extension
 // show methods vs free functions
 // allow extensions other than class
+
+// Does Not Handle:
+//   Embedded /* */
 
 import Cocoa    /* partial-line Block Comment does not work.*/
 /* single-line Block Comment does work. */
@@ -135,7 +137,7 @@ class ViewController: NSViewController {
                 analyseContentsButton.isEnabled = false
                 let infoString = infoAbout(url: selectedUrl)
                 if !infoString.isEmpty {
-                    let formattedText = formatInfoText(infoString)
+                    let formattedText = formatWithHeader(infoString)
                     infoTextView.textStorage?.setAttributedString(formattedText)
                     saveInfoButton.isEnabled = true
                 }//endif
@@ -166,6 +168,7 @@ class ViewController: NSViewController {
     }
 
     override func viewDidAppear() {
+        super.viewDidAppear()
 //        let presOptions: NSApplication.PresentationOptions = ([.fullScreen,.autoHideMenuBar])
 //        print(presOptions)
 //        let optionsDictionary = [NSView.FullScreenModeOptionKey.fullScreenModeApplicationPresentationOptions : NSNumber(value: presOptions.rawValue)]
@@ -554,9 +557,9 @@ extension ViewController {
                             self.analyseContentsButton.isEnabled = true             // and Enable it.
                             if url != self.selectedItemUrl {
                                 self.urlMismatch = self.selectedItemUrl
-                            }//endif url
-                        }//endif DispatchQueue.main
-                    }//endif DispatchQueue.global
+                            }
+                        }//end DispatchQueue.main
+                    }//end DispatchQueue.global
 
                 }//end try do
 
@@ -729,7 +732,7 @@ extension ViewController {
 
             } else {
                 // Show raw text as read
-                formattedText = formatInfoText(contentFromFile as String) as! NSMutableAttributedString
+                formattedText = formatWithHeader(contentFromFile as String) as! NSMutableAttributedString
                 infoTextView.textStorage?.setAttributedString(formattedText)
             }
         }//end do
@@ -737,7 +740,7 @@ extension ViewController {
             let err = "😡showFileContents error: \(error.localizedDescription)"
             print(err)
             let str = "\(selecFileInfo.name)\n\n'View' only works in text-based files."
-            let formattedText = formatInfoText(str)
+            let formattedText = formatWithHeader(str)
             infoTextView.textStorage?.setAttributedString(formattedText)
         }//end catch
 
@@ -745,7 +748,7 @@ extension ViewController {
 
 
     // format 1st line to 20pt font; the rest to 14pt
-    func formatInfoText(_ text: String) -> NSAttributedString {
+    func formatWithHeader(_ text: String) -> NSAttributedString {
         let paragraphStyle = NSMutableParagraphStyle.default.mutableCopy() as? NSMutableParagraphStyle
         paragraphStyle?.minimumLineHeight = 24
         paragraphStyle?.alignment = .left
@@ -781,6 +784,9 @@ extension ViewController {
         let n4 = "\(lineNumber)".PadLeft(4)
         let formattedLineNum = NSAttributedString(string: "\(n4) ", attributes: lineNumAttributes)
         let output = NSMutableAttributedString(attributedString: formattedLineNum)
+        if lineNumber == 25 {
+            // Debug Trap
+        }
         output.append(formatCodeLine(codeLine: text, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment))
         return output
     }//end func formatSwiftLine
@@ -844,10 +850,11 @@ extension ViewController {
     func formatCodeLine(codeLine: String, inTripleQuote: inout Bool, inBlockComment: inout Bool) -> NSAttributedString {
         var textAttributes: [NSAttributedString.Key: Any] = [NSAttributedString.Key.font: NSFont(name: "PT Mono", size: 12)!]
         var formattedText = NSMutableAttributedString(string: "\(codeLine)\n", attributes: textAttributes)
-        let trimmedLine = codeLine.trim
-        let codeColor    = NSColor.black
-        let commentColor = NSColor(calibratedRed: 0, green: 0.6, blue: 0.15, alpha: 1)  //Green
-        var isComment = false
+        let trimmedLine   = codeLine.trim
+        let codeColor     = NSColor.black
+        let commentColor  = NSColor(calibratedRed: 0, green: 0.6, blue: 0.15, alpha: 1)  //Green
+        var isComment     = false
+
         if trimmedLine.hasPrefix("/*") && !trimmedLine.contains("*/") { inBlockComment = true }
         if inBlockComment && (!trimmedLine.contains("*/") || trimmedLine.hasSuffix("*/")) { isComment = true }
 
@@ -877,25 +884,85 @@ extension ViewController {
             return formattedText    // AllCode or AllComment
         }
 
-        let comps = codeLine.components(separatedBy: "//")
-        if comps.count < 2 {
-            textAttributes[NSAttributedString.Key.foregroundColor] = codeColor
-            formattedText = NSMutableAttributedString(string: "\(codeLine)\n", attributes: textAttributes)
-            return formattedText        // All Code
+        if codeLine.contains("//") && !codeLine.contains("\"") {
+            formattedText = splitTrailingComment(codeLine: codeLine, codeColor: codeColor, commentColor: commentColor, attributes: textAttributes)
+            return formattedText    // Trailing Comment
         }
 
+        // Simple solutions failed, so parse the code char by char
+        let chars = Array(codeLine)
+        var escaped = false
+        var inQuote = false
+        for (i, char) in chars.enumerated() {
+            if !escaped {
+                if char == "\\" {
+                    escaped = true
+                }
+                if char == "\"" {
+                    inQuote = !inQuote
+                }
+                if !inQuote {
+                    if char == "/" && chars[i-1] == "/" {
+                        let (code, comment) = splitLineAtIntIndex(codeLine: codeLine, indexInt: i-1 )
+                        formattedText = formatTrailingComment(code: code, comment: comment, codeColor: codeColor, commentColor: commentColor, attributes: textAttributes)
+                        return formattedText    // Trailing Comment
+                    }
+                }
+            } else {
+                escaped = false
+            }
+        }//next
+
         textAttributes[NSAttributedString.Key.foregroundColor] = codeColor
-        formattedText = NSMutableAttributedString(string: "\(comps[0])", attributes: textAttributes)
-        textAttributes[NSAttributedString.Key.foregroundColor] = commentColor
-        let cmt = NSMutableAttributedString(string: "//\(comps[1])\n", attributes: textAttributes)
-        formattedText.append(cmt)
+        formattedText = NSMutableAttributedString(string: "\(codeLine)\n", attributes: textAttributes)
+        return formattedText        // All Code
+    }//end func formatCodeLine
+
+    func splitTrailingComment(codeLine: String, codeColor: NSColor, commentColor: NSColor, attributes: [NSAttributedString.Key: Any]) -> NSMutableAttributedString {
+        var myAttributes  = attributes
+        myAttributes[NSAttributedString.Key.foregroundColor] = codeColor
+        var formattedText = NSMutableAttributedString()
+
+        let range = codeLine.range(of: "//")
+        if let range = range {
+            let splitIndex = range.lowerBound
+            let (code, comment) = splitLineAtIndex(codeLine: codeLine, splitIndex: splitIndex)
+            formattedText = NSMutableAttributedString(string: "\(code)", attributes: myAttributes)
+            myAttributes[NSAttributedString.Key.foregroundColor] = commentColor
+            let cmt = NSMutableAttributedString(string: "\(comment)\n", attributes: myAttributes)
+            formattedText.append(cmt)
+        } else {
+            formattedText = NSMutableAttributedString(string: "\(codeLine)", attributes: myAttributes)
+        }
         return formattedText        // Code with trailing comment
-
-    }
-
-
+    }//end func
 
 }//end Extension
 
+// Split a codeLine into code & comment at an integer index
+func splitLineAtIntIndex(codeLine: String, indexInt: Int ) -> (code: String, comment: String) {
+    let splitIndex = codeLine.index(codeLine.startIndex, offsetBy: indexInt)
+    let code = String(codeLine[..<splitIndex])
+    let comment = String(codeLine[splitIndex...])
+    return (code, comment)        // Code with trailing comment
+}//end func
 
+// Split a codeLine into code & comment at a String.Index
+func splitLineAtIndex(codeLine: String, splitIndex: String.Index ) -> (code: String, comment: String) {
+    let code = String(codeLine[..<splitIndex])
+    let comment = String(codeLine[splitIndex...])
+    return (code, comment)        // Code with trailing comment
+}//end func
+
+// Format a simple code//comment line into a NSMutableAttributedString
+func formatTrailingComment(code: String, comment: String, codeColor: NSColor, commentColor: NSColor, attributes: [NSAttributedString.Key: Any]) -> NSMutableAttributedString {
+    var myAttributes  = attributes
+    myAttributes[NSAttributedString.Key.foregroundColor] = codeColor
+    var formattedText = NSMutableAttributedString()
+    formattedText = NSMutableAttributedString(string: "\(code)", attributes: myAttributes)
+    myAttributes[NSAttributedString.Key.foregroundColor] = commentColor
+    let cmt = NSMutableAttributedString(string: "\(comment)\n", attributes: myAttributes)
+    formattedText.append(cmt)
+    return formattedText        // NSMutableAttributedString - Code with trailing comment
+}//end func
 

@@ -6,7 +6,26 @@
 //  Copyright © 2018 George Bauer. All rights reserved.
 //
 
-import Cocoa
+import Cocoa    /* ????? partial-line Block Comment does not work.*/
+/* single-line Block Comment does work. */
+
+/* To generate compiler warnings:
+ #warning("This code is incomplete.")
+ */
+
+private func TestCamelCase(p1: Int, p2 : Int , Param3:String) {
+    let n, Bad1:   Int
+    var i,j_bad2:  Int      //?????
+    var k , Bad3 : Int      //?????
+    let Bad4 = ""
+    let Bad5=0
+    let Bad6:String
+    n=0;i=0;k=0; Bad1=0; j_bad2=0; Bad3=0; Bad6=""      // To avoid warnings
+    print(n,Bad1,i,j_bad2,k,Bad3,Bad4,Bad5,Bad6)        // To avoid warnings
+    if !Param3.contains("//") && !Param3.contains("/*") && !Param3.contains("*/") {} //ok
+    print("\"") //ok
+}
+
 
 //not used
 private func testNSString() {

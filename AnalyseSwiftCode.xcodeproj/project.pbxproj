@@ -16,7 +16,18 @@
 		CEA6263A20067DCA000F923D /* SampleCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEA6263920067DCA000F923D /* SampleCode.swift */; };
 		CEA6263D20068AA2000F923D /* AnalyseSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEA6263B20068AA2000F923D /* AnalyseSwift.swift */; };
 		CEBAD4A42194A8E600CBBCBA /* AnalyseXcodeproj.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEBAD4A32194A8E600CBBCBA /* AnalyseXcodeproj.swift */; };
+		CEFF413D21BC1A96002D07A7 /* AnalyseSwiftCodeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEFF413C21BC1A96002D07A7 /* AnalyseSwiftCodeTests.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		CEFF413F21BC1A96002D07A7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 26ECD32F1E874B5B00380F56 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 26ECD3361E874B5B00380F56;
+			remoteInfo = AnalyseSwiftCode;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		26ECD3371E874B5C00380F56 /* AnalyseSwiftCode.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AnalyseSwiftCode.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -30,10 +41,20 @@
 		CEA6263920067DCA000F923D /* SampleCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleCode.swift; sourceTree = "<group>"; };
 		CEA6263B20068AA2000F923D /* AnalyseSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyseSwift.swift; sourceTree = "<group>"; };
 		CEBAD4A32194A8E600CBBCBA /* AnalyseXcodeproj.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyseXcodeproj.swift; sourceTree = "<group>"; };
+		CEFF413A21BC1A96002D07A7 /* AnalyseSwiftCodeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AnalyseSwiftCodeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CEFF413C21BC1A96002D07A7 /* AnalyseSwiftCodeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyseSwiftCodeTests.swift; sourceTree = "<group>"; };
+		CEFF413E21BC1A96002D07A7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		26ECD3341E874B5B00380F56 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CEFF413721BC1A96002D07A7 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -47,6 +68,7 @@
 			isa = PBXGroup;
 			children = (
 				26ECD3391E874B5C00380F56 /* AnalyseSwift */,
+				CEFF413B21BC1A96002D07A7 /* AnalyseSwiftCodeTests */,
 				26ECD3381E874B5C00380F56 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -55,6 +77,7 @@
 			isa = PBXGroup;
 			children = (
 				26ECD3371E874B5C00380F56 /* AnalyseSwiftCode.app */,
+				CEFF413A21BC1A96002D07A7 /* AnalyseSwiftCodeTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -84,6 +107,15 @@
 			path = MyLibrary;
 			sourceTree = "<group>";
 		};
+		CEFF413B21BC1A96002D07A7 /* AnalyseSwiftCodeTests */ = {
+			isa = PBXGroup;
+			children = (
+				CEFF413C21BC1A96002D07A7 /* AnalyseSwiftCodeTests.swift */,
+				CEFF413E21BC1A96002D07A7 /* Info.plist */,
+			);
+			path = AnalyseSwiftCodeTests;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -104,13 +136,31 @@
 			productReference = 26ECD3371E874B5C00380F56 /* AnalyseSwiftCode.app */;
 			productType = "com.apple.product-type.application";
 		};
+		CEFF413921BC1A96002D07A7 /* AnalyseSwiftCodeTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CEFF414321BC1A96002D07A7 /* Build configuration list for PBXNativeTarget "AnalyseSwiftCodeTests" */;
+			buildPhases = (
+				CEFF413621BC1A96002D07A7 /* Sources */,
+				CEFF413721BC1A96002D07A7 /* Frameworks */,
+				CEFF413821BC1A96002D07A7 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CEFF414021BC1A96002D07A7 /* PBXTargetDependency */,
+			);
+			name = AnalyseSwiftCodeTests;
+			productName = AnalyseSwiftCodeTests;
+			productReference = CEFF413A21BC1A96002D07A7 /* AnalyseSwiftCodeTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
 		26ECD32F1E874B5B00380F56 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 0820;
+				LastSwiftUpdateCheck = 1010;
 				LastUpgradeCheck = 0930;
 				ORGANIZATIONNAME = "Ray Wenderlich";
 				TargetAttributes = {
@@ -119,6 +169,12 @@
 						DevelopmentTeam = XD8UZ6484B;
 						LastSwiftMigration = 1010;
 						ProvisioningStyle = Automatic;
+					};
+					CEFF413921BC1A96002D07A7 = {
+						CreatedOnToolsVersion = 10.1;
+						DevelopmentTeam = XD8UZ6484B;
+						ProvisioningStyle = Automatic;
+						TestTargetID = 26ECD3361E874B5B00380F56;
 					};
 				};
 			};
@@ -136,6 +192,7 @@
 			projectRoot = "";
 			targets = (
 				26ECD3361E874B5B00380F56 /* AnalyseSwiftCode */,
+				CEFF413921BC1A96002D07A7 /* AnalyseSwiftCodeTests */,
 			);
 		};
 /* End PBXProject section */
@@ -147,6 +204,13 @@
 			files = (
 				26ECD33F1E874B5C00380F56 /* Assets.xcassets in Resources */,
 				26ECD3421E874B5C00380F56 /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CEFF413821BC1A96002D07A7 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -167,7 +231,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CEFF413621BC1A96002D07A7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CEFF413D21BC1A96002D07A7 /* AnalyseSwiftCodeTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		CEFF414021BC1A96002D07A7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 26ECD3361E874B5B00380F56 /* AnalyseSwiftCode */;
+			targetProxy = CEFF413F21BC1A96002D07A7 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		26ECD3401E874B5C00380F56 /* Main.storyboard */ = {
@@ -323,6 +403,55 @@
 			};
 			name = Release;
 		};
+		CEFF414121BC1A96002D07A7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = XD8UZ6484B;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				INFOPLIST_FILE = AnalyseSwiftCodeTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.georgebauer.AnalyseSwiftCodeTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.2;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AnalyseSwiftCode.app/Contents/MacOS/AnalyseSwiftCode";
+			};
+			name = Debug;
+		};
+		CEFF414221BC1A96002D07A7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = XD8UZ6484B;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				INFOPLIST_FILE = AnalyseSwiftCodeTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.georgebauer.AnalyseSwiftCodeTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.2;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AnalyseSwiftCode.app/Contents/MacOS/AnalyseSwiftCode";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -340,6 +469,15 @@
 			buildConfigurations = (
 				26ECD3471E874B5C00380F56 /* Debug */,
 				26ECD3481E874B5C00380F56 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CEFF414321BC1A96002D07A7 /* Build configuration list for PBXNativeTarget "AnalyseSwiftCodeTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CEFF414121BC1A96002D07A7 /* Debug */,
+				CEFF414221BC1A96002D07A7 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
