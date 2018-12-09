@@ -142,7 +142,7 @@ private func checkCurlys(codeName: String, itemName: String,posItem: Int, pOpenC
 
 // Strip comment from line, returning code portion and comment-including-leading-spaces
 func stripComment(fullLine: String, lineNum: Int) -> (codeLine: String, comment: String) {
-    if !fullLine.contains("//") { return (fullLine, "") }               // No comment here
+    if !fullLine.contains("//") { return (fullLine, "") }               // No comment here ????? Not Swifty
 
     var pCommentF   = fullLine.IndexOf("//")                            // Leftmost  "//"
     var pCommentR   = fullLine.IndexOfRev("//")                         // Rightmost "//"
@@ -188,7 +188,7 @@ func stripComment(fullLine: String, lineNum: Int) -> (codeLine: String, comment:
 func isCamelCase(_ word: String) -> Bool {
     let firstLetter = word.prefix(1)
     if firstLetter != firstLetter.lowercased()  { return false }
-    if word.contains("_") && firstLetter != "_" { return false }
+    if word.contains("_") && firstLetter != "_" { return false }    //????? Not Swifty
     return true
 }
 
@@ -299,7 +299,7 @@ func analyseWWDC(_ str: String, selecFileInfo: FileAttributes) -> NSAttributedSt
                 if title.contains("Maps")               { keyWord = "MapKit" }
                 if title.contains("MapKit")             { keyWord = "MapKit" }
 
-                if   allLc.contains("playground")       { keyWord = "Playgrounds" }
+                if allLc.contains("playground")         { keyWord = "Playgrounds" }
 
                 if allLc.contains("debug")              { keyWord = "Debugging" }
                 if allLc.contains("testing") || allLc.contains("unit t") || allLc.contains("uitest")  { keyWord = "Testing" }
