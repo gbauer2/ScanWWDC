@@ -442,15 +442,15 @@ extension ViewController {
         let barePath = url.path     // url.deletingPathExtension().path
         var comps = barePath.components(separatedBy: "/")
         comps.removeFirst(3)                                // Remove: "", "Users", "george"
-        var pathName = ""
-        if barePath.count > maxLength {
+        var pathName = comps.joined(separator: "/")
+        if pathName.count > maxLength {
+            pathName = ""
             for comp in comps {
-                if pathName.count + comp.count > maxLength { break }
-                pathName += "/" + comp
+                if pathName.count + comp.count + fileName.count + 2 > maxLength { break }
+                if !pathName.isEmpty { pathName += "/" }
+                pathName += comp
             }
             pathName += "/.../" + fileName
-        } else{
-            pathName = comps.joined(separator: "/")
         }
         return pathName
     }

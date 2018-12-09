@@ -11,17 +11,17 @@
 		26ECD33D1E874B5C00380F56 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26ECD33C1E874B5C00380F56 /* ViewController.swift */; };
 		26ECD33F1E874B5C00380F56 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 26ECD33E1E874B5C00380F56 /* Assets.xcassets */; };
 		26ECD3421E874B5C00380F56 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 26ECD3401E874B5C00380F56 /* Main.storyboard */; };
+		CE1D751421BDA90B00286967 /* AnalyseSwiftCodeUnitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE1D751321BDA90B00286967 /* AnalyseSwiftCodeUnitTests.swift */; };
 		CE4194AE21BD8C22006808B1 /* AttributableStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE4194AD21BD8C22006808B1 /* AttributableStrings.swift */; };
 		CE67A6A41FFA066B00BD57BD /* StringExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE67A6A31FFA066B00BD57BD /* StringExtension.swift */; };
 		CE83F8BB1FFD329D00C39EC8 /* MyFuncs.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE83F8BA1FFD329C00C39EC8 /* MyFuncs.swift */; };
 		CEA6263A20067DCA000F923D /* SampleCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEA6263920067DCA000F923D /* SampleCode.swift */; };
 		CEA6263D20068AA2000F923D /* AnalyseSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEA6263B20068AA2000F923D /* AnalyseSwift.swift */; };
 		CEBAD4A42194A8E600CBBCBA /* AnalyseXcodeproj.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEBAD4A32194A8E600CBBCBA /* AnalyseXcodeproj.swift */; };
-		CEFF413D21BC1A96002D07A7 /* AnalyseSwiftCodeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEFF413C21BC1A96002D07A7 /* AnalyseSwiftCodeTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		CEFF413F21BC1A96002D07A7 /* PBXContainerItemProxy */ = {
+		CE1D751621BDA90B00286967 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 26ECD32F1E874B5B00380F56 /* Project object */;
 			proxyType = 1;
@@ -37,15 +37,15 @@
 		26ECD33E1E874B5C00380F56 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		26ECD3411E874B5C00380F56 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		26ECD3431E874B5C00380F56 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CE1D751121BDA90B00286967 /* AnalyseSwiftCodeUnitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AnalyseSwiftCodeUnitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CE1D751321BDA90B00286967 /* AnalyseSwiftCodeUnitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyseSwiftCodeUnitTests.swift; sourceTree = "<group>"; };
+		CE1D751521BDA90B00286967 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		CE4194AD21BD8C22006808B1 /* AttributableStrings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttributableStrings.swift; sourceTree = "<group>"; };
 		CE67A6A31FFA066B00BD57BD /* StringExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StringExtension.swift; sourceTree = "<group>"; };
 		CE83F8BA1FFD329C00C39EC8 /* MyFuncs.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MyFuncs.swift; sourceTree = "<group>"; };
 		CEA6263920067DCA000F923D /* SampleCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleCode.swift; sourceTree = "<group>"; };
 		CEA6263B20068AA2000F923D /* AnalyseSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyseSwift.swift; sourceTree = "<group>"; };
 		CEBAD4A32194A8E600CBBCBA /* AnalyseXcodeproj.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyseXcodeproj.swift; sourceTree = "<group>"; };
-		CEFF413A21BC1A96002D07A7 /* AnalyseSwiftCodeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AnalyseSwiftCodeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		CEFF413C21BC1A96002D07A7 /* AnalyseSwiftCodeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyseSwiftCodeTests.swift; sourceTree = "<group>"; };
-		CEFF413E21BC1A96002D07A7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,7 +56,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		CEFF413721BC1A96002D07A7 /* Frameworks */ = {
+		CE1D750E21BDA90B00286967 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -70,7 +70,7 @@
 			isa = PBXGroup;
 			children = (
 				26ECD3391E874B5C00380F56 /* AnalyseSwift */,
-				CEFF413B21BC1A96002D07A7 /* AnalyseSwiftCodeTests */,
+				CE1D751221BDA90B00286967 /* AnalyseSwiftCodeUnitTests */,
 				26ECD3381E874B5C00380F56 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -79,7 +79,7 @@
 			isa = PBXGroup;
 			children = (
 				26ECD3371E874B5C00380F56 /* AnalyseSwiftCode.app */,
-				CEFF413A21BC1A96002D07A7 /* AnalyseSwiftCodeTests.xctest */,
+				CE1D751121BDA90B00286967 /* AnalyseSwiftCodeUnitTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -101,6 +101,15 @@
 			path = AnalyseSwift;
 			sourceTree = "<group>";
 		};
+		CE1D751221BDA90B00286967 /* AnalyseSwiftCodeUnitTests */ = {
+			isa = PBXGroup;
+			children = (
+				CE1D751321BDA90B00286967 /* AnalyseSwiftCodeUnitTests.swift */,
+				CE1D751521BDA90B00286967 /* Info.plist */,
+			);
+			path = AnalyseSwiftCodeUnitTests;
+			sourceTree = "<group>";
+		};
 		CEE7D49A2197560D005B0559 /* MyLibrary */ = {
 			isa = PBXGroup;
 			children = (
@@ -108,15 +117,6 @@
 				CE67A6A31FFA066B00BD57BD /* StringExtension.swift */,
 			);
 			path = MyLibrary;
-			sourceTree = "<group>";
-		};
-		CEFF413B21BC1A96002D07A7 /* AnalyseSwiftCodeTests */ = {
-			isa = PBXGroup;
-			children = (
-				CEFF413C21BC1A96002D07A7 /* AnalyseSwiftCodeTests.swift */,
-				CEFF413E21BC1A96002D07A7 /* Info.plist */,
-			);
-			path = AnalyseSwiftCodeTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -139,22 +139,22 @@
 			productReference = 26ECD3371E874B5C00380F56 /* AnalyseSwiftCode.app */;
 			productType = "com.apple.product-type.application";
 		};
-		CEFF413921BC1A96002D07A7 /* AnalyseSwiftCodeTests */ = {
+		CE1D751021BDA90B00286967 /* AnalyseSwiftCodeUnitTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = CEFF414321BC1A96002D07A7 /* Build configuration list for PBXNativeTarget "AnalyseSwiftCodeTests" */;
+			buildConfigurationList = CE1D751821BDA90B00286967 /* Build configuration list for PBXNativeTarget "AnalyseSwiftCodeUnitTests" */;
 			buildPhases = (
-				CEFF413621BC1A96002D07A7 /* Sources */,
-				CEFF413721BC1A96002D07A7 /* Frameworks */,
-				CEFF413821BC1A96002D07A7 /* Resources */,
+				CE1D750D21BDA90B00286967 /* Sources */,
+				CE1D750E21BDA90B00286967 /* Frameworks */,
+				CE1D750F21BDA90B00286967 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				CEFF414021BC1A96002D07A7 /* PBXTargetDependency */,
+				CE1D751721BDA90B00286967 /* PBXTargetDependency */,
 			);
-			name = AnalyseSwiftCodeTests;
-			productName = AnalyseSwiftCodeTests;
-			productReference = CEFF413A21BC1A96002D07A7 /* AnalyseSwiftCodeTests.xctest */;
+			name = AnalyseSwiftCodeUnitTests;
+			productName = AnalyseSwiftCodeUnitTests;
+			productReference = CE1D751121BDA90B00286967 /* AnalyseSwiftCodeUnitTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
@@ -173,7 +173,7 @@
 						LastSwiftMigration = 1010;
 						ProvisioningStyle = Automatic;
 					};
-					CEFF413921BC1A96002D07A7 = {
+					CE1D751021BDA90B00286967 = {
 						CreatedOnToolsVersion = 10.1;
 						DevelopmentTeam = XD8UZ6484B;
 						ProvisioningStyle = Automatic;
@@ -195,7 +195,7 @@
 			projectRoot = "";
 			targets = (
 				26ECD3361E874B5B00380F56 /* AnalyseSwiftCode */,
-				CEFF413921BC1A96002D07A7 /* AnalyseSwiftCodeTests */,
+				CE1D751021BDA90B00286967 /* AnalyseSwiftCodeUnitTests */,
 			);
 		};
 /* End PBXProject section */
@@ -210,7 +210,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		CEFF413821BC1A96002D07A7 /* Resources */ = {
+		CE1D750F21BDA90B00286967 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -235,21 +235,21 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		CEFF413621BC1A96002D07A7 /* Sources */ = {
+		CE1D750D21BDA90B00286967 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CEFF413D21BC1A96002D07A7 /* AnalyseSwiftCodeTests.swift in Sources */,
+				CE1D751421BDA90B00286967 /* AnalyseSwiftCodeUnitTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		CEFF414021BC1A96002D07A7 /* PBXTargetDependency */ = {
+		CE1D751721BDA90B00286967 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 26ECD3361E874B5B00380F56 /* AnalyseSwiftCode */;
-			targetProxy = CEFF413F21BC1A96002D07A7 /* PBXContainerItemProxy */;
+			targetProxy = CE1D751621BDA90B00286967 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -407,7 +407,7 @@
 			};
 			name = Release;
 		};
-		CEFF414121BC1A96002D07A7 /* Debug */ = {
+		CE1D751921BDA90B00286967 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -420,19 +420,19 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = XD8UZ6484B;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
-				INFOPLIST_FILE = AnalyseSwiftCodeTests/Info.plist;
+				INFOPLIST_FILE = AnalyseSwiftCodeUnitTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.georgebauer.AnalyseSwiftCodeTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.georgebauer.AnalyseSwiftCodeUnitTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.2;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AnalyseSwiftCode.app/Contents/MacOS/AnalyseSwiftCode";
 			};
 			name = Debug;
 		};
-		CEFF414221BC1A96002D07A7 /* Release */ = {
+		CE1D751A21BDA90B00286967 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -445,11 +445,11 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = XD8UZ6484B;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
-				INFOPLIST_FILE = AnalyseSwiftCodeTests/Info.plist;
+				INFOPLIST_FILE = AnalyseSwiftCodeUnitTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.georgebauer.AnalyseSwiftCodeTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.georgebauer.AnalyseSwiftCodeUnitTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.2;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AnalyseSwiftCode.app/Contents/MacOS/AnalyseSwiftCode";
@@ -477,11 +477,11 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		CEFF414321BC1A96002D07A7 /* Build configuration list for PBXNativeTarget "AnalyseSwiftCodeTests" */ = {
+		CE1D751821BDA90B00286967 /* Build configuration list for PBXNativeTarget "AnalyseSwiftCodeUnitTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				CEFF414121BC1A96002D07A7 /* Debug */,
-				CEFF414221BC1A96002D07A7 /* Release */,
+				CE1D751921BDA90B00286967 /* Debug */,
+				CE1D751A21BDA90B00286967 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
