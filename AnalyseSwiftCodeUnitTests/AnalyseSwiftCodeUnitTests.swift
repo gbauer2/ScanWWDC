@@ -55,6 +55,102 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         XCTAssertEqual(comment, "//line")
     }
 
+    func testMarkCodeLine() {
+        let codeColor     = NSColor.black
+        let commentColor  = NSColor(calibratedRed: 0, green: 0.6, blue: 0.15, alpha: 1)  //Green
+        let quoteColor    = NSColor.red
+        var newLine       = ""
+        var inTripleQuote = false
+
+        var codeLine = "//123"
+        var inBlockComment  = false
+        var marks = vcTest.markCodeLine(codeLine: codeLine, inTripleQuote:  &inTripleQuote, inBlockComment:  &inBlockComment)
+        XCTAssertEqual(inBlockComment, false)
+        XCTAssertEqual(marks.count, 1)
+        XCTAssertEqual(marks[0].index, 0)
+        XCTAssertEqual(marks[0].color, commentColor)  //(0, 0.6, 0.15, 1)
+        newLine = vcTest.constructLine(codeLine: codeLine, marks: marks)
+        XCTAssertEqual(newLine, "<green>//123")
+
+        codeLine = "/*123*/"
+        inBlockComment = false
+        marks = vcTest.markCodeLine(codeLine: codeLine, inTripleQuote:  &inTripleQuote, inBlockComment:  &inBlockComment)
+        XCTAssertEqual(inBlockComment, false)
+        XCTAssertEqual(marks.count, 1)
+        XCTAssertEqual(marks[0].index, 0)
+        XCTAssertEqual(marks[0].color, commentColor)
+        newLine = vcTest.constructLine(codeLine: codeLine, marks: marks)
+        XCTAssertEqual(newLine, "<green>/*123*/")
+
+        codeLine = "12345"
+        inBlockComment = true
+        marks = vcTest.markCodeLine(codeLine: codeLine, inTripleQuote:  &inTripleQuote, inBlockComment:  &inBlockComment)
+        XCTAssertEqual(inBlockComment, true)
+        XCTAssertEqual(marks.count, 1)
+        XCTAssertEqual(marks[0].index, 0)
+        XCTAssertEqual(marks[0].color, commentColor)
+        newLine = vcTest.constructLine(codeLine: codeLine, marks: marks)
+        XCTAssertEqual(newLine, "<green>12345")
+
+        codeLine = "1234//8"
+        inBlockComment = false
+        marks = vcTest.markCodeLine(codeLine: codeLine, inTripleQuote:  &inTripleQuote, inBlockComment:  &inBlockComment)
+        XCTAssertEqual(inBlockComment, false)
+        XCTAssertEqual(marks.count, 2)
+        XCTAssertEqual(marks[0].index, 0)
+        XCTAssertEqual(marks[0].color, codeColor)
+        XCTAssertEqual(marks[1].index, 4)
+        XCTAssertEqual(marks[1].color, commentColor)
+        newLine = vcTest.constructLine(codeLine: codeLine, marks: marks)
+        XCTAssertEqual(newLine, "<black>1234<green>//8")
+        
+        codeLine = "/*234*/7"
+        inBlockComment = false
+        marks = vcTest.markCodeLine(codeLine: codeLine, inTripleQuote:  &inTripleQuote, inBlockComment:  &inBlockComment)
+        XCTAssertEqual(inBlockComment, false)
+        XCTAssertEqual(marks.count, 2)
+        XCTAssertEqual(marks[0].index, 0)
+        XCTAssertEqual(marks[0].color, commentColor)
+        XCTAssertEqual(marks[1].index, 7)
+        XCTAssertEqual(marks[1].color, codeColor)
+        newLine = vcTest.constructLine(codeLine: codeLine, marks: marks)
+        XCTAssertEqual(newLine, "<green>/*234*/<black>7")
+
+        codeLine = "01\"34\""
+        inBlockComment = false
+        marks = vcTest.markCodeLine(codeLine: codeLine, inTripleQuote:  &inTripleQuote, inBlockComment:  &inBlockComment)
+        XCTAssertEqual(inBlockComment, false)
+        XCTAssertEqual(marks.count, 3)
+        XCTAssertEqual(marks[0].index, 0)
+        XCTAssertEqual(marks[0].color, codeColor)
+        XCTAssertEqual(marks[1].index, 3)
+        XCTAssertEqual(marks[1].color, quoteColor)
+        XCTAssertEqual(marks[2].index, 5)
+        XCTAssertEqual(marks[2].color, codeColor)
+        newLine = vcTest.constructLine(codeLine: codeLine, marks: marks)
+        XCTAssertEqual(newLine, "<black>01\"<red>34<black>\"")
+
+        codeLine = "01\"/*\""
+        inBlockComment = false
+        marks = vcTest.markCodeLine(codeLine: codeLine, inTripleQuote:  &inTripleQuote, inBlockComment:  &inBlockComment)
+        XCTAssertEqual(inBlockComment, false)
+        XCTAssertEqual(marks.count, 3)
+        XCTAssertEqual(marks[0].index, 0)
+        XCTAssertEqual(marks[0].color, codeColor)
+        XCTAssertEqual(marks[1].index, 3)
+        XCTAssertEqual(marks[1].color, quoteColor)
+        XCTAssertEqual(marks[2].index, 5)
+        XCTAssertEqual(marks[2].color, codeColor)
+        newLine = vcTest.constructLine(codeLine: codeLine, marks: marks)
+        XCTAssertEqual(newLine, "<black>01\"<red>/*<black>\"")
+    }
+
+    func testgetSubStr() {
+        let line = "0123456"
+        let subStr = vcTest.getSubStr(line: line, start: 1, end: 3)
+        XCTAssertEqual(subStr, "12")
+    }
+
     private func TestCamelCase(p1: Int, p2 : Int , Param3:String) {
         let n, Bad1:   Int
         var i,j_bad2:  Int      //?????

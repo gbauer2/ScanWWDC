@@ -30,8 +30,7 @@
 // show methods vs free functions
 // allow extensions other than class
 
-// Does Not Handle:
-//   Embedded /* */
+// Swift file listing now handles: Embedded /* */ and QuoteColor
 
 import Cocoa    /* partial-line Block Comment does not work.*/
 /* single-line Block Comment does work. */
@@ -232,8 +231,8 @@ extension ViewController {
             let contents = try fileManager.contentsOfDirectory(atPath: folder.path) // fileNames
 
             let urls = contents
-                .filter({ return showAllFiles ? true : !$0.hasPrefix(".") })    // filter out hidden (or not)
-                .map { return folder.appendingPathComponent($0) }           // create array with full path
+                .filter({ showAllFiles ? true : !$0.hasPrefix(".") })   // filter out hidden (or not)
+                .map { folder.appendingPathComponent($0) }              // create array with full path
 
             var urlsFiltered = [URL]()
             if showAllFiles {
@@ -738,7 +737,7 @@ extension ViewController {
 
     }//end func showFileContents
 
-    func test() {
+    func sampleCodeTest() {
         let str = "a👿b🇩🇪c"
         let range1 = str.range(of: "b🇩🇪")!
         print(str[range1])                                  // b🇩🇪
