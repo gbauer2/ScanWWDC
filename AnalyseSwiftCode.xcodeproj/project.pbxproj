@@ -18,6 +18,7 @@
 		CEA6263A20067DCA000F923D /* SampleCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEA6263920067DCA000F923D /* SampleCode.swift */; };
 		CEA6263D20068AA2000F923D /* AnalyseSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEA6263B20068AA2000F923D /* AnalyseSwift.swift */; };
 		CEBAD4A42194A8E600CBBCBA /* AnalyseXcodeproj.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEBAD4A32194A8E600CBBCBA /* AnalyseXcodeproj.swift */; };
+		CEE07D7E21EA6B1A00EA5B82 /* Keywords.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEE07D7D21EA6B1A00EA5B82 /* Keywords.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,6 +47,7 @@
 		CEA6263920067DCA000F923D /* SampleCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleCode.swift; sourceTree = "<group>"; };
 		CEA6263B20068AA2000F923D /* AnalyseSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyseSwift.swift; sourceTree = "<group>"; };
 		CEBAD4A32194A8E600CBBCBA /* AnalyseXcodeproj.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyseXcodeproj.swift; sourceTree = "<group>"; };
+		CEE07D7D21EA6B1A00EA5B82 /* Keywords.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keywords.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -92,6 +94,7 @@
 				CEA6263B20068AA2000F923D /* AnalyseSwift.swift */,
 				CE4194AD21BD8C22006808B1 /* AttributableStrings.swift */,
 				CEBAD4A32194A8E600CBBCBA /* AnalyseXcodeproj.swift */,
+				CEE07D7D21EA6B1A00EA5B82 /* Keywords.swift */,
 				CEA6263920067DCA000F923D /* SampleCode.swift */,
 				CEE7D49A2197560D005B0559 /* MyLibrary */,
 				26ECD33E1E874B5C00380F56 /* Assets.xcassets */,
@@ -229,6 +232,7 @@
 				CE83F8BB1FFD329D00C39EC8 /* MyFuncs.swift in Sources */,
 				CEBAD4A42194A8E600CBBCBA /* AnalyseXcodeproj.swift in Sources */,
 				CEA6263A20067DCA000F923D /* SampleCode.swift in Sources */,
+				CEE07D7E21EA6B1A00EA5B82 /* Keywords.swift in Sources */,
 				CEA6263D20068AA2000F923D /* AnalyseSwift.swift in Sources */,
 				26ECD33B1E874B5C00380F56 /* AppDelegate.swift in Sources */,
 				CE67A6A41FFA066B00BD57BD /* StringExtension.swift in Sources */,

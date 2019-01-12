@@ -11,6 +11,8 @@
 // make btnFindAllxcodeproj the default if popup touched.
 // toggle btnFindAllxcodeproj to "Abort" when running, (and disable other buttons).
 // selectively enable View & Analyse buttons or use segmented button.
+// Use Menus: File/Find_All_xcodeproj_Files, Help
+// Help System
 
 // showContents - Swift file:
 //  Make handling quotes more robust - (codeLineClean)
@@ -59,24 +61,29 @@ class ViewController: NSViewController {
     @IBOutlet weak var popupBaseDir:            NSPopUpButton!
 
     // MARK: - Properties
-    var filesList:[URL] = []                    // selectedFolder{didSet}, toggleshowAllFiles, tableViewDoubleClicked, tableView stuff, etc
-    var showAllFiles    = false                 // toggleshowAllFiles, myContentsOf(folder: URL)
+    let codeColor     = NSColor.black
+    let commentColor  = NSColor(calibratedRed: 0, green: 0.6, blue: 0.15, alpha: 1)  //Green
+    let quoteColor    = NSColor.red
+    let keywordColor  = NSColor.blue
+
+    var filesList:[URL] = []                // selectedFolder{didSet}, toggleshowAllFiles, tableViewDoubleClicked, tableView stuff, etc
+    var showAllFiles    = false             // toggleshowAllFiles, myContentsOf(folder: URL)
 
     var selecFileInfo = FileAttributes(url: nil, name: "???", creationDate: nil, modificationDate: nil, size: 0, isDir: false)
 
-    var analyseFuncLocked = false               // because analyseSwiftFile() is not thread-safe
-    var analyseMode = AnalyseMode.none          // .WWDC, .swift, or .xcodeproj
+    var analyseFuncLocked = false           // because analyseSwiftFile() is not thread-safe
+    var analyseMode = AnalyseMode.none      // .WWDC, .swift, or .xcodeproj
 
     // MARK: - Properties with didSet property observer
     var urlMismatch: URL? {
         didSet {
             let t = selectedItemUrl
-            selectedItemUrl = nil               // Force a "didSet" for selectedItemUrl
+            selectedItemUrl = nil           // Force a "didSet" for selectedItemUrl
             selectedItemUrl = t
         }
     }
     var selectedFolderUrl: URL? {
-        didSet {                                            // run whenever selectedFolderUrl is changed FOLDER
+        didSet {                                        // run whenever selectedFolderUrl is changed FOLDER
             if let selectedFolderUrl = selectedFolderUrl {
                 filesList = myContentsOf(folder: selectedFolderUrl)
                 selectedItemUrl = nil
@@ -91,7 +98,7 @@ class ViewController: NSViewController {
         }
     }
 
-    static var latestUrl: URL?      // Used by AnalyseSwift.swift as ViewController.latestUrl
+    static var latestUrl: URL?          // Used by AnalyseSwift.swift as ViewController.latestUrl
     var selectedItemUrl: URL? {
         didSet {                                                // run whenever selectedItemUrl is changed
             ViewController.latestUrl = selectedItemUrl
@@ -695,11 +702,11 @@ extension ViewController {
     // read contents of file & display them in infoTextView
     func showFileContents(url: URL) {
         var showLineNumbers = false
-        var isSwiftSource   = false
+        //var isSwiftSource   = false
 
         if url.pathExtension == "swift" {
             showLineNumbers = true
-            isSwiftSource   = true
+            //isSwiftSource   = true
         }
         if url.lastPathComponent.hasPrefix("WWDC-20") && url.pathExtension == "txt" {
             showLineNumbers = true

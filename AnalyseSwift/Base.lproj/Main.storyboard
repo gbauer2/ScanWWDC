@@ -806,7 +806,7 @@
                                     <real value="250"/>
                                 </holdingPriorities>
                             </splitView>
-                            <button horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="DrL-gQ-4El">
+                            <button toolTip="Open a sheet to select folder" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="DrL-gQ-4El">
                                 <rect key="frame" x="80" y="617" width="120" height="32"/>
                                 <buttonCell key="cell" type="push" title="Select Folder" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="dby-S4-m5m">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -816,7 +816,7 @@
                                     <action selector="selectFolderClicked:" target="XfG-lQ-9wD" id="biC-tb-kf6"/>
                                 </connections>
                             </button>
-                            <button horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="ZJ0-uN-TjU">
+                            <button toolTip="go to parent folder" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="ZJ0-uN-TjU">
                                 <rect key="frame" x="2" y="619" width="70" height="32"/>
                                 <buttonCell key="cell" type="push" title="&lt; Up" bezelStyle="rounded" alignment="center" enabled="NO" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="9EA-1U-DCa">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -826,7 +826,7 @@
                                     <action selector="moveUpClicked:" target="XfG-lQ-9wD" id="tzn-iP-JzU"/>
                                 </connections>
                             </button>
-                            <button horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="EOu-OZ-lKr">
+                            <button toolTip="Analyse Swift or WWDC.txt files" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="EOu-OZ-lKr">
                                 <rect key="frame" x="422" y="619" width="88" height="32"/>
                                 <buttonCell key="cell" type="push" title="Analyse" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="mVq-B5-eTf">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -836,7 +836,7 @@
                                     <action selector="analyseContentsButtonClicked:" target="XfG-lQ-9wD" id="y81-rp-eg4"/>
                                 </connections>
                             </button>
-                            <button horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Cy9-w3-srD">
+                            <button toolTip="File Viewer" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Cy9-w3-srD">
                                 <rect key="frame" x="360" y="619" width="70" height="32"/>
                                 <buttonCell key="cell" type="push" title="View" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="m0m-62-qqE">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -846,7 +846,7 @@
                                     <action selector="readContentsButtonClicked:" target="XfG-lQ-9wD" id="fyw-yd-Tb9"/>
                                 </connections>
                             </button>
-                            <button translatesAutoresizingMaskIntoConstraints="NO" id="jf7-kR-eU0">
+                            <button toolTip="or Show only .Swift, .xcodeproj and WWDC*.txt files" translatesAutoresizingMaskIntoConstraints="NO" id="jf7-kR-eU0">
                                 <rect key="frame" x="202" y="626" width="106" height="18"/>
                                 <buttonCell key="cell" type="check" title="Show All Files" bezelStyle="regularSquare" imagePosition="left" inset="2" id="Xq2-qh-19A">
                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
