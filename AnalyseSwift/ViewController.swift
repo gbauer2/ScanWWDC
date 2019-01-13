@@ -61,10 +61,12 @@ class ViewController: NSViewController {
     @IBOutlet weak var popupBaseDir:            NSPopUpButton!
 
     // MARK: - Properties
-    let codeColor     = NSColor.black
-    let commentColor  = NSColor(calibratedRed: 0, green: 0.6, blue: 0.15, alpha: 1)  //Green
-    let quoteColor    = NSColor.red
-    let keywordColor  = NSColor.blue
+    let codeColor    = NSColor.black
+    let commentColor = NSColor(calibratedRed: 0, green: 0.6, blue: 0.15, alpha: 1)  //Green
+    let quoteColor   = NSColor.red
+    let keywordColor = NSColor.blue
+    let namesColor   = NSColor(calibratedRed: 43/256, green: 131/256, blue: 159/256, alpha: 1)  //BlueGreen
+    //(43 131,159) classNames, funcNames, InstanceVars, Globals
 
     var filesList:[URL] = []                // selectedFolder{didSet}, toggleshowAllFiles, tableViewDoubleClicked, tableView stuff, etc
     var showAllFiles    = false             // toggleshowAllFiles, myContentsOf(folder: URL)

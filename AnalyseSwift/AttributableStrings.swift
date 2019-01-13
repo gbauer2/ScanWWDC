@@ -203,7 +203,7 @@ extension ViewController {
 //                                }
 
                                 if isKeyword(word: testWord) {
-                                    print("✅ \(testWord)")
+                                    //print("✅ \(testWord)")
                                     inKeyword = true
                                     colorMarks.append(ColorMark(index: i, color: keywordColor))
                                 }

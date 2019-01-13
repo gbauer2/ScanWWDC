@@ -10,7 +10,7 @@ import Foundation
 
 // Any, Type
 //TODO: Make dictionary; Last group ("associativity",..."willSet") are keywords only in context
-// @IBOutlet
+// interpolation: "\(varble)"
 
 let keyWords = ["associatedtype","class","deinit","enum","extension","fileprivate","func","import","init","inout","internal","let",
                 "open","operator","private","protocol","public","static","struct","subscript","typealias","var",
@@ -18,7 +18,7 @@ let keyWords = ["associatedtype","class","deinit","enum","extension","fileprivat
             "Any","as","catch","false","is","nil","rethrows","super","self","Self","throw","throws","try","_",
             "#available","#colorLiteral","#column","#else","#elseif","#endif","#file","#fileReference","#function",
             "#if","#imageLiteral","#line","#selector","#sourceLocation",
-            "@IBOutlet","@IBAction",
+            "@IBOutlet","@IBAction","true",
             "associativity","convenience","dynamic","didSet","final","get","infix","indirect","lazy","left","mutating","none","nonmutating",
             "optional","override","postfix","precedence","prefix","required","right","set","Type","unowned","weak","willSet",
             "super"

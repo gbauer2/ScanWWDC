@@ -470,7 +470,8 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
                     if char == "{" { netCurlys += 1 }
                     if char == "}" { netCurlys -= 1 }
                 }
-            }
+            }//next p
+
             if inQuote {
                 print("⚠️\(lineNum) Odd number of Quotes - \(aa)")
             }
@@ -521,7 +522,7 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
 
             //---------------------------------------------------------------   // func
             codeName = "func"
-            if !foundNamedBlock && codeLine.contains(codeName) {
+            if !foundNamedBlock && codeLineClean.contains(codeName) {
                 //print("\(codeLine)")
                 var posItem = -1
                 for i in 0..<words.count {
@@ -567,7 +568,7 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
             for index in 4...8 {        // containers: 4)Struct, 5)Enum, 6)Extension, 7)Class, 8)isProtocol
                 if foundNamedBlock { break }
                 codeName = blockTypes[index].codeName
-                if codeLine.contains(codeName) {
+                if codeLineClean.contains(codeName) {
                     var posItem = -1
                     for i in 0...1 {
                         if words[i] == codeName {
