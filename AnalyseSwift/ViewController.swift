@@ -15,10 +15,8 @@
 // Help System
 
 // showContents - Swift file:
-//  Make handling quotes more robust - (codeLineClean)
-//  inTripleQuote """
-//  Fix color of embedded block comments
-//  colors & truncation
+//  Fix namesColor
+//  user chooses colors & truncation
 
 // AnalyseSwift:
 // Make handling quotes more robust - (codeLineClean)
@@ -783,7 +781,17 @@ extension ViewController {
         }
 
         infoTextView.textStorage?.setAttributedString(combined)
-
+        var xxx =
+        """
+        1st triple quote
+        """
+        xxx = """
+        2nd triple quote
+        """
+        xxx =
+        """
+        3rd triple quote
+        """
     }//end func test
 
 }//end Extension

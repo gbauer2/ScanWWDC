@@ -117,6 +117,13 @@ extension ViewController {
                 colorMarks[0] = ColorMark(index: 0, color: commentColor)    // entire line is comment
                 return colorMarks    // "//" or "/*" Full Comment Line
             }
+        } else if trimmedLine == "\"\"\"" {
+                inTripleQuote = !inTripleQuote
+                colorMarks[0] = ColorMark(index: 0, color: quoteColor)      // entire line is quote
+                return colorMarks                                           // Full TripleQuote Line
+        } else if inTripleQuote && !trimmedLine.contains("\"\"\"") {
+            colorMarks[0] = ColorMark(index: 0, color: quoteColor)          // entire line is quote
+            return colorMarks                                               // Full TripleQuote Line
         }
 
         // ->comment line
@@ -132,13 +139,16 @@ extension ViewController {
             return [ColorMark(index: 0, color: commentColor)]    // entire line is comment
         }
 
-        // Simple solutions failed, so parse the code char by char
+        //-----------------------------
+        // Simple solutions failed, so parse the code char by char!
         let chars = Array(codeLine)
         var escaped = false
-        var inQuote = false
+        var inQuote = inTripleQuote
         var inComment = inBlockComment
         if inComment {
             colorMarks = [ColorMark(index: 0, color: commentColor)]         // 1st char is comment
+        } else if inQuote {
+            colorMarks = [ColorMark(index: 0, color: quoteColor)]           // 1st char is in TripleQuote
         } else {
             colorMarks = [ColorMark(index: 0, color: codeColor)]            // 1st char is code
         }
@@ -162,6 +172,10 @@ extension ViewController {
                     inQuote = !inQuote              // got quote
                     if inQuote {
                         colorMarks.append(ColorMark(index: i, color: quoteColor))
+                        if i>=2 && chars[i-1] == "\"" && chars[i-2] == "\"" {
+                            colorMarks.append(ColorMark(index: i, color: quoteColor))
+                            inTripleQuote = true
+                        }
                     } else {
                         colorMarks.append(ColorMark(index: i+1, color: codeColor))
                     }
@@ -197,20 +211,16 @@ extension ViewController {
                                 for p in i..<pEndWord {
                                     charsInWord.append(chars[p])
                                 }
-                                let testWord = String(charsInWord)
-//                                if testWord == "super" {
-//                                    print()             // Debug Trap
-//                                }
-
-                                if isKeyword(word: testWord) {
-                                    //print("✅ \(testWord)")
+                                let word = String(charsInWord)
+                                if isKeyword(word: word) {
+                                    //print("✅ \(word)")
                                     inKeyword = true
                                     colorMarks.append(ColorMark(index: i, color: keywordColor))
-                                }
-                            }
-                        }
-                    }
-                }
+                                }//endif isKeyword
+                            }//endif char is lower or #@AT
+                        }//endif not space, paren, or dot
+                    }//endif lookForNewWord
+                }//endif not in quote or comment
             } else {
                 escaped = false
             }
@@ -265,24 +275,6 @@ extension ViewController {
         let subStr = String(line[range])
         return subStr
     }
-
-//    func splitTrailingComment(codeLine: String, codeColor: NSColor, commentColor: NSColor, attributes: [NSAttributedString.Key: Any]) -> NSMutableAttributedString {
-//        var myAttributes  = attributes
-//        myAttributes[NSAttributedString.Key.foregroundColor] = codeColor
-//        var formattedText = NSMutableAttributedString()
-//
-//        let splitIndex = codeLine.range(of: "//")?.lowerBound
-//        if let splitIndex = splitIndex {
-//            let (code, comment) = splitLineAtIndex(codeLine: codeLine, splitIndex: splitIndex)
-//            formattedText = NSMutableAttributedString(string: "\(code)", attributes: myAttributes)
-//            myAttributes[NSAttributedString.Key.foregroundColor] = commentColor
-//            let cmt = NSMutableAttributedString(string: "\(comment)\n", attributes: myAttributes)
-//            formattedText.append(cmt)
-//        } else {
-//            formattedText = NSMutableAttributedString(string: "\(codeLine)", attributes: myAttributes)
-//        }
-//        return formattedText        // Code with trailing comment
-//    }//end func
 
     // Format a simple code//comment line into a NSMutableAttributedString
     func formatTrailingComment(code: String, comment: String, codeColor: NSColor, commentColor: NSColor, attributes: [NSAttributedString.Key: Any]) -> NSMutableAttributedString {
