@@ -15,7 +15,7 @@
 // Help System
 
 // showContents - Swift file:
-//  Fix namesColor
+//  Fix namesColor to include:  classNames, funcNames, InstanceVars, Globals, & library names (MK- for MapKit,  etc.)
 //  user chooses colors & truncation
 
 // AnalyseSwift:

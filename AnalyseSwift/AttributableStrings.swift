@@ -86,7 +86,7 @@ extension ViewController {
     }//end func
 
     func formatCodeLine(codeLine: String, inTripleQuote: inout Bool, inBlockComment: inout Bool) -> NSAttributedString {
-        var textAttributes: [NSAttributedString.Key: Any] = [NSAttributedString.Key.font: NSFont(name: "PT Mono", size: 12)!]
+        let textAttributes: [NSAttributedString.Key: Any] = [NSAttributedString.Key.font: NSFont(name: "PT Mono", size: 12)!]
         var formattedText = NSMutableAttributedString(string: "\(codeLine)\n", attributes: textAttributes)
 
         let marks = markCodeLine(codeLine: codeLine, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment)
@@ -202,20 +202,25 @@ extension ViewController {
                 if !inQuote && !inComment {
 
                     if lookForNewWord {
-                        if char != " " && char != "(" && char != ")"  && char != "." {
+                        if char != " " && char != "(" && char != ")" && char != "[" && char != "]" && char != "." {
                             lookForNewWord = false
                             pEndWord = findEndWord(chars: chars, pFirst: i)
-                            if "abcdefghijklmnopqrstuvwxyz#@AT".contains(char) {
+                            if "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ#@".contains(char) {
                                 lookForNewWord = false
                                 var charsInWord = [Character]()
                                 for p in i..<pEndWord {
                                     charsInWord.append(chars[p])
                                 }
                                 let word = String(charsInWord)
-                                if isKeyword(word: word) {
-                                    //print("✅ \(word)")
+                                if i > 0 && chars[i-1] == "." {
+                                    inKeyword = true
+                                    colorMarks.append(ColorMark(index: i, color: namesColor))
+                                } else if isKeyword(word: word) {
                                     inKeyword = true
                                     colorMarks.append(ColorMark(index: i, color: keywordColor))
+                                } else if word.count > 5 && (word.prefix(2) == "NS" || word.prefix(2) == "UI")  {
+                                    inKeyword = true
+                                    colorMarks.append(ColorMark(index: i, color: namesColor))
                                 }//endif isKeyword
                             }//endif char is lower or #@AT
                         }//endif not space, paren, or dot
