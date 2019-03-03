@@ -208,7 +208,7 @@ public struct FileAttributes {
 
 
 // MARK:---- Regular Expression (RegEx) ----
-
+//TODO: Error Handling, Rename to: getRegexMatches, isRegexMatch
 //---- Regular Expressions Matches ----
 func matches(for regex: String, in text: String) -> [String] {
     do {

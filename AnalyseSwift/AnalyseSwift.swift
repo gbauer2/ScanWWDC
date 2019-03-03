@@ -350,6 +350,10 @@ func analyseWWDC(_ str: String, selecFileInfo: FileAttributes) -> NSAttributedSt
 func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttributedString {
     let lines = str.components(separatedBy: "\n")
 
+    resetVBwords()
+    var nVBwords = 0
+    var nUniqueVBWords = 0
+
     var blockTypes = [BlockAggregate]()
     blockTypes.append(BlockAggregate(blockType: .None,          subType: .None, codeName: "",              displayName: "unNamed",      showNone: false, count: 0))
     blockTypes.append(BlockAggregate(blockType: .Func,          subType: .Func, codeName: "func",          displayName: "Regular func", showNone: true, count: 0))
@@ -400,7 +404,7 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
 
     //infoTextView.string = "Analysing..."
 
-    // MARK: - Main Loop
+    // MARK: - Main Loop 406-652 = 246 lines
     for line in lines {
         if selecFileInfo.url != ViewController.latestUrl {
             if let latestUrl = ViewController.latestUrl {
@@ -440,7 +444,7 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
             nBlankLine += 1
             if aa == "{" { gotOpenCurly(lineNum: lineNum) }                                 // single "{" on line
             if aa == "}" { gotCloseCurly(lineNum: lineNum, nCodeLine: nCodeLine) }          // single "}" on line
-        } else {                                        // code! 232 - 439
+        } else {                                        // code! 445 - 651 = 206 lines
             // MARK: - Code!
             nCodeLine += 1
 
@@ -488,7 +492,7 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
             var codeLineClean = codeLine
             if pQuoteF >= 0 && pQuoteR > pQuoteF+1 {
                 codeLineClean = codeLine.prefix(pQuoteF + 1) + "x" + codeLine.dropFirst(pQuoteR)
-                print(lineNum,codeLine," -> ",codeLineClean)
+                //print(lineNum,codeLine," --> ",codeLineClean)
             }
 
             // Create a CharacterSet of delimiters.
@@ -500,6 +504,15 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
             let words = wordsWithEmpty.filter { !$0.isEmpty }
 
             if words.isEmpty { continue }                         // if no words, fogetaboutit
+
+            // Find VBCompatability Stuff
+            for word in words {
+                if let count = gDictVBwords[word] {
+                    nVBwords += 1
+                    if count == 0 { nUniqueVBWords += 1 }
+                    gDictVBwords[word] = count + 1
+                }
+            }
 
             var codeName = "import"
             if words.first! == codeName {
@@ -762,15 +775,28 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
     print()
 
     // print non-camelCased variables
+    print("\n😡 \(selecFileInfo.name)\t\t\(selecFileInfo.modificationDate!.ToString("MM-dd-yyyy hh:mm"))")
     if nonCamelVars.count > 0 {
         print("\n😡 \(nonCamelVars.count) non-CamelCased variables")
         for nonCamel in nonCamelVars {
-            print("😡   \(nonCamel.lineNum) \(nonCamel.name)")
+            print("😡 line \(nonCamel.lineNum): \(nonCamel.name)")
         }
-        print("\n")
+        print()
         tx = showLineItems(name: "Non-CamelCased Var", items: nonCamelVars)
         txt.append(tx)
+    }
 
+    // print VBCompatability stuff
+    if nVBwords > 0 {
+        print("😡 \(nUniqueVBWords) unique VBCompatability calls, for a total of \(nVBwords).")
+        for (key,value) in gDictVBwords.sorted(by: {$0.key < $1.key}) {
+            var time = "time"
+            if value != 1 { time = "times" }
+            if value > 0 { print("😡   \(key.PadRight(12)) \(value) \(time)") }
+        }
+        print("\n")
+//        tx = showLineItems(name: "Non-CamelCased Var", items: nonCamelVars)
+//        txt.append(tx)
     }
 
     return txt

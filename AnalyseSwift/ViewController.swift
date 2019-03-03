@@ -16,6 +16,7 @@
 
 // showContents - Swift file:
 //  Fix namesColor to include:  classNames, funcNames, InstanceVars, Globals, & library names (MK- for MapKit,  etc.)
+//  Use CharacterSets for type-of-char lookup
 //  user chooses colors & truncation
 
 // AnalyseSwift:
@@ -29,6 +30,7 @@
 // analysis: organize by MARK: or by extension
 // show methods vs free functions
 // allow extensions other than class
+// Flag //TODO: //FIXME:
 
 // Swift file listing now handles: Embedded /* */ and QuoteColor
 

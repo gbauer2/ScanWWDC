@@ -70,20 +70,20 @@ extension ViewController {
     }//end func formatSwiftLine
     
     // format tabs at 48 & 96, font at 14pt
-    func formatContentsTextX(_ text: String) -> NSAttributedString {
-        let paragraphStyle = NSMutableParagraphStyle.default.mutableCopy() as? NSMutableParagraphStyle
-        paragraphStyle?.minimumLineHeight = 24
-        paragraphStyle?.alignment = .left
-        paragraphStyle?.tabStops = [ NSTextTab(type: .leftTabStopType, location: 48),  NSTextTab(type: .leftTabStopType, location: 96) ]
-        
-        let textAttributes: [NSAttributedString.Key: Any] = [
-            NSAttributedString.Key.font: NSFont.systemFont(ofSize: 14),
-            NSAttributedString.Key.paragraphStyle: paragraphStyle ?? NSParagraphStyle.default
-        ]
-        
-        let formattedText = NSAttributedString(string: text, attributes: textAttributes)
-        return formattedText
-    }//end func
+//    func formatContentsTextX(_ text: String) -> NSAttributedString {
+//        let paragraphStyle = NSMutableParagraphStyle.default.mutableCopy() as? NSMutableParagraphStyle
+//        paragraphStyle?.minimumLineHeight = 24
+//        paragraphStyle?.alignment = .left
+//        paragraphStyle?.tabStops = [ NSTextTab(type: .leftTabStopType, location: 48),  NSTextTab(type: .leftTabStopType, location: 96) ]
+//
+//        let textAttributes: [NSAttributedString.Key: Any] = [
+//            NSAttributedString.Key.font: NSFont.systemFont(ofSize: 14),
+//            NSAttributedString.Key.paragraphStyle: paragraphStyle ?? NSParagraphStyle.default
+//        ]
+//
+//        let formattedText = NSAttributedString(string: text, attributes: textAttributes)
+//        return formattedText
+//    }//end func
 
     func formatCodeLine(codeLine: String, inTripleQuote: inout Bool, inBlockComment: inout Bool) -> NSAttributedString {
         let textAttributes: [NSAttributedString.Key: Any] = [NSAttributedString.Key.font: NSFont(name: "PT Mono", size: 12)!]
@@ -103,32 +103,33 @@ extension ViewController {
     // No Quotes (or 2 quotes separated bt 0 or 1)
     //      if has "//" strip off trailing comment      -> ??//green
 
+    // inBlockComment, inTripleQuote --- inQuote, inComment, inColoredWord, inInterpolation, inCode
     //  NoQuotes, inBlockComment && No"/*", !inBlockComment && No"*/"
     func markCodeLine(codeLine: String, inTripleQuote: inout Bool, inBlockComment: inout Bool) -> [ColorMark] {
         let trimmedLine   = codeLine.trim
+        var colorMarks    = [ColorMark(index: 0, color: codeColor)]         // 1st char is code (default)
 
-        var colorMarks    = [ColorMark(index: 0, color: codeColor)]         // 1st char is code
-
+        // -------- Simple solutions: when entire line is Comment or Quote
         if trimmedLine.hasPrefix("/*") { inBlockComment = true }
         if inBlockComment {
             let trimmedLine2 = String(trimmedLine.dropLast())
             if !trimmedLine2.contains("*/") {
                 if trimmedLine.hasSuffix("*/") { inBlockComment = false}
-                colorMarks[0] = ColorMark(index: 0, color: commentColor)    // entire line is comment
+                colorMarks[0] = ColorMark(index: 0, color: commentColor)    // entire line is inBlockComment
                 return colorMarks    // "//" or "/*" Full Comment Line
             }
         } else if trimmedLine == "\"\"\"" {
                 inTripleQuote = !inTripleQuote
-                colorMarks[0] = ColorMark(index: 0, color: quoteColor)      // entire line is quote
+                colorMarks[0] = ColorMark(index: 0, color: quoteColor)      // entire line is inTripleQuote
                 return colorMarks                                           // Full TripleQuote Line
         } else if inTripleQuote && !trimmedLine.contains("\"\"\"") {
-            colorMarks[0] = ColorMark(index: 0, color: quoteColor)          // entire line is quote
+            colorMarks[0] = ColorMark(index: 0, color: quoteColor)          // entire line is inTripleQuote
             return colorMarks                                               // Full TripleQuote Line
         }
 
         // ->comment line
         if trimmedLine.hasPrefix("//") {
-            return [ColorMark(index: 0, color: commentColor)]    // entire line is comment
+            return [ColorMark(index: 0, color: commentColor)]               // entire line is Comment
         }
 
         let idxEndBlock = trimmedLine.range(of: "*/")?.upperBound
@@ -136,32 +137,36 @@ extension ViewController {
         // ->inBlockComment and no end-block before EOL
         if inBlockComment && (idxEndBlock == nil || idxEndBlock == trimmedLine.endIndex) {
             if trimmedLine.hasSuffix("*/") { inBlockComment = false }
-            return [ColorMark(index: 0, color: commentColor)]    // entire line is comment
+            return [ColorMark(index: 0, color: commentColor)]               // entire line is inBlockComment
         }
 
         //-----------------------------
-        // Simple solutions failed, so parse the code char by char!
+        // -------- Simple solutions failed, so parse the code char by char!
         let chars = Array(codeLine)
         var escaped = false
         var inQuote = inTripleQuote
         var inComment = inBlockComment
         if inComment {
-            colorMarks = [ColorMark(index: 0, color: commentColor)]         // 1st char is comment
+            colorMarks = [ColorMark(index: 0, color: commentColor)]         // 1st char is inBlockComment
         } else if inQuote {
-            colorMarks = [ColorMark(index: 0, color: quoteColor)]           // 1st char is in TripleQuote
+            colorMarks = [ColorMark(index: 0, color: quoteColor)]           // 1st char is inTripleQuote
         } else {
             colorMarks = [ColorMark(index: 0, color: codeColor)]            // 1st char is code
         }
 
-        var lookForNewWord = true
+        var isLookingForWord = true
+        var inColoredWord = false
         var pEndWord = -1
-        var inKeyword = false
+        var terminatingChar = Character(" ")
         for (i, char) in chars.enumerated() {
             if i == pEndWord {
-                lookForNewWord = true
-                if inKeyword {
+                isLookingForWord = true
+                if inColoredWord {
                     colorMarks.append(ColorMark(index: i, color: codeColor))
-                    inKeyword = false
+                    inColoredWord = false
+                    pEndWord = -1
+                } else {
+                    print("⛔️ '\(char)' at \(i) pos of \(codeLine)' Not inColoredWord")
                 }
             }
             if !escaped {
@@ -201,30 +206,31 @@ extension ViewController {
                 }
                 if !inQuote && !inComment {
 
-                    if lookForNewWord {
+                    if isLookingForWord {
                         if char != " " && char != "(" && char != ")" && char != "[" && char != "]" && char != "." {
-                            lookForNewWord = false
-                            pEndWord = findEndWord(chars: chars, pFirst: i)
+                            isLookingForWord = false
+
+                            (pEndWord, terminatingChar) = findEndOfWord(chars: chars, pFirst: i)
                             if "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ#@".contains(char) {
-                                lookForNewWord = false
+                                isLookingForWord = false
                                 var charsInWord = [Character]()
                                 for p in i..<pEndWord {
                                     charsInWord.append(chars[p])
                                 }
                                 let word = String(charsInWord)
                                 if i > 0 && chars[i-1] == "." {
-                                    inKeyword = true
                                     colorMarks.append(ColorMark(index: i, color: namesColor))
+                                    inColoredWord = true
                                 } else if isKeyword(word: word) {
-                                    inKeyword = true
                                     colorMarks.append(ColorMark(index: i, color: keywordColor))
+                                    inColoredWord = true
                                 } else if word.count > 5 && (word.prefix(2) == "NS" || word.prefix(2) == "UI")  {
-                                    inKeyword = true
                                     colorMarks.append(ColorMark(index: i, color: namesColor))
+                                    inColoredWord = true
                                 }//endif isKeyword
                             }//endif char is lower or #@AT
                         }//endif not space, paren, or dot
-                    }//endif lookForNewWord
+                    }//endif isLookingForWord
                 }//endif not in quote or comment
             } else {
                 escaped = false
@@ -233,13 +239,30 @@ extension ViewController {
         return colorMarks        // Mixed Code
     }//end func markCodeLine
 
-    func findEndWord(chars: [Character], pFirst: Int) -> Int {
-        for i in pFirst..<chars.count {
-            if chars[i] == " " || chars[i] == "(" || chars[i] == ")" || chars[i] == "." {
-                return i
+    //
+    func findEndOfWord(chars: [Character], pFirst: Int) -> (Int, Character)  {
+        for p in pFirst..<chars.count {
+            var char = chars[p]
+            if char == " " {
+                char = findTerminatingChar(chars: chars, pFirst: p)
+            }
+            if char == " " || char == "(" || char == ")" || char == "[" || char == "]" || char == "." || char == "=" {
+                return (p, char)
             }
         }
-        return chars.count
+        return (chars.count, Character(" "))
+    }
+
+    func findTerminatingChar(chars: [Character], pFirst: Int) -> Character {
+        for p in pFirst..<chars.count {
+            let char = chars[p]
+            if char != " " {
+                if char == "(" || char == ")" || char == "[" || char == "]" || char == "." || char == "=" {
+                    return (char)
+                }
+            }
+        }
+        return Character(" ")
     }
 
     func constructLine(codeLine: String, marks: [ColorMark]) -> String {
@@ -282,30 +305,30 @@ extension ViewController {
     }
 
     // Format a simple code//comment line into a NSMutableAttributedString
-    func formatTrailingComment(code: String, comment: String, codeColor: NSColor, commentColor: NSColor, attributes: [NSAttributedString.Key: Any]) -> NSMutableAttributedString {
-        var myAttributes  = attributes
-        myAttributes[NSAttributedString.Key.foregroundColor] = codeColor
-        var formattedText = NSMutableAttributedString()
-        formattedText = NSMutableAttributedString(string: "\(code)", attributes: myAttributes)
-        myAttributes[NSAttributedString.Key.foregroundColor] = commentColor
-        let cmt = NSMutableAttributedString(string: "\(comment)\n", attributes: myAttributes)
-        formattedText.append(cmt)
-        return formattedText        // NSMutableAttributedString - Code with trailing comment
-    }//end func
+//    func formatTrailingComment(code: String, comment: String, codeColor: NSColor, commentColor: NSColor, attributes: [NSAttributedString.Key: Any]) -> NSMutableAttributedString {
+//        var myAttributes  = attributes
+//        myAttributes[NSAttributedString.Key.foregroundColor] = codeColor
+//        var formattedText = NSMutableAttributedString()
+//        formattedText = NSMutableAttributedString(string: "\(code)", attributes: myAttributes)
+//        myAttributes[NSAttributedString.Key.foregroundColor] = commentColor
+//        let cmt = NSMutableAttributedString(string: "\(comment)\n", attributes: myAttributes)
+//        formattedText.append(cmt)
+//        return formattedText        // NSMutableAttributedString - Code with trailing comment
+//    }//end func
 
     // Split a codeLine into code & comment at an integer index
-    func splitLineAtIntIndex(codeLine: String, indexInt: Int ) -> (code: String, comment: String) {
-        let splitIndex = codeLine.index(codeLine.startIndex, offsetBy: indexInt)
-        let code = String(codeLine[..<splitIndex])
-        let comment = String(codeLine[splitIndex...])
-        return (code, comment)        // Code with trailing comment
-    }//end func
+//    func splitLineAtIntIndex(codeLine: String, indexInt: Int ) -> (code: String, comment: String) {
+//        let splitIndex = codeLine.index(codeLine.startIndex, offsetBy: indexInt)
+//        let code = String(codeLine[..<splitIndex])
+//        let comment = String(codeLine[splitIndex...])
+//        return (code, comment)        // Code with trailing comment
+//    }//end func
 
     // Split a codeLine into code & comment at a String.Index
-    func splitLineAtIndex(codeLine: String, splitIndex: String.Index ) -> (code: String, comment: String) {
-        let code = String(codeLine[..<splitIndex])
-        let comment = String(codeLine[splitIndex...])
-        return (code, comment)        // Code with trailing comment
-    }//end func
+//    func splitLineAtIndex(codeLine: String, splitIndex: String.Index ) -> (code: String, comment: String) {
+//        let code = String(codeLine[..<splitIndex])
+//        let comment = String(codeLine[splitIndex...])
+//        return (code, comment)        // Code with trailing comment
+//    }//end func
 
 }//end extension

@@ -11,6 +11,7 @@
 		26ECD33D1E874B5C00380F56 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26ECD33C1E874B5C00380F56 /* ViewController.swift */; };
 		26ECD33F1E874B5C00380F56 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 26ECD33E1E874B5C00380F56 /* Assets.xcassets */; };
 		26ECD3421E874B5C00380F56 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 26ECD3401E874B5C00380F56 /* Main.storyboard */; };
+		CE063B8F22160B5B000CACDF /* FindVBCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE063B8E22160B5B000CACDF /* FindVBCode.swift */; };
 		CE1D751421BDA90B00286967 /* AnalyseSwiftCodeUnitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE1D751321BDA90B00286967 /* AnalyseSwiftCodeUnitTests.swift */; };
 		CE4194AE21BD8C22006808B1 /* AttributableStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE4194AD21BD8C22006808B1 /* AttributableStrings.swift */; };
 		CE67A6A41FFA066B00BD57BD /* StringExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE67A6A31FFA066B00BD57BD /* StringExtension.swift */; };
@@ -38,6 +39,7 @@
 		26ECD33E1E874B5C00380F56 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		26ECD3411E874B5C00380F56 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		26ECD3431E874B5C00380F56 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CE063B8E22160B5B000CACDF /* FindVBCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FindVBCode.swift; sourceTree = "<group>"; };
 		CE1D751121BDA90B00286967 /* AnalyseSwiftCodeUnitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AnalyseSwiftCodeUnitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE1D751321BDA90B00286967 /* AnalyseSwiftCodeUnitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyseSwiftCodeUnitTests.swift; sourceTree = "<group>"; };
 		CE1D751521BDA90B00286967 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -92,9 +94,10 @@
 				26ECD33A1E874B5C00380F56 /* AppDelegate.swift */,
 				26ECD33C1E874B5C00380F56 /* ViewController.swift */,
 				CEA6263B20068AA2000F923D /* AnalyseSwift.swift */,
-				CE4194AD21BD8C22006808B1 /* AttributableStrings.swift */,
 				CEBAD4A32194A8E600CBBCBA /* AnalyseXcodeproj.swift */,
 				CEE07D7D21EA6B1A00EA5B82 /* Keywords.swift */,
+				CE4194AD21BD8C22006808B1 /* AttributableStrings.swift */,
+				CE063B8E22160B5B000CACDF /* FindVBCode.swift */,
 				CEA6263920067DCA000F923D /* SampleCode.swift */,
 				CEE7D49A2197560D005B0559 /* MyLibrary */,
 				26ECD33E1E874B5C00380F56 /* Assets.xcassets */,
@@ -228,6 +231,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				26ECD33D1E874B5C00380F56 /* ViewController.swift in Sources */,
+				CE063B8F22160B5B000CACDF /* FindVBCode.swift in Sources */,
 				CE4194AE21BD8C22006808B1 /* AttributableStrings.swift in Sources */,
 				CE83F8BB1FFD329D00C39EC8 /* MyFuncs.swift in Sources */,
 				CEBAD4A42194A8E600CBBCBA /* AnalyseXcodeproj.swift in Sources */,
