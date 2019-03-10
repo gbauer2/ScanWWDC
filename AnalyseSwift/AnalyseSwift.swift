@@ -3,7 +3,7 @@
 //
 //
 //  Created by George Bauer on 1/10/18.
-//  Copyright © 2018 George Bauer. All rights reserved.
+//  Copyright © 2018,2019 George Bauer. All rights reserved.
 //
 
 import Cocoa
@@ -532,7 +532,7 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
                     var suffix = ""
                     let maxPrefixLen = 34
                     let p = codeLineClean.IndexOf(word)                 // p is pointer to word
-                    if p > 0 { prefix = codeLineClean.mid(begin: 0, length: p) }    //prefix is everything before word
+                    if p > 0 { prefix = codeLineClean.mid(begin: 0, length: p) }    //prefix is stuff before word
                     if p >= maxPrefixLen {
                         prefix = prefix.replacingOccurrences(of: "~~~~", with: "~") // remove excess garbage
                         prefix = prefix.replacingOccurrences(of: "~~~~", with: "~")

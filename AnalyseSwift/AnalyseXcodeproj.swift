@@ -3,8 +3,7 @@
 //  AnalyseSwiftCode
 //
 //  Created by George Bauer on 11/8/18.
-//  Copyright © 2018 Ray Wenderlich. All rights reserved.
-//
+//  Copyright © 2018,2019 George Bauer. All rights reserved.//
 
 import Cocoa
 

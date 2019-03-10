@@ -16,10 +16,10 @@
 		CE4194AE21BD8C22006808B1 /* AttributableStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE4194AD21BD8C22006808B1 /* AttributableStrings.swift */; };
 		CE67A6A41FFA066B00BD57BD /* StringExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE67A6A31FFA066B00BD57BD /* StringExtension.swift */; };
 		CE83F8BB1FFD329D00C39EC8 /* MyFuncs.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE83F8BA1FFD329C00C39EC8 /* MyFuncs.swift */; };
+		CE9BBFF72235598500DCE317 /* Keywords.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE9BBFF62235598500DCE317 /* Keywords.swift */; };
 		CEA6263A20067DCA000F923D /* SampleCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEA6263920067DCA000F923D /* SampleCode.swift */; };
 		CEA6263D20068AA2000F923D /* AnalyseSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEA6263B20068AA2000F923D /* AnalyseSwift.swift */; };
 		CEBAD4A42194A8E600CBBCBA /* AnalyseXcodeproj.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEBAD4A32194A8E600CBBCBA /* AnalyseXcodeproj.swift */; };
-		CEE07D7E21EA6B1A00EA5B82 /* Keywords.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEE07D7D21EA6B1A00EA5B82 /* Keywords.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,10 +46,10 @@
 		CE4194AD21BD8C22006808B1 /* AttributableStrings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttributableStrings.swift; sourceTree = "<group>"; };
 		CE67A6A31FFA066B00BD57BD /* StringExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StringExtension.swift; sourceTree = "<group>"; };
 		CE83F8BA1FFD329C00C39EC8 /* MyFuncs.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MyFuncs.swift; sourceTree = "<group>"; };
+		CE9BBFF62235598500DCE317 /* Keywords.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keywords.swift; sourceTree = "<group>"; };
 		CEA6263920067DCA000F923D /* SampleCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleCode.swift; sourceTree = "<group>"; };
 		CEA6263B20068AA2000F923D /* AnalyseSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyseSwift.swift; sourceTree = "<group>"; };
 		CEBAD4A32194A8E600CBBCBA /* AnalyseXcodeproj.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyseXcodeproj.swift; sourceTree = "<group>"; };
-		CEE07D7D21EA6B1A00EA5B82 /* Keywords.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keywords.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -95,7 +95,7 @@
 				26ECD33C1E874B5C00380F56 /* ViewController.swift */,
 				CEA6263B20068AA2000F923D /* AnalyseSwift.swift */,
 				CEBAD4A32194A8E600CBBCBA /* AnalyseXcodeproj.swift */,
-				CEE07D7D21EA6B1A00EA5B82 /* Keywords.swift */,
+				CE9BBFF62235598500DCE317 /* Keywords.swift */,
 				CE4194AD21BD8C22006808B1 /* AttributableStrings.swift */,
 				CE063B8E22160B5B000CACDF /* FindVBCode.swift */,
 				CEA6263920067DCA000F923D /* SampleCode.swift */,
@@ -236,10 +236,10 @@
 				CE83F8BB1FFD329D00C39EC8 /* MyFuncs.swift in Sources */,
 				CEBAD4A42194A8E600CBBCBA /* AnalyseXcodeproj.swift in Sources */,
 				CEA6263A20067DCA000F923D /* SampleCode.swift in Sources */,
-				CEE07D7E21EA6B1A00EA5B82 /* Keywords.swift in Sources */,
 				CEA6263D20068AA2000F923D /* AnalyseSwift.swift in Sources */,
 				26ECD33B1E874B5C00380F56 /* AppDelegate.swift in Sources */,
 				CE67A6A41FFA066B00BD57BD /* StringExtension.swift in Sources */,
+				CE9BBFF72235598500DCE317 /* Keywords.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

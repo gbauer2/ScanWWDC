@@ -3,8 +3,7 @@
 //  AnalyseSwiftCode
 //
 //  Created by George Bauer on 2/14/19.
-//  Copyright © 2019 Ray Wenderlich. All rights reserved.
-//
+//  Copyright © 2018,2019 George Bauer. All rights reserved.//
 
 import Foundation
 
