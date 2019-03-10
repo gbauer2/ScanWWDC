@@ -4,7 +4,8 @@
 //
 //  Created by George Bauer on 10/11/17.
 //  Copyright © 2017 GeorgeBauer. All rights reserved.
-//  Ver 1.6.0   6/13/2018 Add Subscripting for CountablePartialRangeFrom<Int>, PartialRangeThrough<Int>, PartialRangeUpTo<Int>.  Also Documentation
+//  Ver 1.6.1   3/09/2010 Subscripting for Int now only returns Character (avoids "Abiguous" error when compiler can't tell if String or Character)
+//      1.6.0   6/13/2018 Add Subscripting for CountablePartialRangeFrom<Int>, PartialRangeThrough<Int>, PartialRangeUpTo<Int>.  Also Documentation
 //      1.5.2   5/30/2018 Fix Error in .mid where .mid(begin: i, length: 0) would return same as .mid(begin: i)
 //      1.5.1   5/23/2018 Add trimStart, trimEnd
 //      1.5.0   5/20/2018 change .indexOf(SearchforStr to .IndexOf(_ move PadLeft, PadRight from VBCompatability
@@ -30,10 +31,10 @@ extension String {
         return self[index(startIndex, offsetBy: i)]
     }
 
-    /// Int wrapper for str[index(startIndex, offsetBy: i)] -> String
-    subscript (_ i: Int) -> String {
-        return String(self[i])
-    }
+//    /// Int wrapper for str[index(startIndex, offsetBy: i)] -> String
+//    subscript (_ i: Int) -> String {
+//        return String(self[i])
+//    }
 
     /// Int wrapper for str[HalfOpenRange] -> String
     subscript (bounds: CountableRange<Int>) -> String {

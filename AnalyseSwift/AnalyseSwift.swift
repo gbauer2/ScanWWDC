@@ -169,7 +169,7 @@ func stripComment(fullLine: String, lineNum: Int) -> (codeLine: String, comment:
         var inQuote = false
         var isEscaped = false
         for p in 0..<fullLine.count {
-            let char = fullLine.mid(begin: p, length: 1)
+            let char = fullLine[p]
             if char == "\"" && !isEscaped { inQuote = !inQuote }        // if Quote not escaped,
             if inQuote {
                 if p == pCommentF {
@@ -525,20 +525,37 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
 
             // Find Forced Unwraps
             for word in words {
-                if word.contains("!)") {
-
-                }
+                // Check for Forced Unwrapping
                 if word.hasSuffix("!") && !codeLineClean.hasPrefix("@IBOutlet") {
+                    var xword = word
                     var prefix = ""
                     var suffix = ""
-                    let p = codeLineClean.IndexOf(word)
-                    if p > 0 && p < 30 { prefix = codeLineClean.mid(begin: 0, length: p) }
-                    if p >= 30 { prefix = "..." + codeLineClean.mid(begin: p-30, length: 30) }
+                    let maxPrefixLen = 34
+                    let p = codeLineClean.IndexOf(word)                 // p is pointer to word
+                    if p > 0 { prefix = codeLineClean.mid(begin: 0, length: p) }    //prefix is everything before word
+                    if p >= maxPrefixLen {
+                        prefix = prefix.replacingOccurrences(of: "~~~~", with: "~") // remove excess garbage
+                        prefix = prefix.replacingOccurrences(of: "~~~~", with: "~")
+                        if prefix.count > maxPrefixLen {    // still too long
+                            if prefix.contains(" = ") {     // cut off all before "="
+                                let comps = prefix.components(separatedBy: " = ")
+                                prefix = "= " + comps.last!
+                            }
+                            prefix = "..." + prefix.suffix(maxPrefixLen)
+                        }
+                    }
                     let pTrail = p + word.count
                     suffix = codeLineClean.mid(begin: pTrail)
+                    if prefix.count + word.count > 70 && suffix.count > 3 {
+                        suffix = "..."
+                    }
                     print("line \(lineNum): \(word)")
                     print(codeLineClean)
-                    forceUnwraps.append(LineItem(lineNum: lineNum, name: word, extra: prefix + word + suffix))
+                    if word.contains(".") {
+                        let comps = word.components(separatedBy: ".")
+                        xword = "." + comps.last!
+                    }
+                    forceUnwraps.append(LineItem(lineNum: lineNum, name: xword, extra: prefix + word + suffix))
                 }
                 if let count = gDictVBwords[word] {
                     nVBwords += 1
@@ -807,7 +824,13 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
         print("# \(c.lineNum),\t\(c.numLines) lines, \t\(cType)\t\(c.name)  \(c.extra)  \(i)")
     }
 
-    tx = showDivider(title: "Possible Issues")
+    let issuesTitle: String
+    if nonCamelVars.count + forceUnwraps.count + nVBwords == 0 {
+        issuesTitle = "No Issues"
+    } else {
+        issuesTitle = "Possible Issues"
+    }
+    tx = showDivider(title: issuesTitle)
     txt.append(tx)
 
     // print non-camelCased variables
