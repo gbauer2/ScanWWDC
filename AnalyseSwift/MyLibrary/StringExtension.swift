@@ -24,48 +24,48 @@ import Foundation
 // indexOf(str), indexOfRev(str), trim, contains(str), containsIgnoringCase(str), pluralize(n)
 extension String {
 
-//    //------ subscript: allows string to be sliced by ints: e.g. str[2] ------
-//    /// Int wrapper for str[index(startIndex, offsetBy: i)] -> Character
-//    subscript (_ i: Int) -> Character {
-//        return self[index(startIndex, offsetBy: i)]
-//    }
-//
-//    /// Int wrapper for str[index(startIndex, offsetBy: i)] -> String
-//    subscript (_ i: Int) -> String {
-//        return String(self[i])
-//    }
-//
-//    /// Int wrapper for str[HalfOpenRange] -> String
-//    subscript (bounds: CountableRange<Int>) -> String {
-//        let start = index(startIndex, offsetBy: bounds.lowerBound)
-//        let end   = index(startIndex, offsetBy: bounds.upperBound)
-//        return String(self[start..<end])
-//    }
-//
-//    /// Int wrapper for str[ClosedRange] -> String
-//    subscript (bounds: CountableClosedRange<Int>) -> String {
-//        let start = index(startIndex, offsetBy: bounds.lowerBound)
-//        let end   = index(startIndex, offsetBy: bounds.upperBound)
-//        return String(self[start...end])
-//    }
-//
-//    /// Int wrapper for str[CountablePartialRangeFrom<Int>] -> String
-//    subscript (bounds: CountablePartialRangeFrom<Int>) -> String {
-//        let start = index(startIndex, offsetBy: bounds.lowerBound)
-//        return String(self[start...])
-//    }
-//
-//    /// Int wrapper for str[PartialRangeThrough<Int>] -> String
-//    subscript (bounds: PartialRangeThrough<Int>) -> String {
-//        let end   = index(startIndex, offsetBy: bounds.upperBound)
-//        return String(self[...end])
-//    }
-//
-//    /// Int wrapper for str[PartialRangeUpTo<Int>] -> String
-//    subscript (bounds: PartialRangeUpTo<Int>) -> String {
-//        let end   = index(startIndex, offsetBy: bounds.upperBound)
-//        return String(self[..<end])
-//    }
+    //------ subscript: allows string to be sliced by ints: e.g. str[2] ------
+    /// Int wrapper for str[index(startIndex, offsetBy: i)] -> Character
+    subscript (_ i: Int) -> Character {
+        return self[index(startIndex, offsetBy: i)]
+    }
+
+    /// Int wrapper for str[index(startIndex, offsetBy: i)] -> String
+    subscript (_ i: Int) -> String {
+        return String(self[i])
+    }
+
+    /// Int wrapper for str[HalfOpenRange] -> String
+    subscript (bounds: CountableRange<Int>) -> String {
+        let start = index(startIndex, offsetBy: bounds.lowerBound)
+        let end   = index(startIndex, offsetBy: bounds.upperBound)
+        return String(self[start..<end])
+    }
+
+    /// Int wrapper for str[ClosedRange] -> String
+    subscript (bounds: CountableClosedRange<Int>) -> String {
+        let start = index(startIndex, offsetBy: bounds.lowerBound)
+        let end   = index(startIndex, offsetBy: bounds.upperBound)
+        return String(self[start...end])
+    }
+
+    /// Int wrapper for str[CountablePartialRangeFrom<Int>] -> String
+    subscript (bounds: CountablePartialRangeFrom<Int>) -> String {
+        let start = index(startIndex, offsetBy: bounds.lowerBound)
+        return String(self[start...])
+    }
+
+    /// Int wrapper for str[PartialRangeThrough<Int>] -> String
+    subscript (bounds: PartialRangeThrough<Int>) -> String {
+        let end   = index(startIndex, offsetBy: bounds.upperBound)
+        return String(self[...end])
+    }
+
+    /// Int wrapper for str[PartialRangeUpTo<Int>] -> String
+    subscript (bounds: PartialRangeUpTo<Int>) -> String {
+        let end   = index(startIndex, offsetBy: bounds.upperBound)
+        return String(self[..<end])
+    }
 
     //---- left - get 1st n chars ----
     /// same as .prefix(), but protected from negative numbers
@@ -136,7 +136,7 @@ extension String {
     }
 
     //---- IndexOf - find Int position of str in self ---- Needs work for performance ???
-    /// GWB - IndexOf (with capital I) find Int position of 1st String found.
+    /// IndexOf (with capital I) find Int position of 1st String found.
     ///
     /// - Parameter searchforStr: String to be searched for
     /// - Returns: Int position (if found) or -1 (if not found)
@@ -226,7 +226,7 @@ extension String {
             let secondToLastChar = last2Chars.left(1)
             var prefix = "", suffix = ""
 
-            if lastChar.lowercased() == "y" && vowels.filter({x in x == secondToLastChar}).count == 0 {
+            if lastChar.lowercased() == "y" && vowels.filter({x in x == secondToLastChar}).isEmpty {
                 prefix = self.left(self.count - 1)
                 suffix = "ies"
             } else if (lastChar.lowercased() == "s" || (lastChar.lowercased() == "o")

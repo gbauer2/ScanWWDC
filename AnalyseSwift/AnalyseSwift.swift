@@ -62,14 +62,30 @@ private struct LineItem {
 
 // MARK: - Helper funcs
 
+private func showDivider(title: String) -> NSMutableAttributedString {
+    let txt = "\n------------------- \(title) -------------------\n"
+    let nsAttTxt = NSMutableAttributedString(string: txt, attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 15), NSAttributedString.Key.paragraphStyle: paragraphStyleA1])
+    return nsAttTxt
+}
+
 // Returns NSMutableAttributedString showing name as a title, followed by list of items (line#, name, extra)
 private func showLineItems(name: String, items: [LineItem]) -> NSMutableAttributedString {
 
     let txt = "\n" + showCount(count: items.count, name: name, ifZero: "No") + ":\n"
     let nsAttTxt = NSMutableAttributedString(string: txt, attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 18), NSAttributedString.Key.paragraphStyle: paragraphStyleA1])
     for item in items {
-        var tx = "      \t@ line # \(item.lineNum)    \t\(item.name)"
-        if !item.extra.isEmpty {tx += "  (\(item.extra) )"}
+        var tx = ""
+        if item.lineNum != 0 {
+            tx = "         @ line #\t\(formatInt(number: item.lineNum, fieldLen: 8))    \t\(item.name)"
+        } else {
+            tx = "                 \t        \t\(item.name)"
+
+        }
+        if !item.extra.isEmpty {
+            let nSpaces = max(12 - item.name.count, 0) + 2
+            let spaces: String = String(repeating: " ", count: nSpaces)
+            tx += "\(spaces)\t\(item.extra)"
+        }
         tx += "\n"
         let nsAttTx = NSAttributedString(string: tx, attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 14), NSAttributedString.Key.paragraphStyle: paragraphStyleA1])
         nsAttTxt.append(nsAttTx)
@@ -146,10 +162,10 @@ func stripComment(fullLine: String, lineNum: Int) -> (codeLine: String, comment:
 
     var pCommentF   = fullLine.IndexOf("//")                            // Leftmost  "//"
     var pCommentR   = fullLine.IndexOfRev("//")                         // Rightmost "//"
-    let pQuoteF     = fullLine.IndexOf("\"")
-    //let pQuoteR   = fullLine.IndexOfRev("\"")
+    let pQuoteFirst     = fullLine.IndexOf("\"")
+    //let pQuoteLast   = fullLine.IndexOfRev("\"")
 
-    if pQuoteF >= 0 {                                                   // we have a Quote
+    if pQuoteFirst >= 0 {                                                   // we have a Quote
         var inQuote = false
         var isEscaped = false
         for p in 0..<fullLine.count {
@@ -171,7 +187,7 @@ func stripComment(fullLine: String, lineNum: Int) -> (codeLine: String, comment:
             print("⚠️\(lineNum) Comment mismatch \(fullLine)")
         }
 
-    }//endif pQuoteF >= 0
+    }//endif pQuoteFirst >= 0
 
     if pCommentF >= 0 {
         let codeLinePlus = "^" + fullLine.left(pCommentF)
@@ -397,6 +413,7 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
 
     var imports             = [LineItem]()
     var nonCamelVars        = [LineItem]()
+    var forceUnwraps        = [LineItem]()
 
     //var enums             = [LineItem]()
     //var classes           = [LineItem]()
@@ -451,8 +468,8 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
             let (codeLine, comment) = stripComment(fullLine: aa, lineNum: lineNum)
             if !comment.isEmpty { nTrailing += 1 }
 
-            let pQuoteF = codeLine.IndexOf("\"")
-            let pQuoteR = codeLine.IndexOfRev("\"")
+            let pQuoteFirst = codeLine.IndexOf("\"")
+            let pQuoteLast = codeLine.IndexOfRev("\"")
 
             var pOpenCurlyF = codeLine.IndexOf("{")
             var pOpenCurlyR = codeLine.IndexOfRev("{")
@@ -479,7 +496,7 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
             if inQuote {
                 print("⚠️\(lineNum) Odd number of Quotes - \(aa)")
             }
-            if (pQuoteF == pQuoteR) && (pQuoteF >= 0) {
+            if (pQuoteFirst == pQuoteLast) && (pQuoteFirst >= 0) {
                 print("⚠️\(lineNum) Unmatched Quote - \(aa)")
             }
             if pOpenCurlyF >= 0 && (pOpenCurlyF != pOpenCurlyR) {
@@ -490,23 +507,39 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
             }
 
             var codeLineClean = codeLine
-            if pQuoteF >= 0 && pQuoteR > pQuoteF+1 {
-                codeLineClean = codeLine.prefix(pQuoteF + 1) + "x" + codeLine.dropFirst(pQuoteR)
+            if pQuoteFirst >= 0 && pQuoteLast > pQuoteFirst+1 {
+                codeLineClean  = removeQuotedStuff(codeLine)
                 //print(lineNum,codeLine," --> ",codeLineClean)
             }
 
             // Create a CharacterSet of delimiters.
-            let separators = CharacterSet(charactersIn: "\t (:")    //tab, space, openParen, colon
+            let separators = CharacterSet(charactersIn: "\t ([{:}])")    //tab, space, openParen, colon
 
             // Split based on characters.
             let wordsWithEmpty = codeLineClean.components(separatedBy: separators)
             // Use filter to eliminate empty strings.
             let words = wordsWithEmpty.filter { !$0.isEmpty }
 
-            if words.isEmpty { continue }                         // if no words, fogetaboutit
+            if words.isEmpty { continue }                         // if no words, fagetaboutit
+            let firstWord = words[0]
 
-            // Find VBCompatability Stuff
+            // Find Forced Unwraps
             for word in words {
+                if word.contains("!)") {
+
+                }
+                if word.hasSuffix("!") && !codeLineClean.hasPrefix("@IBOutlet") {
+                    var prefix = ""
+                    var suffix = ""
+                    let p = codeLineClean.IndexOf(word)
+                    if p > 0 && p < 30 { prefix = codeLineClean.mid(begin: 0, length: p) }
+                    if p >= 30 { prefix = "..." + codeLineClean.mid(begin: p-30, length: 30) }
+                    let pTrail = p + word.count
+                    suffix = codeLineClean.mid(begin: pTrail)
+                    print("line \(lineNum): \(word)")
+                    print(codeLineClean)
+                    forceUnwraps.append(LineItem(lineNum: lineNum, name: word, extra: prefix + word + suffix))
+                }
                 if let count = gDictVBwords[word] {
                     nVBwords += 1
                     if count == 0 { nUniqueVBWords += 1 }
@@ -515,8 +548,9 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
             }
 
             var codeName = "import"
-            if words.first! == codeName {
-                let itemName = words[1]
+            if firstWord == codeName {
+                let itemName: String
+                if words.count > 1 { itemName = words[1] } else { itemName = "?" }
                 let lineItem = LineItem(lineNum: lineNum, name: itemName, extra: "")
                 imports.append(lineItem)
                 if itemName == "Cocoa" {
@@ -555,11 +589,11 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
                     checkCurlys(codeName: codeName, itemName: itemName, posItem: posItem, pOpenCurlyF: pOpenCurlyF, pOpenCurlyR: pOpenCurlyR, pCloseCurlyF: pCloseCurlyF, pCloseCurlyR: pCloseCurlyR)
                     blockOnDeck = BlockInfo(blockType: .Func, lineNum: lineNum, codeLinesAtStart: nCodeLine, name: itemName, extra: "", numLines: 0)
                     //inFuncName = itemName
-                    if words.first! == "override" {
+                    if firstWord == "override" {
                         index = BlockType.Override_Func.rawValue                                // Override_Func
                         blockOnDeck.blockType = .Override_Func
                         blockTypes[index].count += 1
-                    } else if words.first! == "@IBAction" {
+                    } else if firstWord == "@IBAction" {
                         index = BlockType.IBAction_Func.rawValue                                // IBAction_Func
                         blockOnDeck.blockType = .IBAction_Func
                         blockTypes[index].count += 1
@@ -638,9 +672,9 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
             if codeLineClean.hasPrefix("let ") || codeLineClean.hasPrefix("var ") {
                 codeLineClean = String(codeLineClean.dropFirst(4))
                 let comps1 = codeLineClean.components(separatedBy: "=")
-                var assigneeList = comps1.first!                                // Strip off right side of "="
+                var assigneeList = comps1[0]                                // Strip off right side of "="
                 let comps2 = assigneeList.components(separatedBy: ":")
-                assigneeList = comps2.first!                                    // Strip off right side of ":"
+                assigneeList = comps2[0]                                    // Strip off right side of ":"
                 let assignees = assigneeList.components(separatedBy: ",")
                 //assignees = assignees.map { $0.trim }
                 //print(codeLineClean, assignees)
@@ -719,7 +753,7 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
     let numberFormatter = NumberFormatter()
     numberFormatter.numberStyle = .decimal
     //numberFormatter.locale = unitedStatesLocale
-    let sizeStr = numberFormatter.string(from: selecFileInfo.size as NSNumber)!
+    let sizeStr = numberFormatter.string(from: selecFileInfo.size as NSNumber) ?? ""
 
     tx  = NSMutableAttributedString(string: "\(sizeStr) bytes.\n", attributes: attributesMediumFont)
     txt.append(tx)
@@ -772,10 +806,12 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
         let cType = ("\(c.blockType)" + "        ").left(14)
         print("# \(c.lineNum),\t\(c.numLines) lines, \t\(cType)\t\(c.name)  \(c.extra)  \(i)")
     }
-    print()
+
+    tx = showDivider(title: "Possible Issues")
+    txt.append(tx)
 
     // print non-camelCased variables
-    print("\n😡 \(selecFileInfo.name)\t\t\(selecFileInfo.modificationDate!.ToString("MM-dd-yyyy hh:mm"))")
+    print("\n\n😡 \(selecFileInfo.name)\t\t\(selecFileInfo.modificationDate!.ToString("MM-dd-yyyy hh:mm"))")
     if nonCamelVars.count > 0 {
         print("\n😡 \(nonCamelVars.count) non-CamelCased variables")
         for nonCamel in nonCamelVars {
@@ -786,18 +822,56 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
         txt.append(tx)
     }
 
+    // print forced unwraps
+    print("\n\n😡 \(selecFileInfo.name)\t\t\(selecFileInfo.modificationDate!.ToString("MM-dd-yyyy hh:mm"))")
+    if forceUnwraps.count > 0 {
+        print("\n😡 \(forceUnwraps.count) non-forceCased variables")
+        for forceUnwrap in forceUnwraps {
+            print("😡 line \(forceUnwrap.lineNum): \(forceUnwrap.name)")
+        }
+        print()
+        tx = showLineItems(name: "Forced Unwrap", items: forceUnwraps)
+        txt.append(tx)
+    }
+
     // print VBCompatability stuff
     if nVBwords > 0 {
+        var vbLineItems = [LineItem]()
         print("😡 \(nUniqueVBWords) unique VBCompatability calls, for a total of \(nVBwords).")
         for (key,value) in gDictVBwords.sorted(by: {$0.key < $1.key}) {
-            var time = "time"
-            if value != 1 { time = "times" }
-            if value > 0 { print("😡   \(key.PadRight(12)) \(value) \(time)") }
+            if value > 0 {
+                let extra = "\(showCount(count: value, name: "time"))"
+                print("😡   \(key.PadRight(12)) \(extra)")
+                vbLineItems.append(LineItem(lineNum: 0, name: key, extra: extra))
+            }
         }
         print("\n")
-//        tx = showLineItems(name: "Non-CamelCased Var", items: nonCamelVars)
-//        txt.append(tx)
+        tx = showLineItems(name: "VBCompatability call", items: vbLineItems)
+        txt.append(tx)
     }
 
     return txt
 }//end func analyseSwiftFile
+
+func removeQuotedStuff(_ str: String) -> String {
+    let pQuoteFirst = str.IndexOf("\"")
+    let pQuoteLast  = str.IndexOfRev("\"")
+    if pQuoteFirst < 0 { return str }
+    if pQuoteLast - pQuoteFirst <= 1 { return str }
+    var array = Array(str)
+    var inQuote = true
+    var ignoreNext = false
+    for p in (pQuoteFirst+1)..<pQuoteLast {
+        let char = array[p]
+        if ignoreNext {
+            array[p] = "~"
+            ignoreNext = false; continue
+        }
+        if char == "\\" { ignoreNext = true }
+        if char == "\"" { inQuote.toggle(); continue }
+        if inQuote { array[p] = "~" }
+    }
+    let strNew = String(array)
+    return strNew
+
+}

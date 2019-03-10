@@ -20,6 +20,18 @@ public struct XcodeProj {
     var deploymentTarget = ""
 }
 
+public struct SwiftSummary {
+    var fileName        = ""
+    var codeLineCount   = 0
+    var importName      = ""
+    var importCount     = 0
+    var classCount      = 0
+    var structCount     = 0
+    var nonCamelCaseCnt = 0
+    var vbCompatCallCnt = 0
+    var forceUnwrapCnt  = 0
+}
+
 // Decode "  xxx  =   yyy ; " into ("xxx","yyy")
 private func keyValDecode(_ str: String) -> (String, String) {
     let comps = str.components(separatedBy: "=")
@@ -61,24 +73,24 @@ public func analyseXcodeproj(_ url: URL) -> (String, XcodeProj) {
             for (idx,line) in xcodeprojLines.enumerated() {
                 if gotBuildSettings {
                     if line.contains("SDKROOT") {
-                        (_, xcodeProj.sdkRoot) = keyValDecode(line)
+                        (_, xcodeProj.sdkRoot) = keyValDecode(line)             // xcodeProj.sdkRoot
                         if idx < 11 { print("✅ \(line)") }
                     } else if line.contains("DEPLOYMENT_TARGET") {
                         let (key, val) = keyValDecode(line)
-                        xcodeProj.deploymentTarget = key + " = " + val
+                        xcodeProj.deploymentTarget = key + " = " + val          // xcodeProj.deploymentTarget
                     } else if line.contains("SWIFT_VERSION") {
                         let (_, val) = keyValDecode(line)
 
                         let ver = getVersionNumber(text: val)
                         if val.count > 3 && ver == 0 {
-                            print("😡 Could not decode Version: \(val)")       //Debug Trap
+                            print("😡 Could not decode Version: \(val)")    //Debug Trap
                         }
 
                         if xcodeProj.swiftVerMin == 0.0 || ver < xcodeProj.swiftVerMin {
-                            xcodeProj.swiftVerMin = ver
+                            xcodeProj.swiftVerMin = ver                         // xcodeProj.swiftVerMin
                         }
                         if ver > xcodeProj.swiftVerMax {
-                            xcodeProj.swiftVerMax = ver
+                            xcodeProj.swiftVerMax = ver                         // xcodeProj.swiftVerMax
                         }
 
                         print("✅✅ \(line)")

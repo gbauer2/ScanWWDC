@@ -27,9 +27,6 @@ func isKeyword(word: String) -> Bool {
     if keyWords.contains(word) {
         return true
     } else {
-//        if word == "super" {
-//            print()             // Debug Trap
-//        }
         return false
     }
 }

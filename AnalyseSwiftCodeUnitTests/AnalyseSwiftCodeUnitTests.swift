@@ -36,23 +36,21 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         XCTAssertEqual(pathName, "Desktop/.../Note.txt")
     }
 
-    func testSplitLineAtIntIndex() {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        let codeLine = "code//line"
-        let (code, comment) = vcTest.splitLineAtIntIndex(codeLine: codeLine, indexInt: 4)
-        XCTAssertEqual(code, "code")
-        XCTAssertEqual(comment, "//line")
-    }
-
-    func testSplitLineAtIndex() {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        let codeLine = "code//line"
-        let index = codeLine.range(of: "//")!.lowerBound
-        let (code, comment) = vcTest.splitLineAtIndex(codeLine: codeLine, splitIndex: index)
-        XCTAssertEqual(code, "code")
-        XCTAssertEqual(comment, "//line")
+    func testremoveQuotedStuff() {
+        var str = ""
+        var result = ""
+        str = "abcd 1234"
+        result = removeQuotedStuff(str)
+        XCTAssertEqual(result, str)
+        str = "abc\"\"123"
+        result = removeQuotedStuff(str)
+        XCTAssertEqual(result, str)
+        str = "abc\"def\"123"
+        result = removeQuotedStuff(str)
+        XCTAssertEqual(result, "abc\"~~~\"123")
+        str = "abc\"d\\\"ef\"123"
+        result = removeQuotedStuff(str)
+        XCTAssertEqual(result, "abc\"~~~~~\"123")
     }
 
     func testMarkCodeLine() {

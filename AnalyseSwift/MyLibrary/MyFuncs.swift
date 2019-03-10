@@ -5,6 +5,7 @@
 //  Created by George Bauer on 9/29/17.
 //  Copyright © 2017 GeorgeBauer. All rights reserved.
 
+//  Ver 1.6.3   3/08/2019   getFileInfo: Change url param to Optional, Add func getContentsOf(dirURL: URL)
 //  Ver 1.6.2   8/16/2018   Add: getContentsOf(directoryStr), getFileInfo(_ str), getFileInfo(url)
 //      1.6.1   7/11/2018   Fix isNumeric for leading/trailing whitespace
 //      1.6.0   6/16/2018   Add matches(for regex: String, in text: String) & isMatch(for regex: String, in text: String)
@@ -26,11 +27,22 @@ import Foundation
 //MARK:- General Purpose 
 
 //---- Format Double "%#.#f" using fieldLen, places. ----
+///Format Double "%#.#f"
+/// - Parameters:
+///     - number: (Dbl) - number to be formatted
+///     - places: (Int) - number of fractional digits
+/// - Returns: String
 public func formatDbl(_ number: Double, _ places: Int) -> String {
     return String(format:"%.\(places)f", number)                            //String(format:%.2f",number)
 }
 
 //---- Format Double "%#.#f" using fieldLen, places. fieldLen!=0 to right justify - Truncates ----
+///Format Double "%#.#f" for a fixed field length (Monospaced font)
+/// - Parameters:
+///     - number:   (Dbl) - number to be formatted
+///     - fieldLen: (Int) - length in characters to be filled
+///     - places:   (Int) - number of fractional digits
+/// - Returns: Right-justified truncated String
 public func formatDbl(number: Double, fieldLen: Int = 0, places: Int) -> String {
     let s: String
     if fieldLen == 0 {
@@ -42,6 +54,11 @@ public func formatDbl(number: Double, fieldLen: Int = 0, places: Int) -> String 
 }
 
 //---- Format Int using fieldLen ----
+///Format Int for a fixed field length (Monospaced font)
+/// - Parameters:
+///     - number:   (Int) - number to be formatted
+///     - fieldLen: (Int) - length in characters to be filled
+/// - Returns: Right-justified truncated String
 public func formatInt(number: Int, fieldLen: Int) -> String {
     let str =  String(number)
     return str.rightJust(fieldLen)
@@ -59,7 +76,13 @@ public func formatInt(number: Int, fieldLen: Int) -> String {
 //    return t
 //}
 
-// ------ Make Time String "17:02" or " 5:02pm" from "17","2" ------
+//---- makeTimeStr ----
+/// Make Time String "17:02" or " 5:02pm" from "17", "2"
+/// - Parameters:
+///     - hrStr:  (String) - hours
+///     - minStr: (String) - minutes
+///     - to24:   (Bool)   - true for 24-hr clock
+/// - Returns: String
 public func makeTimeStr(hrStr: String, minStr: String, to24: Bool) -> String {
     guard let h24 = Int(hrStr) else { return "?" + hrStr + ":" + minStr + "?" }
     let mm = minStr.count < 2 ? "0" + minStr : minStr
@@ -102,7 +125,13 @@ public func makeTimeStr(hrStr: String, minStr: String, to24: Bool) -> String {
 //    return a
 //}
 
-// ------------- returns e.g. "1 name", "2 names", "No names" -----------
+//---- showCount ----
+/// returns e.g. "1 name", "2 names", "No names"
+/// - Parameters:
+///     - count: (Int) - number of items
+///     - name: (String) - name of item
+///     - ifZero: (String) - optional substitute for "0"
+/// - Returns: String
 public func showCount(count: Int, name: String, ifZero: String = "0") -> String {
     if count == 1 { return "1 \(name)" }
     if count == 0 {
@@ -112,23 +141,40 @@ public func showCount(count: Int, name: String, ifZero: String = "0") -> String 
 }
 
 // ---- Test if a String is a valid Integer ---
+/// true if String converts to Int
+/// - Parameter string: The String to be tested.
 public func isStringAnInt(_ string: String) -> Bool {
     return Int(string) != nil
 }
+
+//TODO: change to unicode Set
 public func isCharDigit(_ char: Character) -> Bool {
     return Int(String(char)) != nil
 }
 
 // ---- Test if a String is a valid Number ---
+/// true if String converts to Double
+/// - Parameter string: The String to be tested.
 public func isNumeric(_ string: String) -> Bool {
     return Double(string.trimmingCharacters(in: .whitespaces)) != nil
 }
 
+// ---- replaceCharInString ----
+/// Return a String with a single Character changed
+/// - Parameter string: The original String
+/// - Parameter pos: Position of the Character to be replaced
+/// - Parameter newChar: The replacement Character
 public func replaceCharInString(string: String, pos: Int, newChar: Character) -> String {
     let newString = String(string.prefix(pos)) + String(newChar) + string.dropFirst(pos + 1)
     return newString
 }
 
+// ---- replaceCharInString ----
+/// Return a String with a group of Characters replaced
+/// - Parameter string: The original String
+/// - Parameter strToInsert: The replacement String
+/// - Parameter from: Beginning position of String to be replaced
+/// - Parameter length:The length of String to be replaced
 public func replaceInString(string: String, strToInsert: String, from: Int, length: Int) -> String {
     let newStr = String(string.prefix(from)) + strToInsert + string.suffix(string.count - length - from)
     return newStr
@@ -136,6 +182,10 @@ public func replaceInString(string: String, strToInsert: String, from: Int, leng
 
 // MARK:- Date Handling
 
+// ---- isSameDay ----
+/// Returns true if the date portion of 2 Dates is the same
+/// - Parameter date1: The first Date
+/// - Parameter date2: The second Date
 public func isSameDay(_ date1: Date, _ date2: Date) -> Bool {
     let dateC1 = date1.getComponents()
     let dateC2 = date2.getComponents()
@@ -143,6 +193,10 @@ public func isSameDay(_ date1: Date, _ date2: Date) -> Bool {
     return sameDay
 }
 
+/// Calculate time dif between 2 Dates in secs. Negative if Date2 < Date1
+/// - Parameter date1: The first Date
+/// - Parameter date2: The second Date
+/// - Returns: Difference in seconds
 public func timeDiffSecs(date1: Date, date2: Date) -> Double {
     let difference = date2.timeIntervalSince(date1)
     return difference
@@ -151,32 +205,54 @@ public func timeDiffSecs(date1: Date, date2: Date) -> Double {
 // MARK:- File Handling
 
 //---- fileExists -
+///Determine if a file exists
+/// - Parameter url: file URL
+/// - Returns:  true if exists
 public func fileExists(url: URL) -> Bool {
     let fileExists = FileManager.default.fileExists(atPath: url.path)
     return fileExists
 }
 
 //---- folderExists -
+///Determine if a folder exists
+/// - Parameter url: folder URL
+/// - Returns:  true if exists
 public func folderExists(url: URL) -> Bool {
     var isDirectory: ObjCBool = false
     let folderExists = FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory)
     return folderExists
 }
 
-//------ getContentsOf(directory:) - return full file names for Contents Of Directory
+//---- getContentsOf(directoryStr:)
+///Get filePaths for Contents Of DirectoryPath
+/// - Parameter directoryStr: DirectoryPath (String))
+/// - Returns:  Array of filePaths
 func getContentsOf(directoryStr: String) -> [String] {
     let url = URL(fileURLWithPath: directoryStr)
     do {
         let urls = try FileManager.default.contentsOfDirectory(at: url, includingPropertiesForKeys: [], options:  [.skipsHiddenFiles, .skipsSubdirectoryDescendants])
-        let fullNames = urls.map{ return $0.path}
-        return fullNames
+        let filePaths = urls.map{ return $0.path}
+        return filePaths
+    } catch {
+        return []
+    }
+}
+
+//------ getContentsOf(directoryURL:)
+///Get URLs for Contents Of DirectoryURL
+/// - Parameter dirURL: DirectoryURL (URL)
+/// - Returns:  Array of URLs
+func getContentsOf(dirURL: URL) -> [URL] {
+    do {
+        let urls = try FileManager.default.contentsOfDirectory(at: dirURL, includingPropertiesForKeys: [], options:  [.skipsHiddenFiles, .skipsSubdirectoryDescendants])
+        return urls
     } catch {
         return []
     }
 }
 
 //????? incorporate both getFileInfo() funcs into struct as inits
-public struct FileAttributes {
+public struct FileAttributes: Equatable {
     let url:            URL?
     var name        = "????"
     var creationDate:     Date?
@@ -184,23 +260,33 @@ public struct FileAttributes {
     var size        = 0
     var isDir       = false
     //------ getFileInfo - returns attributes of fileName (file or folder) as a FileAttributes struct
+    ///Get file info for a file path
+    /// - Parameter str: file path
+    /// - Returns:  FileAttributes instance
     static func getFileInfo(_ str: String) -> FileAttributes {
         let url = URL(fileURLWithPath: str)
         return getFileInfo(url: url)
     }
 
     //------ getFileInfo - returns attributes of url (file or folder) as a FileAttributes struct
-    static func getFileInfo(url: URL) -> FileAttributes {
-        do {
-            let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
-            let name             = url.lastPathComponent
-            let creationDate     = attributes[FileAttributeKey(rawValue: "NSFileCreationDate")]     as? Date
-            let modificationDate = attributes[FileAttributeKey(rawValue: "NSFileModificationDate")] as? Date
-            let size             = attributes[FileAttributeKey(rawValue: "NSFileSize")]             as? Int ?? 0
-            let fileType         = attributes[FileAttributeKey(rawValue: "NSFileType")] as? String
-            let isDir            = (fileType?.contains("Dir"))!
-            return FileAttributes(url: url, name: name, creationDate: creationDate, modificationDate: modificationDate, size: size, isDir: isDir)
-        } catch {
+    ///Get file info for a URL
+    /// - Parameter url: file URL
+    /// - Returns:  FileAttributes instance
+    static func getFileInfo(url: URL?) -> FileAttributes {
+        if let url = url {
+            do {
+                let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
+                let name             = url.lastPathComponent
+                let creationDate     = attributes[FileAttributeKey(rawValue: "NSFileCreationDate")]     as? Date
+                let modificationDate = attributes[FileAttributeKey(rawValue: "NSFileModificationDate")] as? Date
+                let size             = attributes[FileAttributeKey(rawValue: "NSFileSize")]             as? Int ?? 0
+                let fileType         = attributes[FileAttributeKey(rawValue: "NSFileType")] as? String
+                let isDir            = (fileType?.contains("Dir"))!
+                return FileAttributes(url: url, name: name, creationDate: creationDate, modificationDate: modificationDate, size: size, isDir: isDir)
+            } catch {
+                return FileAttributes(url: nil, name: "???", creationDate: nil, modificationDate: nil, size: 0, isDir: false)
+            }
+        } else {
             return FileAttributes(url: nil, name: "???", creationDate: nil, modificationDate: nil, size: 0, isDir: false)
         }
     }
@@ -210,6 +296,10 @@ public struct FileAttributes {
 // MARK:---- Regular Expression (RegEx) ----
 //TODO: Error Handling, Rename to: getRegexMatches, isRegexMatch
 //---- Regular Expressions Matches ----
+///Gets an array of RegEx matching stings
+///- parameter regex: The RegEx pattern used in the search
+///- parameter text: The String to be searched
+///- Returns: Array of Strings
 func matches(for regex: String, in text: String) -> [String] {
     do {
         let regex = try NSRegularExpression(pattern: regex)
@@ -225,6 +315,9 @@ func matches(for regex: String, in text: String) -> [String] {
 }
 
 //---- Regular Expressions Matches ----
+///returns true if a RegEx matching pattern is found in the text
+///- parameter regex: The RegEx pattern used in the search
+///- parameter text: The String to be searched
 func isMatch(for regex: String, in text: String) -> Bool {
     do {
         let regex = try NSRegularExpression(pattern: regex)
@@ -380,7 +473,9 @@ func getDashes(key: String, length: Int) -> String {
 //MARK:- Date Extensions
 extension Date {
 
-    //---- Date.ToString - using formats like "MM/dd/yyyy hh:mm:ss"
+    //---- Date.ToString
+    ///Convert to String using formats like "MM/dd/yyyy hh:mm:ss"
+    /// - parameter format: String like "MM/dd/yyyy hh:mm:ss"
     func ToString(_ format: String) -> String {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = format
@@ -389,12 +484,14 @@ extension Date {
     }
 
     //---- Date.getComponents -
+    ///Get DateComponents .year, .month, .day, .hour, .minute, .second, calendar, .timeZone, .weekday, .weekdayOrdinal, .quarter, .weekOfMonth, .weekOfYear
     func getComponents() -> DateComponents {
         let unitFlags:Set<Calendar.Component> = [ .year, .month, .day, .hour, .minute, .second, .calendar, .timeZone, .weekday, .weekdayOrdinal, .quarter, .weekOfMonth, .weekOfYear ]
         let dateComponents = Calendar.current.dateComponents(unitFlags, from: self)
         return dateComponents
     }
 
+    ///returns a Date stripped of time (i.e. just after midnight) for the local timezone
     var DateOnly: Date {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"

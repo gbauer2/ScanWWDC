@@ -166,7 +166,7 @@ extension ViewController {
                     inColoredWord = false
                     pEndWord = -1
                 } else {
-                    print("⛔️ '\(char)' at \(i) pos of \(codeLine)' Not inColoredWord")
+                    print("⛔️ \"\(char)\" at \(i) pos of \"\(codeLine)\" Not inColoredWord")
                 }
             }
             if !escaped {
