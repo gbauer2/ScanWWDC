@@ -13,7 +13,6 @@ var curlyDepth      = 0                     //accessed from gotOpenCurly, gotClo
 var blockOnDeck     = BlockInfo()           //accessed from gotOpenCurly,                analyseSwiftFile
 var blockStack      = [BlockInfo]()         //accessed from gotOpenCurly, gotCloseCurly, analyseSwiftFile
 var codeElements    = [BlockInfo]()         //accessed from               gotCloseCurly, analyseSwiftFile
-let paragraphStyleA1 = NSMutableParagraphStyle()    //accessed from showLineItems, showNamedBlock, analyseSwiftFile
 
 // MARK: - Block Structs & Enums
 
@@ -61,63 +60,6 @@ private struct LineItem {
 
 
 // MARK: - Helper funcs
-
-private func showDivider(title: String) -> NSMutableAttributedString {
-    let txt = "\n------------------- \(title) -------------------\n"
-    let nsAttTxt = NSMutableAttributedString(string: txt, attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 15), NSAttributedString.Key.paragraphStyle: paragraphStyleA1])
-    return nsAttTxt
-}
-
-// Returns NSMutableAttributedString showing name as a title, followed by list of items (line#, name, extra)
-private func showLineItems(name: String, items: [LineItem]) -> NSMutableAttributedString {
-
-    let txt = "\n" + showCount(count: items.count, name: name, ifZero: "No") + ":\n"
-    let nsAttTxt = NSMutableAttributedString(string: txt, attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 18), NSAttributedString.Key.paragraphStyle: paragraphStyleA1])
-    for item in items {
-        var tx = ""
-        if item.lineNum != 0 {
-            tx = "         @ line #\t\(formatInt(number: item.lineNum, fieldLen: 8))    \t\(item.name)"
-        } else {
-            tx = "                 \t        \t\(item.name)"
-
-        }
-        if !item.extra.isEmpty {
-            let nSpaces = max(12 - item.name.count, 0) + 2
-            let spaces: String = String(repeating: " ", count: nSpaces)
-            tx += "\(spaces)\t\(item.extra)"
-        }
-        tx += "\n"
-        let nsAttTx = NSAttributedString(string: tx, attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 14), NSAttributedString.Key.paragraphStyle: paragraphStyleA1])
-        nsAttTxt.append(nsAttTx)
-    }
-    return nsAttTxt
-}
-
-// Returns NSMutableAttributedString showing name as a title, followed by list of items (line#, name, extra)
-private func showNamedBlock(name: String, blockType : BlockType, list: [BlockInfo]) -> NSMutableAttributedString {
-    let items = list.filter { $0.blockType == blockType}
-    let paragraphStyleA2 = NSMutableParagraphStyle()
-    var tabStop0 = NSTextTab(textAlignment: .left, location: 0)
-    paragraphStyleA2.tabStops = [ tabStop0 ]
-    tabStop0 = NSTextTab(textAlignment: .right, location: 50)   //rt edge of 1st number
-    paragraphStyleA2.addTabStop(tabStop0)
-    tabStop0 = NSTextTab(textAlignment: .right, location: 52)    //lines @
-    paragraphStyleA2.addTabStop(tabStop0)
-    tabStop0 = NSTextTab(textAlignment: .right, location: 150)
-    paragraphStyleA2.addTabStop(tabStop0)
-    tabStop0 = NSTextTab(textAlignment: .left,  location: 200)
-    paragraphStyleA2.addTabStop(tabStop0)
-    let txt = "\n" + showCount(count: items.count, name: name, ifZero: "No") + ":\n"
-    let nsAttTxt = NSMutableAttributedString(string: txt, attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 18), NSAttributedString.Key.paragraphStyle: paragraphStyleA1])
-    for item in items {
-        var tx = "\t\(formatInt(number: item.numLines, fieldLen: 5))\t lines @\t\(item.lineNum) \t\(item.name)"
-        if !item.extra.isEmpty {tx += "  (\(item.extra) )"}
-        tx += "\n"
-        let nsAttTx = NSAttributedString(string: tx, attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 14), NSAttributedString.Key.paragraphStyle: paragraphStyleA2])
-        nsAttTxt.append(nsAttTx)
-    }
-    return nsAttTxt
-}
 
 // push "ondeck" onto stack, clear ondeck,  stackedCounter = nCodeLines
 private func gotOpenCurly(lineNum: Int) {
@@ -183,9 +125,7 @@ func stripComment(fullLine: String, lineNum: Int) -> (codeLine: String, comment:
         if pCommentF < 0 { pCommentF = pCommentR }
         if pCommentR < 0 { pCommentR = pCommentF }
 
-        if pCommentF != pCommentR {
-            print("⚠️\(lineNum) Comment mismatch \(fullLine)")
-        }
+        if pCommentF != pCommentR { print("⚠️\(lineNum) Comment mismatch \(fullLine)") }
 
     }//endif pQuoteFirst >= 0
 
@@ -208,162 +148,32 @@ func isCamelCase(_ word: String) -> Bool {
     return true
 }
 
-func analyseWWDC(_ str: String, selecFileInfo: FileAttributes) -> NSAttributedString {
-    let lines = str.components(separatedBy: "\n")
-    var attTx: NSMutableAttributedString = NSMutableAttributedString(string: "")
-    let attTxt:NSMutableAttributedString = NSMutableAttributedString(string: "")
-    let attributesLargeFont   = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 20), NSAttributedString.Key.paragraphStyle: paragraphStyleA1]
-    //let attributesMediumFont = [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 16), NSAttributedStringKey.paragraphStyle: paragraphStyleA1]
-    let attributesSmallFont   = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 12), NSAttributedString.Key.paragraphStyle: paragraphStyleA1]
-    var year = ""
-    for i in 0...2 {
-        let line = lines[i]
-        if line .hasPrefix("WWDC") {
-            attTx  = NSMutableAttributedString(string: lines[0] + "\n", attributes: attributesLargeFont)
-            attTxt.append(attTx)
-            let comps = line.components(separatedBy: " ")
-            if comps.count >= 2 {
-                year = comps[1]
-                break
-            }
+//---- removeQuotedStuff - Replace everything in quotes with tildis
+func removeQuotedStuff(_ str: String) -> String {
+    let pQuoteFirst = str.IndexOf("\"")
+    let pQuoteLast  = str.IndexOfRev("\"")
+    if pQuoteFirst < 0 { return str }               // No quote
+    if pQuoteLast - pQuoteFirst <= 1 { return str } // Only 1 quote
+    var array = Array(str)
+    var inQuote = true
+    var ignoreNext = false
+    for p in (pQuoteFirst+1)..<pQuoteLast {
+        let char = array[p]
+        if ignoreNext {
+            array[p] = "~"
+            ignoreNext = false; continue
         }
+        if char == "\\" { ignoreNext = true }
+        if char == "\"" { inQuote.toggle(); continue }
+        if inQuote { array[p] = "~" }
     }
-    if year.isEmpty {
-        print("⛔️ Bad format in \(selecFileInfo.url!.lastPathComponent)!\nCould not find title \"WWDC 20xx\"")
-        return attTxt
-    }
-
-    var prevLine = ""
-    var flag = false
-    var str = ""
-    var text = "Year \tSess\tOSX\tiOS\tTitle \tKeyword \twant \tfin \tlang \tDescription\n"
-    var totalSessions = 0
-
-    if year == "2018" {
-        let sessionNum = "???"
-        var totalWithNoOS = 0
-        var lineNum = 1
-        while lineNum < lines.count - 2 {
-            if lines[lineNum].isEmpty || lines[lineNum] == " " {
-                lineNum += 1
-                let titleIndented = lines[lineNum].dropFirst()
-                lineNum += 1
-                let title = lines[lineNum]
-                totalSessions += 1
-                if title != titleIndented {
-                    print("\(titleIndented) != \(title)")
-                }
-                lineNum += 1
-                let desc    = lines[lineNum]
-                let allText = title + "|" + desc
-                var iOS     = allText.contains("iOS")     ? "1" : "0"
-                var macOS   = allText.contains("macOS")   ? "1" : "0"
-                //if allText.contains("UI")    { iOS = "1" }
-                if allText.contains("ARKit") { iOS = "1" }
-                var tvOS    =  "0"
-                var watchOS =  "0"
-                if iOS == "0" && macOS == "0"  {
-                    tvOS    = allText.contains("tvOS")    ? "1" : "0"
-                    watchOS = allText.contains("watchOS") ? "1" : "0"
-                    if tvOS == "0"  && watchOS == "0" {
-                    print("😡 no OS: \(title) ")
-                    iOS     = "1"
-                    macOS   = "1"
-                    totalWithNoOS += 1
-                    }
-                }
-                let allLc = allText.lowercased()
-                var keyWord = ""
-                if allText.contains("UIKit")            { keyWord = "UIKit" }
-                if allText.contains("Swift")            { keyWord = "Swift" }
-                if allText.contains("Xcode")            { keyWord = "Xcode" }
-                if allText.contains("AirPlay")          { keyWord = "AirPlay" }
-                if allText.contains("AirPrint")         { keyWord = "AirPrint" }
-                if allText.contains("App Store")        { keyWord = "AppStore" }
-                if allText.contains("Apple Pay")        { keyWord = "ApplePay" }
-                if allText.contains("Wallet")           { keyWord = "ApplePay" }
-                if allText.contains("iAd")              { keyWord = "AppStore" }
-                if allText.contains("StoreKit")         { keyWord = "AppStore" }
-                if allText.contains("Accessib")         { keyWord = "Accessibility" }
-                if   allLc.contains("accessibil")       { keyWord = "Accessibility" }
-                if allText.contains("Accelerate")       { keyWord = "Accelerate" }
-                if allText.contains("Auto Layout")      { keyWord = "AutoLayout" }
-                if allText.contains("AV")               { keyWord = "AV" }
-                if allText.contains("AR")               { keyWord = "AR" }
-                if allText.contains("CarPlay")          { keyWord = "CarPlay" }
-                if allText.contains("Cocoa")            { keyWord = "Cocoa" }
-                if allText.contains("Cocoa Touch")      { keyWord = "CocoaTouch" }
-                if allText.contains("Core Data")        { keyWord = "CoreData" }
-                if allText.contains("Core Location")    { keyWord = "CoreLocation" }
-                if allText.contains("ML")               { keyWord = "CoreML" }
-                if allText.contains("Metal")            { keyWord = "Metal" }
-                if   allLc.contains("photo")            { keyWord = "Photo" }
-                if allText.contains("Core Image")       { keyWord = "Photo" }
-                if allText.contains("UIImage")          { keyWord = "Photo" }
-                if allText.contains("HealthKit")        { keyWord = "HealthKit" }
-                if allText.contains("Instruments")      { keyWord = "Performance" }
-                if allText.contains("Profile")          { keyWord = "Performance" }
-                if allText.contains("Siri")             { keyWord = "Siri" }
-
-                if title.hasPrefix("Platforms")         { keyWord = "Platforms" }
-
-                if title.contains("HomeKit")            { keyWord = "HomeKit" }
-                if title.contains("Notification")       { keyWord = "Notifications" }
-                if title.contains("Global")             { keyWord = "Localizing" }
-                if title.contains("International")      { keyWord = "Localizing" }
-                if title.contains("TextKit")            { keyWord = "TextKit" }
-                if title.contains("Maps")               { keyWord = "MapKit" }
-                if title.contains("MapKit")             { keyWord = "MapKit" }
-
-                if allLc.contains("playground")         { keyWord = "Playgrounds" }
-
-                if allLc.contains("debug")              { keyWord = "Debugging" }
-                if allLc.contains("testing") || allLc.contains("unit t") || allLc.contains("uitest")  { keyWord = "Testing" }
-
-                if title.contains("Awards")             { keyWord = "Awards" }
-                if title.contains("Keynote")            { keyWord = "Keynote" }
-                if title.contains("Bluetooth")          { keyWord = "Bluetooth" }
-
-                if allText.contains("Safari") || allText.contains("Web") { keyWord = "Web" }
-                if allLc.contains("website")                             { keyWord = "Web" }
-                if title.contains("Internet") || allText.contains("Web") { keyWord = "Web" }
-                if tvOS == "1"                          { keyWord = "ztvOS" }
-                if watchOS == "1"                       { keyWord = "zWatch" }
-                text += "\(year)\t\(sessionNum)\t\(macOS)\t\(iOS)\t\(title)\t\(keyWord)\t\t\t\t\(desc.prefix(440))\n"
-            }
-            lineNum += 1
-        }
-        print("\(totalWithNoOS) Total With No OS")
-    } else {
-        for line in lines {
-            if flag {
-                flag = false
-                text += "\(str)\t\(line.prefix(350))\n"
-            }
-            if line.hasPrefix("Session") {
-                let comps = line.split(separator: " ", maxSplits: 2, omittingEmptySubsequences: true)
-                let sessionNum = String(comps[1])                   // sessionNum
-                var listOS = ""
-                if comps.count > 2 { listOS = String(comps[2]) }
-                let iOS = listOS.contains("iOS") ? "1" : "0"        // iOS
-                let macOS = listOS.contains("macOS") ? "1" : "0"    // macOS
-                str = "\(year)\t\(sessionNum)\t\(macOS)\t\(iOS)\t\(prevLine)"
-                totalSessions += 1
-                flag = true
-            }
-            prevLine = line
-        }
-    }
-    attTx  = NSMutableAttributedString(string: text, attributes: attributesSmallFont)
-    attTxt.append(attTx)
-    print("\(totalSessions) Total Sessions")
-    return attTxt
+    let strNew = String(array)
+    return strNew
 }
 
-
-// MARK: - the main event
+// MARK: - the main event 511-lines
 // called from analyseContentsButtonClicked
-func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttributedString {
+func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttributedString {     //366-877 = 511-lines
     let lines = str.components(separatedBy: "\n")
 
     resetVBwords()
@@ -872,29 +682,68 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
         tx = showLineItems(name: "VBCompatability call", items: vbLineItems)
         txt.append(tx)
     }
-
     return txt
 }//end func analyseSwiftFile
 
-func removeQuotedStuff(_ str: String) -> String {
-    let pQuoteFirst = str.IndexOf("\"")
-    let pQuoteLast  = str.IndexOfRev("\"")
-    if pQuoteFirst < 0 { return str }
-    if pQuoteLast - pQuoteFirst <= 1 { return str }
-    var array = Array(str)
-    var inQuote = true
-    var ignoreNext = false
-    for p in (pQuoteFirst+1)..<pQuoteLast {
-        let char = array[p]
-        if ignoreNext {
-            array[p] = "~"
-            ignoreNext = false; continue
-        }
-        if char == "\\" { ignoreNext = true }
-        if char == "\"" { inQuote.toggle(); continue }
-        if inQuote { array[p] = "~" }
-    }
-    let strNew = String(array)
-    return strNew
 
+//MARK:- Attrubuted Strings
+
+let paragraphStyleA1 = NSMutableParagraphStyle()    //accessed from showLineItems, showNamedBlock, analyseSwiftFile
+
+private func showDivider(title: String) -> NSMutableAttributedString {
+    let txt = "\n------------------- \(title) -------------------\n"
+    let nsAttTxt = NSMutableAttributedString(string: txt, attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 15), NSAttributedString.Key.paragraphStyle: paragraphStyleA1])
+    return nsAttTxt
 }
+
+// Returns NSMutableAttributedString showing name as a title, followed by list of items (line#, name, extra)
+private func showLineItems(name: String, items: [LineItem]) -> NSMutableAttributedString {
+
+    let txt = "\n" + showCount(count: items.count, name: name, ifZero: "No") + ":\n"
+    let nsAttTxt = NSMutableAttributedString(string: txt, attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 18), NSAttributedString.Key.paragraphStyle: paragraphStyleA1])
+    for item in items {
+        var tx = ""
+        if item.lineNum != 0 {
+            tx = "         @ line #\t\(formatInt(number: item.lineNum, fieldLen: 8))    \t\(item.name)"
+        } else {
+            tx = "                 \t        \t\(item.name)"
+
+        }
+        if !item.extra.isEmpty {
+            let nSpaces = max(12 - item.name.count, 0) + 2
+            let spaces: String = String(repeating: " ", count: nSpaces)
+            tx += "\(spaces)\t\(item.extra)"
+        }
+        tx += "\n"
+        let nsAttTx = NSAttributedString(string: tx, attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 14), NSAttributedString.Key.paragraphStyle: paragraphStyleA1])
+        nsAttTxt.append(nsAttTx)
+    }
+    return nsAttTxt
+}
+
+// Returns NSMutableAttributedString showing name as a title, followed by list of items (line#, name, extra)
+private func showNamedBlock(name: String, blockType : BlockType, list: [BlockInfo]) -> NSMutableAttributedString {
+    let items = list.filter { $0.blockType == blockType}
+    let paragraphStyleA2 = NSMutableParagraphStyle()
+    var tabStop0 = NSTextTab(textAlignment: .left, location: 0)
+    paragraphStyleA2.tabStops = [ tabStop0 ]
+    tabStop0 = NSTextTab(textAlignment: .right, location: 50)   //rt edge of 1st number
+    paragraphStyleA2.addTabStop(tabStop0)
+    tabStop0 = NSTextTab(textAlignment: .right, location: 52)    //lines @
+    paragraphStyleA2.addTabStop(tabStop0)
+    tabStop0 = NSTextTab(textAlignment: .right, location: 150)
+    paragraphStyleA2.addTabStop(tabStop0)
+    tabStop0 = NSTextTab(textAlignment: .left,  location: 200)
+    paragraphStyleA2.addTabStop(tabStop0)
+    let txt = "\n" + showCount(count: items.count, name: name, ifZero: "No") + ":\n"
+    let nsAttTxt = NSMutableAttributedString(string: txt, attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 18), NSAttributedString.Key.paragraphStyle: paragraphStyleA1])
+    for item in items {
+        var tx = "\t\(formatInt(number: item.numLines, fieldLen: 5))\t lines @\t\(item.lineNum) \t\(item.name)"
+        if !item.extra.isEmpty {tx += "  (\(item.extra) )"}
+        tx += "\n"
+        let nsAttTx = NSAttributedString(string: tx, attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 14), NSAttributedString.Key.paragraphStyle: paragraphStyleA2])
+        nsAttTxt.append(nsAttTx)
+    }
+    return nsAttTxt
+}
+

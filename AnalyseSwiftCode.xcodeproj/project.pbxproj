@@ -21,6 +21,7 @@
 		CEA6263D20068AA2000F923D /* AnalyseSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEA6263B20068AA2000F923D /* AnalyseSwift.swift */; };
 		CEBAD4A42194A8E600CBBCBA /* AnalyseXcodeproj.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEBAD4A32194A8E600CBBCBA /* AnalyseXcodeproj.swift */; };
 		CED9D7F9223E090F009978EF /* VBcompatablity.swift in Sources */ = {isa = PBXBuildFile; fileRef = CED9D7F8223E090F009978EF /* VBcompatablity.swift */; };
+		CEE94E93223EB84E00A6F2FB /* AnalyseWWDC.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEE94E92223EB84E00A6F2FB /* AnalyseWWDC.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -52,6 +53,7 @@
 		CEA6263B20068AA2000F923D /* AnalyseSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyseSwift.swift; sourceTree = "<group>"; };
 		CEBAD4A32194A8E600CBBCBA /* AnalyseXcodeproj.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyseXcodeproj.swift; sourceTree = "<group>"; };
 		CED9D7F8223E090F009978EF /* VBcompatablity.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VBcompatablity.swift; sourceTree = "<group>"; };
+		CEE94E92223EB84E00A6F2FB /* AnalyseWWDC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyseWWDC.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -96,6 +98,7 @@
 				26ECD33A1E874B5C00380F56 /* AppDelegate.swift */,
 				26ECD33C1E874B5C00380F56 /* ViewController.swift */,
 				CEA6263B20068AA2000F923D /* AnalyseSwift.swift */,
+				CEE94E92223EB84E00A6F2FB /* AnalyseWWDC.swift */,
 				CEBAD4A32194A8E600CBBCBA /* AnalyseXcodeproj.swift */,
 				CE9BBFF62235598500DCE317 /* Keywords.swift */,
 				CE4194AD21BD8C22006808B1 /* AttributableStrings.swift */,
@@ -243,6 +246,7 @@
 				CEA6263D20068AA2000F923D /* AnalyseSwift.swift in Sources */,
 				26ECD33B1E874B5C00380F56 /* AppDelegate.swift in Sources */,
 				CE67A6A41FFA066B00BD57BD /* StringExtension.swift in Sources */,
+				CEE94E93223EB84E00A6F2FB /* AnalyseWWDC.swift in Sources */,
 				CE9BBFF72235598500DCE317 /* Keywords.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
