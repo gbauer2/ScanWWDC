@@ -7,11 +7,14 @@
 
 import Cocoa
 
+//MARK:- Globals
 
 private var pbxObjects = [String : PBX]()
+private var xcodeProj  = XcodeProj()
+
+//MARK:- structs
 
 public struct XcodeProj {
-    var url: URL?
     var name            = ""
     var archiveVersion  = ""
     var objectVersion   = ""
@@ -20,13 +23,13 @@ public struct XcodeProj {
     var swiftVerMax     = 0.0
     var sdkRoot         = ""
     var deploymentTarget = ""
-    var pbxDict         = [String : String]()
+    var swiftURLs       = [URL]()
+    var url = FileManager.default.homeDirectoryForCurrentUser
 }
 
 // Stuff to be returned by AnalyseSwift (not yet used)
 public struct SwiftSummary {
     var fileName        = ""
-    var url: URL?
     var codeLineCount   = 0
     var importName      = ""
     var importCount     = 0
@@ -34,8 +37,9 @@ public struct SwiftSummary {
     var structCount     = 0
     // issues
     var nonCamelCaseCnt = 0
-    var vbCompatCallCnt = 0
     var forceUnwrapCnt  = 0
+    var vbCompatCallCnt = 0
+    var url = FileManager.default.homeDirectoryForCurrentUser
 }
 
 // Struct to hold values set by .xcodeproj > project.pbxproj file
@@ -43,7 +47,7 @@ public struct SwiftSummary {
 //  1) "var XXX ="      (1 place);
 //  2) "debugDescription"(3 places) if !self.XXX.isEmpty    { str += ", XXX=" + self.XXX }
 //  3) func changeProperty (2 places)           case "XXX": self.XXX = vals.first ?? ""
-public struct PBX: CustomDebugStringConvertible {       //41-170 = 129-lines
+public struct PBX: CustomDebugStringConvertible {       //49-178 = 129-lines
     var isa         = ""
     var fileRef     = ""
     var name        = ""
@@ -185,7 +189,7 @@ private func keyValDecode(_ str: String) -> (String, String) {
 }
 
 //---- analyseXcodeproj - Analyse a .xcodeproj file, returning an errorText and an XcodeProj instance
-public func analyseXcodeproj(_ url: URL) -> (String, XcodeProj) {   //183-290 = 107-lines
+public func analyseXcodeproj(url: URL, goDeep: Bool) -> (String, XcodeProj) {   //183-290 = 107-lines
     //let attributesLargeFont  = [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 20), NSAttributedStringKey.paragraphStyle: paragraphStyleA1]
     //let attributesMediumFont = [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 16), NSAttributedStringKey.paragraphStyle: paragraphStyleA1]
     //let attributesSmallFont  = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 12), NSAttributedString.Key.paragraphStyle: paragraphStyleA1]
@@ -193,7 +197,7 @@ public func analyseXcodeproj(_ url: URL) -> (String, XcodeProj) {   //183-290 = 
     var newURL = url
     var gotNewURL = false
     let fileManager = FileManager.default
-    var xcodeProj = XcodeProj()
+    xcodeProj = XcodeProj()
     xcodeProj.url = url
     xcodeProj.name = url.lastPathComponent
     do {
@@ -249,8 +253,6 @@ public func analyseXcodeproj(_ url: URL) -> (String, XcodeProj) {   //183-290 = 
                 }
             } else {
                 if line.contains("buildSettings =") { gotBuildSettings = true }
-                if line.contains("archiveVersion") { (_, xcodeProj.archiveVersion) = keyValDecode(line) }
-                if line.contains("objectVersion") { (_, xcodeProj.objectVersion) = keyValDecode(line) }
                 if line.contains("CreatedOnToolsVersion") {
                     (_, xcodeProj.createdOnToolsVersion) = keyValDecode(line)
                     print("✅ \(lineNum) \"CreatedOnToolsVersion\" \(line)")
@@ -264,7 +266,6 @@ public func analyseXcodeproj(_ url: URL) -> (String, XcodeProj) {   //183-290 = 
                 //print("✅✅ \(lineNum) \(line)")
                 if let fileRef = dict["fileRef"] {
                     print("🔹 \(lineNum) \(isa) FileRef: \"\(fileRef)\"")
-                    xcodeProj.pbxDict[fileRef] = "?"
                 } else {
                     print("⛔️ \(lineNum) \"\(isa)\" \(line)")
                 }
@@ -273,7 +274,6 @@ public func analyseXcodeproj(_ url: URL) -> (String, XcodeProj) {   //183-290 = 
                 //print("✅✅ \(lineNum) \(line)")
                 if let path = dict["path"] {
                     print("🔹 \(lineNum) \"\(isa)\" path: \"\(path)\"")
-                    xcodeProj.pbxDict[path] = "?"
                 } else {
                     print("⛔️ \(lineNum) \"\(isa)\" \(line)")
                 }
@@ -366,8 +366,6 @@ func stripComments(_ line: String) -> String {      //328-360 = 32-lines
 
 func preProcess(_ str: String) {        //362-520 = 158-lines
     pbxObjects.removeAll()
-    var archiveVersion = ""
-    var objectVersion  = ""
     var rootObjectKey  = ""
     let (strClean,linePtr) = stripCommentsAndNewlines(str)
     let chars = Array(strClean)
@@ -433,9 +431,9 @@ func preProcess(_ str: String) {        //362-520 = 158-lines
                         let (key, val) = keyValDecode(part)
                         switch key {
                         case "archiveVersion":
-                            archiveVersion = val
+                            xcodeProj.archiveVersion = val
                         case "objectVersion":
-                            objectVersion = val
+                            xcodeProj.objectVersion = val
                         case "rootObject":
                             rootObjectKey = val
                         default:
@@ -510,12 +508,19 @@ print("\n------------ RootObject > mainGroup > \(mainGroupChildrenKeys.count)-ch
         print()
         print("---- Most likely child to have swift source files ----")
         print("mainSourceObj = ",mainSourceObj)
-        let path = mainSourceObj.path
+        let dirPath = mainSourceObj.path
         print()
-        print("😈mainSourceObj.path = \"\(path)\"")
+        print("😈mainSourceObj.path = \"\(dirPath)\"")
         let sourceFileKeys = mainSourceObj.children
         for sourceFileKey in sourceFileKeys {
-            print("😈", pbxObjects[sourceFileKey]!)
+            let sourceFileObj = pbxObjects[sourceFileKey]!
+            let filePath = sourceFileObj.path
+            if filePath.hasSuffix(".swift") {
+                let url = xcodeProj.url.deletingLastPathComponent().appendingPathComponent(dirPath).appendingPathComponent(filePath)
+                xcodeProj.swiftURLs.append(url)
+                print(url.path)
+            }
+            print("😈", sourceFileObj)
         }
     }
 

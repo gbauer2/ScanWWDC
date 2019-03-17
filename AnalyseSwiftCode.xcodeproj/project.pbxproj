@@ -20,6 +20,7 @@
 		CEA6263A20067DCA000F923D /* SampleCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEA6263920067DCA000F923D /* SampleCode.swift */; };
 		CEA6263D20068AA2000F923D /* AnalyseSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEA6263B20068AA2000F923D /* AnalyseSwift.swift */; };
 		CEBAD4A42194A8E600CBBCBA /* AnalyseXcodeproj.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEBAD4A32194A8E600CBBCBA /* AnalyseXcodeproj.swift */; };
+		CED9D7F9223E090F009978EF /* VBcompatablity.swift in Sources */ = {isa = PBXBuildFile; fileRef = CED9D7F8223E090F009978EF /* VBcompatablity.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -50,6 +51,7 @@
 		CEA6263920067DCA000F923D /* SampleCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleCode.swift; sourceTree = "<group>"; };
 		CEA6263B20068AA2000F923D /* AnalyseSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyseSwift.swift; sourceTree = "<group>"; };
 		CEBAD4A32194A8E600CBBCBA /* AnalyseXcodeproj.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyseXcodeproj.swift; sourceTree = "<group>"; };
+		CED9D7F8223E090F009978EF /* VBcompatablity.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VBcompatablity.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -121,6 +123,7 @@
 			children = (
 				CE83F8BA1FFD329C00C39EC8 /* MyFuncs.swift */,
 				CE67A6A31FFA066B00BD57BD /* StringExtension.swift */,
+				CED9D7F8223E090F009978EF /* VBcompatablity.swift */,
 			);
 			path = MyLibrary;
 			sourceTree = "<group>";
@@ -231,6 +234,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				26ECD33D1E874B5C00380F56 /* ViewController.swift in Sources */,
+				CED9D7F9223E090F009978EF /* VBcompatablity.swift in Sources */,
 				CE063B8F22160B5B000CACDF /* FindVBCode.swift in Sources */,
 				CE4194AE21BD8C22006808B1 /* AttributableStrings.swift in Sources */,
 				CE83F8BB1FFD329D00C39EC8 /* MyFuncs.swift in Sources */,
