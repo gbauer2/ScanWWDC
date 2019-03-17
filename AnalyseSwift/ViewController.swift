@@ -49,7 +49,7 @@ class ViewController: NSViewController {
         case xcodeproj
     }
 
-    // MARK: - Outlets
+    // MARK: - IBOutlets
     @IBOutlet weak var splitView:    NSSplitView!
     @IBOutlet weak var tableView:    NSTableView!
     @IBOutlet weak var infoTextView: NSTextView!
@@ -153,7 +153,7 @@ class ViewController: NSViewController {
         }//end didSet
     }//var selectedItemUrl
 
-    // MARK: - View Lifecycle & error dialog utility
+    // MARK: - Lifecycle
 
     override func viewDidLoad() {
         popupBaseDir.removeAllItems()
@@ -181,6 +181,8 @@ class ViewController: NSViewController {
         saveCurrentSelections()
         super.viewWillDisappear()
     }
+
+    // MARK: - Methods
 
     func showErrorDialogIn(window: NSWindow, title: String, message: String) {
         let alert = NSAlert()
@@ -794,6 +796,7 @@ extension ViewController {
         """
         3rd triple quote
         """
+        print(xxx)
     }//end func test
 
 }//end Extension

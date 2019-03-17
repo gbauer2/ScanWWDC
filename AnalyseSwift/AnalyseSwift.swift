@@ -342,11 +342,11 @@ func analyseWWDC(_ str: String, selecFileInfo: FileAttributes) -> NSAttributedSt
             }
             if line.hasPrefix("Session") {
                 let comps = line.split(separator: " ", maxSplits: 2, omittingEmptySubsequences: true)
-                let sessionNum = String(comps[1])
+                let sessionNum = String(comps[1])                   // sessionNum
                 var listOS = ""
                 if comps.count > 2 { listOS = String(comps[2]) }
-                let iOS = listOS.contains("iOS") ? "1" : "0"
-                let macOS = listOS.contains("macOS") ? "1" : "0"
+                let iOS = listOS.contains("iOS") ? "1" : "0"        // iOS
+                let macOS = listOS.contains("macOS") ? "1" : "0"    // macOS
                 str = "\(year)\t\(sessionNum)\t\(macOS)\t\(iOS)\t\(prevLine)"
                 totalSessions += 1
                 flag = true

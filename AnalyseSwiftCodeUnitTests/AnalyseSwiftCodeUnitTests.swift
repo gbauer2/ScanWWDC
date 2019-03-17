@@ -3,7 +3,7 @@
 //  AnalyseSwiftCodeUnitTests
 //
 //  Created by George Bauer on 12/9/18.
-//  Copyright © 2018 Ray Wenderlich. All rights reserved.
+//  Copyright © 2018,2019 George Bauer. All rights reserved.
 //
 
 import XCTest
@@ -57,6 +57,7 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         let codeColor     = NSColor.black
         let commentColor  = NSColor(calibratedRed: 0, green: 0.6, blue: 0.15, alpha: 1)  //Green
         let quoteColor    = NSColor.red
+
         var newLine       = ""
         var inTripleQuote = false
 
@@ -72,6 +73,7 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
 
         codeLine = "/*123*/"
         inBlockComment = false
+        inTripleQuote  = false
         marks = vcTest.markCodeLine(codeLine: codeLine, inTripleQuote:  &inTripleQuote, inBlockComment:  &inBlockComment)
         XCTAssertEqual(inBlockComment, false)
         XCTAssertEqual(marks.count, 1)
@@ -82,6 +84,7 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
 
         codeLine = "12345"
         inBlockComment = true
+        inTripleQuote  = false
         marks = vcTest.markCodeLine(codeLine: codeLine, inTripleQuote:  &inTripleQuote, inBlockComment:  &inBlockComment)
         XCTAssertEqual(inBlockComment, true)
         XCTAssertEqual(marks.count, 1)
@@ -92,6 +95,7 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
 
         codeLine = "1234//8"
         inBlockComment = false
+        inTripleQuote  = false
         marks = vcTest.markCodeLine(codeLine: codeLine, inTripleQuote:  &inTripleQuote, inBlockComment:  &inBlockComment)
         XCTAssertEqual(inBlockComment, false)
         XCTAssertEqual(marks.count, 2)
@@ -104,6 +108,7 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         
         codeLine = "/*234*/7"
         inBlockComment = false
+        inTripleQuote  = false
         marks = vcTest.markCodeLine(codeLine: codeLine, inTripleQuote:  &inTripleQuote, inBlockComment:  &inBlockComment)
         XCTAssertEqual(inBlockComment, false)
         XCTAssertEqual(marks.count, 2)
@@ -116,31 +121,33 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
 
         codeLine = "01\"34\""
         inBlockComment = false
+        inTripleQuote  = false
         marks = vcTest.markCodeLine(codeLine: codeLine, inTripleQuote:  &inTripleQuote, inBlockComment:  &inBlockComment)
         XCTAssertEqual(inBlockComment, false)
         XCTAssertEqual(marks.count, 3)
         XCTAssertEqual(marks[0].index, 0)
         XCTAssertEqual(marks[0].color, codeColor)
-        XCTAssertEqual(marks[1].index, 3)
+        XCTAssertEqual(marks[1].index, 2)
         XCTAssertEqual(marks[1].color, quoteColor)
-        XCTAssertEqual(marks[2].index, 5)
+        XCTAssertEqual(marks[2].index, 6)
         XCTAssertEqual(marks[2].color, codeColor)
         newLine = vcTest.constructLine(codeLine: codeLine, marks: marks)
-        XCTAssertEqual(newLine, "<black>01\"<red>34<black>\"")
+        XCTAssertEqual(newLine, "<black>01<red>\"34\"<black>")
 
         codeLine = "01\"/*\""
         inBlockComment = false
+        inTripleQuote  = false
         marks = vcTest.markCodeLine(codeLine: codeLine, inTripleQuote:  &inTripleQuote, inBlockComment:  &inBlockComment)
         XCTAssertEqual(inBlockComment, false)
         XCTAssertEqual(marks.count, 3)
         XCTAssertEqual(marks[0].index, 0)
         XCTAssertEqual(marks[0].color, codeColor)
-        XCTAssertEqual(marks[1].index, 3)
+        XCTAssertEqual(marks[1].index, 2)
         XCTAssertEqual(marks[1].color, quoteColor)
-        XCTAssertEqual(marks[2].index, 5)
+        XCTAssertEqual(marks[2].index, 6)
         XCTAssertEqual(marks[2].color, codeColor)
         newLine = vcTest.constructLine(codeLine: codeLine, marks: marks)
-        XCTAssertEqual(newLine, "<black>01\"<red>/*<black>\"")
+        XCTAssertEqual(newLine, "<black>01<red>\"/*\"<black>")
     }
 
     func testgetSubStr() {
@@ -162,6 +169,39 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         print("\"") //ok
     }
 
+    let sampleWWDC =
+    """
+    help
+    WWDC 2017 Videos
+    App Frameworks Design Developer Tools Distribution Featured Graphics and Games Media System Frameworks
+    Featured Videos
+    Platforms State of the Union
+    Platforms State of the Union
+    iOS, macOS, tvOS, watchOS
+    WWDC 2017 Platforms State of the Union
+    Introducing Core ML
+    Introducing Core ML
+    iOS, macOS, tvOS, watchOS
+    Machine learning opens up opportunities for creating new and engaging experiences. Core ML is a...
+    Introducing ARKit: Augmented Reality for iOS
+    Introducing ARKit: Augmented Reality for iOS
+    iOS
+    ARKit provides a cutting-edge platform for developing augmented reality (AR) apps for iPhone and...
+    """
+
+    private func testisKeywords() {
+        var result = false
+        result = isKeyword(word: "let")
+        XCTAssertTrue(result)
+        result = isKeyword(word: "super")
+        XCTAssertTrue(result)
+
+        result = isKeyword(word: "Let")
+        XCTAssertFalse(result)
+        result = isKeyword(word: "gwb")
+        XCTAssertFalse(result)
+
+    }
 
     //    func testPerformanceExample() {
     //        // This is an example of a performance test case.
