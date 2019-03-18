@@ -538,7 +538,7 @@ extension ViewController {
             if analyseMode == .swift || analyseMode == .WWDC {
                 do {
                     // Read file content
-                    let contentFromFile = try NSString(contentsOf: url, encoding: String.Encoding.utf8.rawValue)
+                    let contentFromFile = try String(contentsOf: url, encoding: String.Encoding.utf8)
 
                     if analyseFuncLocked { return }                  // because analyseSwiftFile() is not thread-save
                     analyseFuncLocked = true                         // Lock the button
@@ -547,9 +547,10 @@ extension ViewController {
                     DispatchQueue.global(qos: .userInitiated).async {
                         var txt: NSAttributedString
                         if  self.analyseMode == .swift {
-                            txt = analyseSwiftFile(contentFromFile as String, selecFileInfo: self.selecFileInfo )
+                            var swiftSummary = SwiftSummary()
+                            (swiftSummary, txt) = analyseSwiftFile(contentFromFile, selecFileInfo: self.selecFileInfo )
                         } else if self.analyseMode == .WWDC {
-                            txt = analyseWWDC(contentFromFile as String, selecFileInfo: self.selecFileInfo)
+                            txt = analyseWWDC(contentFromFile, selecFileInfo: self.selecFileInfo)
                         } else {
                             txt = NSAttributedString()
                         }
@@ -718,7 +719,7 @@ extension ViewController {
         do {
             var formattedText = NSMutableAttributedString()
             // Read file content & populate "lines"
-            let contentFromFile = try NSString(contentsOf: url, encoding: String.Encoding.utf8.rawValue)
+            let contentFromFile = try String(contentsOf: url, encoding: String.Encoding.utf8)
             let lines = contentFromFile.components(separatedBy: "\n")
 
             if showLineNumbers {
@@ -734,7 +735,7 @@ extension ViewController {
 
             } else {
                 // Show raw text as read
-                formattedText = formatWithHeader(contentFromFile as String) as! NSMutableAttributedString
+                formattedText = formatWithHeader(contentFromFile) as! NSMutableAttributedString
                 infoTextView.textStorage?.setAttributedString(formattedText)
             }
         }//end do

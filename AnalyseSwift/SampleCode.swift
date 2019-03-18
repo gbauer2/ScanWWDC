@@ -29,6 +29,10 @@ private func TestCamelCase(p1: Int, p2 : Int , Param3:String) {
     print("\"") //ok
 }
 
+private func sampleVBCall() {
+    let i = CInt("123")
+    print(i)
+}
 
 //not used
 private func testNSString() {
@@ -103,9 +107,13 @@ private func testNSString() {
     myMuAttString.append(myAddedString)
 }//end func testNSString
 
-class xxx {
+class MySampleClass {
     static public func HW() {
         print("😀Hello World!😀")
     }
+}
+
+struct MySampleStruct {
+    let i = 0
 }
 

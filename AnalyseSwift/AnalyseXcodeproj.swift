@@ -27,21 +27,6 @@ public struct XcodeProj {
     var url = FileManager.default.homeDirectoryForCurrentUser
 }
 
-// Stuff to be returned by AnalyseSwift (not yet used)
-public struct SwiftSummary {
-    var fileName        = ""
-    var codeLineCount   = 0
-    var importName      = ""
-    var importCount     = 0
-    var classCount      = 0
-    var structCount     = 0
-    // issues
-    var nonCamelCaseCnt = 0
-    var forceUnwrapCnt  = 0
-    var vbCompatCallCnt = 0
-    var url = FileManager.default.homeDirectoryForCurrentUser
-}
-
 // Struct to hold values set by .xcodeproj > project.pbxproj file
 // To Add property:
 //  1) "var XXX ="      (1 place);

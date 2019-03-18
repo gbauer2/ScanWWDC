@@ -16,6 +16,29 @@ var codeElements    = [BlockInfo]()         //accessed from               gotClo
 
 // MARK: - Block Structs & Enums
 
+// Stuff to be returned by AnalyseSwift (not yet used)
+public struct SwiftSummary {
+    var fileName        = ""
+    var codeLineCount   = 0
+    var funcNames       = [String]()
+    var ibActionNames   = [String]()
+    var overrideNames   = [String]()
+    var importNames     = [String]()
+    var classNames      = [String]()
+    var structNames     = [String]()
+    var protocolNames   = [String]()
+    var extensionNames  = [String]()
+    var enumNames       = [String]()
+    var byteCount       = 0
+    var totalLineCount  = 0
+
+    // issues
+    var nonCamelCases   = [String]()
+    var forceUnwraps    = [String]()
+    var vbCompatCalls   = [String]()
+    //var url = FileManager.default.homeDirectoryForCurrentUser
+}
+
 enum BlockType: Int {
     case None           = 0
     case Func           = 1
@@ -172,13 +195,14 @@ func removeQuotedStuff(_ str: String) -> String {
 }
 
 // MARK: - the main event 511-lines
-// called from analyseContentsButtonClicked
-func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttributedString {     //366-877 = 511-lines
+// called from analyseContentsButtonClicked         //190-702 = 511-lines
+func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> (SwiftSummary, NSAttributedString) {
     let lines = str.components(separatedBy: "\n")
 
     resetVBwords()
     var nVBwords = 0
     var nUniqueVBWords = 0
+    var swiftSummary = SwiftSummary()
 
     var blockTypes = [BlockAggregate]()
     blockTypes.append(BlockAggregate(blockType: .None,          subType: .None, codeName: "",              displayName: "unNamed",      showNone: false, count: 0))
@@ -237,7 +261,7 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
             if let latestUrl = ViewController.latestUrl {
                 print("😎Working on \(selecFileInfo.url!),\n but \(latestUrl) is now current😎")
                 let tx  = NSMutableAttributedString(string: "Abort!")
-                return tx
+                return (swiftSummary, tx)
             }
         }
         lineNum += 1
@@ -330,10 +354,8 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
             // Use filter to eliminate empty strings.
             let words = wordsWithEmpty.filter { !$0.isEmpty }
 
-            if words.isEmpty { continue }                         // if no words, fagetaboutit
-            let firstWord = words[0]
-
             // Find Forced Unwraps
+            let firstWord = words.first ?? ""
             for word in words {
                 // Check for Forced Unwrapping
                 if word.hasSuffix("!") && !codeLineClean.hasPrefix("@IBOutlet") {
@@ -366,10 +388,14 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
                         xword = "." + comps.last!
                     }
                     forceUnwraps.append(LineItem(lineNum: lineNum, name: xword, extra: prefix + word + suffix))
+                    swiftSummary.forceUnwraps.append(xword)
                 }
                 if let count = gDictVBwords[word] {
                     nVBwords += 1
-                    if count == 0 { nUniqueVBWords += 1 }
+                    if count == 0 {
+                        nUniqueVBWords += 1
+                        swiftSummary.vbCompatCalls.append(word)
+                    }
                     gDictVBwords[word] = count + 1
                 }
             }
@@ -417,10 +443,12 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
                     blockOnDeck = BlockInfo(blockType: .Func, lineNum: lineNum, codeLinesAtStart: nCodeLine, name: itemName, extra: "", numLines: 0)
                     //inFuncName = itemName
                     if firstWord == "override" {
+                        swiftSummary.overrideNames.append(itemName)
                         index = BlockType.Override_Func.rawValue                                // Override_Func
                         blockOnDeck.blockType = .Override_Func
                         blockTypes[index].count += 1
                     } else if firstWord == "@IBAction" {
+                        swiftSummary.ibActionNames.append(itemName)
                         index = BlockType.IBAction_Func.rawValue                                // IBAction_Func
                         blockOnDeck.blockType = .IBAction_Func
                         blockTypes[index].count += 1
@@ -431,7 +459,7 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
                             containerName = (blockStack.last!.name)
                             blockOnDeck.name = "\(containerName).\(blockOnDeck.name)"
                         }
-
+                        swiftSummary.funcNames.append(itemName)
                         print("✅ func \(blockOnDeck.name)")
                         blockTypes[index].count += 1
                     }
@@ -464,6 +492,15 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
                         }
                         checkCurlys(codeName: codeName, itemName: itemName, posItem: posItem, pOpenCurlyF: pOpenCurlyF, pOpenCurlyR: pOpenCurlyR, pCloseCurlyF: pCloseCurlyF, pCloseCurlyR: pCloseCurlyR)
                         blockOnDeck = BlockInfo(blockType: blockTypes[index].blockType, lineNum: lineNum, codeLinesAtStart: nCodeLine, name: itemName, extra: extra, numLines: 0)
+
+                        switch index {
+                        case 4 :  swiftSummary.structNames.append(itemName)
+                        case 5 :  swiftSummary.enumNames.append(itemName)
+                        case 6 :  swiftSummary.extensionNames.append(itemName)
+                        case 7 :  swiftSummary.classNames.append(itemName)
+                        case 8 :  swiftSummary.protocolNames.append(itemName)
+                        default: break
+                        }
 
                         inBlockName[index] = itemName                               // isStruct
 
@@ -517,6 +554,7 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
                         let lineItem = LineItem(lineNum: lineNum, name: name, extra: "")
                         print("➡️ \(lineItem.lineNum) \(name)")
                         nonCamelVars.append(lineItem)
+                        swiftSummary.nonCamelCases.append(lineItem.name)
                     }
                 }//next assignee
             }
@@ -582,15 +620,18 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
     //numberFormatter.locale = unitedStatesLocale
     let sizeStr = numberFormatter.string(from: selecFileInfo.size as NSNumber) ?? ""
 
+    swiftSummary.byteCount = Int(sizeStr.replacingOccurrences(of: ",", with: "")) ?? -1
     tx  = NSMutableAttributedString(string: "\(sizeStr) bytes.\n", attributes: attributesMediumFont)
     txt.append(tx)
 
+    swiftSummary.totalLineCount = lineNum
     tx  = NSMutableAttributedString(string: "\(lineNum) lines total.  ", attributes: attributesMediumFont)
     txt.append(tx)
     tx  = NSMutableAttributedString(string: "\(nCommentLine) comment lines.  ", attributes: attributesSmallFont)
     txt.append(tx)
     tx  = NSMutableAttributedString(string: "\(nBlankLine) blank lines.\n", attributes: attributesSmallFont)
     txt.append(tx)
+    swiftSummary.codeLineCount = nCodeLine
     tx  = NSMutableAttributedString(string: "\(nCodeLine) lines of code.  ", attributes: attributesMediumFont)
     txt.append(tx)
     tx  = NSMutableAttributedString(string: "\(nTrailing) with trailing comments.\n", attributes: attributesSmallFont)
@@ -598,6 +639,7 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
     //print()
 
     // Print Imports
+    swiftSummary.importNames = imports.map { $0.name }
     tx = showLineItems(name: "Import", items: imports)
     txt.append(tx)
 
@@ -682,7 +724,7 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> NSAttribu
         tx = showLineItems(name: "VBCompatability call", items: vbLineItems)
         txt.append(tx)
     }
-    return txt
+    return (swiftSummary, txt)
 }//end func analyseSwiftFile
 
 
