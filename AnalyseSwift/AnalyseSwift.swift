@@ -16,10 +16,12 @@ var codeElements    = [BlockInfo]()         //accessed from               gotClo
 
 // MARK: - Block Structs & Enums
 
-// Stuff to be returned by AnalyseSwift (not yet used)
+// Stuff to be returned by AnalyseSwift
 public struct SwiftSummary {
     var fileName        = ""
     var codeLineCount   = 0
+    var byteCount       = 0
+    var totalLineCount  = 0
     var funcNames       = [String]()
     var ibActionNames   = [String]()
     var overrideNames   = [String]()
@@ -29,8 +31,6 @@ public struct SwiftSummary {
     var protocolNames   = [String]()
     var extensionNames  = [String]()
     var enumNames       = [String]()
-    var byteCount       = 0
-    var totalLineCount  = 0
 
     // issues
     var nonCamelCases   = [String]()
@@ -80,7 +80,6 @@ private struct LineItem {
     let name: String
     let extra: String
 }
-
 
 // MARK: - Helper funcs
 
@@ -194,15 +193,16 @@ func removeQuotedStuff(_ str: String) -> String {
     return strNew
 }
 
-// MARK: - the main event 511-lines
-// called from analyseContentsButtonClicked         //190-702 = 511-lines
-func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> (SwiftSummary, NSAttributedString) {
-    let lines = str.components(separatedBy: "\n")
+// MARK: - the main event 530-lines
+// called from analyseContentsButtonClicked         //197-727 = 530-lines
+func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes) -> (SwiftSummary, NSAttributedString) {
+    let lines = contentFromFile.components(separatedBy: "\n")
 
     resetVBwords()
     var nVBwords = 0
     var nUniqueVBWords = 0
     var swiftSummary = SwiftSummary()
+    swiftSummary.fileName = selecFileInfo.name
 
     var blockTypes = [BlockAggregate]()
     blockTypes.append(BlockAggregate(blockType: .None,          subType: .None, codeName: "",              displayName: "unNamed",      showNone: false, count: 0))
@@ -255,19 +255,16 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> (SwiftSum
 
     //infoTextView.string = "Analysing..."
 
-    // MARK: - Main Loop 406-652 = 246 lines
+    // MARK: Main Loop 258-562 = 304-lines
     for line in lines {
         if selecFileInfo.url != ViewController.latestUrl {
             if let latestUrl = ViewController.latestUrl {
-                print("😎Working on \(selecFileInfo.url!),\n but \(latestUrl) is now current😎")
-                let tx  = NSMutableAttributedString(string: "Abort!")
-                return (swiftSummary, tx)
+                //print("😎Working on \(selecFileInfo.url!),\n but \(latestUrl) is now current😎")
+                //let tx  = NSMutableAttributedString(string: "Abort!")
+                //return (swiftSummary, tx)
             }
         }
         lineNum += 1
-//        if lineNum == 546 {
-//            print("\(lineNum) \(line)") // Debug Trap
-//        }
         var netCurlys = 0
         let aa = line.trim
 
@@ -295,8 +292,8 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> (SwiftSum
             nBlankLine += 1
             if aa == "{" { gotOpenCurly(lineNum: lineNum) }                                 // single "{" on line
             if aa == "}" { gotCloseCurly(lineNum: lineNum, nCodeLine: nCodeLine) }          // single "}" on line
-        } else {                                        // code! 445 - 651 = 206 lines
-            // MARK: - Code!
+        } else {                                        // code! 298 - 561 = 263-lines
+            // MARK: Code!
             nCodeLine += 1
 
             let (codeLine, comment) = stripComment(fullLine: aa, lineNum: lineNum)
@@ -363,32 +360,34 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> (SwiftSum
                     var prefix = ""
                     var suffix = ""
                     let maxPrefixLen = 34
-                    let p = codeLineClean.IndexOf(word)                 // p is pointer to word
-                    if p > 0 { prefix = codeLineClean.mid(begin: 0, length: p) }    //prefix is stuff before word
-                    if p >= maxPrefixLen {
-                        prefix = prefix.replacingOccurrences(of: "~~~~", with: "~") // remove excess garbage
-                        prefix = prefix.replacingOccurrences(of: "~~~~", with: "~")
-                        if prefix.count > maxPrefixLen {    // still too long
-                            if prefix.contains(" = ") {     // cut off all before "="
-                                let comps = prefix.components(separatedBy: " = ")
-                                prefix = "= " + comps.last!
+                    let p = codeLineClean.IndexOf(word)                     // p is pointer to word
+                    if p > 0 && codeLineClean[p-1] != " " {                 // must not have whitespace before "!"
+                        prefix = codeLineClean.mid(begin: 0, length: p)     //prefix is stuff before word
+                        if p >= maxPrefixLen {
+                            prefix = prefix.replacingOccurrences(of: "~~~~", with: "~") // remove excess garbage
+                            prefix = prefix.replacingOccurrences(of: "~~~~", with: "~")
+                            if prefix.count > maxPrefixLen {    // still too long
+                                if prefix.contains(" = ") {     // cut off all before "="
+                                    let comps = prefix.components(separatedBy: " = ")
+                                    prefix = "= " + comps.last!
+                                }
+                                prefix = "..." + prefix.suffix(maxPrefixLen)
                             }
-                            prefix = "..." + prefix.suffix(maxPrefixLen)
                         }
+                        let pTrail = p + word.count
+                        suffix = codeLineClean.mid(begin: pTrail)
+                        if prefix.count + word.count > 70 && suffix.count > 3 {
+                            suffix = "..."
+                        }
+                        print("line \(lineNum): \(word)")
+                        print(codeLineClean)
+                        if word.contains(".") {
+                            let comps = word.components(separatedBy: ".")
+                            xword = "." + comps.last!
+                        }
+                        forceUnwraps.append(LineItem(lineNum: lineNum, name: xword, extra: prefix + word + suffix))
+                        swiftSummary.forceUnwraps.append(xword)
                     }
-                    let pTrail = p + word.count
-                    suffix = codeLineClean.mid(begin: pTrail)
-                    if prefix.count + word.count > 70 && suffix.count > 3 {
-                        suffix = "..."
-                    }
-                    print("line \(lineNum): \(word)")
-                    print(codeLineClean)
-                    if word.contains(".") {
-                        let comps = word.components(separatedBy: ".")
-                        xword = "." + comps.last!
-                    }
-                    forceUnwraps.append(LineItem(lineNum: lineNum, name: xword, extra: prefix + word + suffix))
-                    swiftSummary.forceUnwraps.append(xword)
                 }
                 if let count = gDictVBwords[word] {
                     nVBwords += 1
@@ -417,7 +416,7 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> (SwiftSum
                 continue                                        // isImport
             }
 
-            //MARK: - Blocks -> func, struc, enum, class, extension
+            //MARK: Blocks -> func, struc, enum, class, extension
             var foundNamedBlock = false
 
             //---------------------------------------------------------------   // func
@@ -560,9 +559,9 @@ func analyseSwiftFile(_ str: String, selecFileInfo: FileAttributes) -> (SwiftSum
             }
         }//end is CodeLine
     }//next line
-    //MARK:- end Main Loop
+    //MARK: end Main Loop
 
-    //MARK:- Analysis display: NSMutableAttributedString
+    //MARK: Analysis display: NSMutableAttributedString
 
     var tx: NSMutableAttributedString = NSMutableAttributedString(string: "")
     let txt:NSMutableAttributedString = NSMutableAttributedString(string: "")
@@ -749,7 +748,6 @@ private func showLineItems(name: String, items: [LineItem]) -> NSMutableAttribut
             tx = "         @ line #\t\(formatInt(number: item.lineNum, fieldLen: 8))    \t\(item.name)"
         } else {
             tx = "                 \t        \t\(item.name)"
-
         }
         if !item.extra.isEmpty {
             let nSpaces = max(12 - item.name.count, 0) + 2
@@ -788,4 +786,3 @@ private func showNamedBlock(name: String, blockType : BlockType, list: [BlockInf
     }
     return nsAttTxt
 }
-

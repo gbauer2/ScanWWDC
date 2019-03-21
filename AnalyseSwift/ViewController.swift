@@ -28,11 +28,11 @@
 // analysis: show non-camelCased params
 // analysis: show global vars, instance vars
 // analysis: organize by MARK: or by extension
+// analysis: show commentLinesCount, MarkupLineCount
 // show methods vs free functions
 // allow extensions other than class
 // Flag //TODO: //FIXME:
-
-// Swift file listing now handles: Embedded /* */ and QuoteColor
+// bug: "// Check for Forced Unwrapping" may fail with multiple "!"s
 
 import Cocoa    /* partial-line Block Comment does not work.*/
 /* single-line Block Comment does work. */
@@ -43,7 +43,7 @@ import Cocoa    /* partial-line Block Comment does not work.*/
 class ViewController: NSViewController {
 
     enum AnalyseMode {
-        case /* embedded Block Comment does not work.*/ none
+        case /* embedded Block Comment now works.*/ none
         case WWDC
         case swift
         case xcodeproj
@@ -137,6 +137,7 @@ class ViewController: NSViewController {
                     tempStr = " \(tempFilesList.count) \("item".pluralize(tempFilesList.count)) in folder."
                     let textAttributes = setFontSizeAttribute(size: 18)
                     let formattedText = NSMutableAttributedString(string: tempStr, attributes: textAttributes)
+                    // --- Load infoTextView with formattedText ---
                     infoTextView.textStorage?.setAttributedString(formattedText)
                 }
             } else {                                            //  5) show file attributes
@@ -146,6 +147,7 @@ class ViewController: NSViewController {
                 let infoString = infoAbout(url: selectedUrl)
                 if !infoString.isEmpty {
                     let formattedText = formatWithHeader(infoString)
+                    // --- Load infoTextView with formattedText ---
                     infoTextView.textStorage?.setAttributedString(formattedText)
                     saveInfoButton.isEnabled = true
                 }//endif
@@ -215,6 +217,7 @@ class ViewController: NSViewController {
                     //let formattedText = NSMutableAttributedString(string: tempStr, attributes: textAttributes)
 
                     DispatchQueue.main.async {
+                        // --- Load infoTextView with formattedText ---
                         //self.infoTextView.textStorage?.setAttributedString(formattedText)
                         self.infoTextView.string = str
                     }
@@ -361,6 +364,7 @@ extension ViewController {
         let str = "Reading through Folders ..."
         var textAttributes = setFontSizeAttribute(size: 12)
         var formattedText = NSMutableAttributedString(string: str, attributes: textAttributes)
+        // --- Load infoTextView with formattedText ---
         infoTextView.textStorage?.setAttributedString(formattedText)
 
         xcodeprojURLs = [URL]()
@@ -424,6 +428,7 @@ extension ViewController {
             textAttributes = self.setFontSizeAttribute(size: 14)
             formattedText = NSMutableAttributedString(string: tempStr, attributes: textAttributes)
             DispatchQueue.main.async {
+                // --- Load infoTextView with formattedText ---
                 self.infoTextView.textStorage?.setAttributedString(formattedText)
             }
         }//end DispatchQueue.global
@@ -547,14 +552,15 @@ extension ViewController {
                     DispatchQueue.global(qos: .userInitiated).async {
                         var txt: NSAttributedString
                         if  self.analyseMode == .swift {
-                            var swiftSummary = SwiftSummary()
-                            (swiftSummary, txt) = analyseSwiftFile(contentFromFile, selecFileInfo: self.selecFileInfo )
+                            //var swiftSummary = SwiftSummary()
+                            (_, txt) = analyseSwiftFile(contentFromFile: contentFromFile, selecFileInfo: self.selecFileInfo )
                         } else if self.analyseMode == .WWDC {
                             txt = analyseWWDC(contentFromFile, selecFileInfo: self.selecFileInfo)
                         } else {
                             txt = NSAttributedString()
                         }
                         DispatchQueue.main.async {
+                            // --- Load infoTextView with formattedText ---
                             self.infoTextView.textStorage?.setAttributedString(txt) // Show txt in infoTextView
                             self.analyseFuncLocked = false                          // Unlock the button...
                             self.analyseContentsButton.isEnabled = true             // and Enable it.
@@ -578,6 +584,7 @@ extension ViewController {
                 } else {
                     formattedText = NSAttributedString(string: errCode)    // let formattedText = NSAttributedString(string: text, attributes: textAttributes)
                 }
+                // --- Load infoTextView with formattedText ---
                 self.infoTextView.textStorage?.setAttributedString(formattedText)
             }//endif analyseMode
 
@@ -731,11 +738,14 @@ extension ViewController {
                     formattedLine = formatSwiftLine(lineNumber: i+1, text: line, inBlockComment: &inBlockComment, inTripleQuote: &inTripleQuote, curlyDepth: &curlyDepth)
                     formattedText.append(formattedLine)
                 }//next line
+
+                // --- Load infoTextView with formattedText ---
                 infoTextView.textStorage?.setAttributedString(formattedText)
 
             } else {
                 // Show raw text as read
                 formattedText = formatWithHeader(contentFromFile) as! NSMutableAttributedString
+                // --- Load infoTextView with formattedText ---
                 infoTextView.textStorage?.setAttributedString(formattedText)
             }
         }//end do
@@ -744,6 +754,7 @@ extension ViewController {
             print(err)
             let str = "\(selecFileInfo.name)\n\n'View' only works in text-based files."
             let formattedText = formatWithHeader(str)
+            // --- Load infoTextView with formattedText ---
             infoTextView.textStorage?.setAttributedString(formattedText)
         }//end catch
 
@@ -785,6 +796,7 @@ extension ViewController {
             combined.append(formatCodeLine(codeLine: codeLine, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment))
         }
 
+        // --- Load infoTextView with formattedText ---
         infoTextView.textStorage?.setAttributedString(combined)
         var xxx =
         """
