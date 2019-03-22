@@ -36,7 +36,7 @@ public struct SwiftSummary {
     var nonCamelCases   = [String]()
     var forceUnwraps    = [String]()
     var vbCompatCalls   = [String]()
-    //var url = FileManager.default.homeDirectoryForCurrentUser
+    var url = FileManager.default.homeDirectoryForCurrentUser
 }
 
 enum BlockType: Int {
@@ -203,6 +203,7 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes) ->
     var nUniqueVBWords = 0
     var swiftSummary = SwiftSummary()
     swiftSummary.fileName = selecFileInfo.name
+    swiftSummary.url = selecFileInfo.url!
 
     var blockTypes = [BlockAggregate]()
     blockTypes.append(BlockAggregate(blockType: .None,          subType: .None, codeName: "",              displayName: "unNamed",      showNone: false, count: 0))

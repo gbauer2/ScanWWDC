@@ -19,7 +19,11 @@
 //  Use CharacterSets for type-of-char lookup
 //  user chooses colors & truncation
 
-// AnalyseSwift:
+//AnalyseXcodeproj"
+// View source
+// Target info
+
+//AnalyseSwift:
 // Make handling quotes more robust - (codeLineClean)
 // inTripleQuote """
 // dependency
@@ -107,7 +111,7 @@ class ViewController: NSViewController {
             infoTextView.string = ""
             saveInfoButton.isEnabled = false
             guard let selectedUrl = selectedItemUrl else { return }
-            selecFileInfo = setFileInfo(url: selectedUrl)       // set selecFileInfo (name,dates,size,type)
+            selecFileInfo = FileAttributes.getFileInfo(url: selectedUrl)       // set selecFileInfo (name,dates,size,type)
             if selectedUrl.pathExtension == "swift" {
                 analyseMode = .swift                            //  1) analyse Swift
                 readContentsButton.isEnabled    = true
@@ -262,34 +266,6 @@ extension ViewController {
 
         } catch {
             return []
-        }
-    }
-
-    // returns attributes of url (file or folder) as a FileAttributes struct (defined above)
-    func setFileInfo(url: URL) -> FileAttributes {
-        let fileManager = FileManager.default
-        var key: FileAttributeKey
-
-        do {
-            let attributes = try fileManager.attributesOfItem(atPath: url.path)
-            let name = url.lastPathComponent
-
-            key = FileAttributeKey(rawValue: "NSFileCreationDate")
-            let creationDate = attributes[key] as? Date
-
-            key = FileAttributeKey(rawValue: "NSFileModificationDate")
-            let modificationDate = attributes[key] as? Date
-
-            key = FileAttributeKey(rawValue: "NSFileSize")
-            let size = attributes[key] as? Int ?? 0
-
-            key = FileAttributeKey(rawValue: "NSFileType")            //NSFileType:    NSFileTypeDirectory
-            let fileType = attributes[key] as? String
-            let isDir = (fileType?.contains("Dir"))!
-            return FileAttributes(url: url, name: name, creationDate: creationDate, modificationDate: modificationDate, size: size, isDir: isDir)
-
-        } catch {
-            return FileAttributes(url: url, name: "???", creationDate: nil, modificationDate: nil, size: 0, isDir: false)
         }
     }
 

@@ -314,7 +314,7 @@ public func analyseXcodeproj(url: URL, goDeep: Bool) -> (String, XcodeProj) {   
                 let (swiftSummary, _) = analyseSwiftFile(contentFromFile: contentFromFile, selecFileInfo: fileInfo )
                 xcodeProj.swiftSummaries.append(swiftSummary)
             } catch let error as NSError {
-                print("😡analyseContentsButtonClicked error: \(error)")
+                print("⛔️ analyseContentsButtonClicked error: ⛔️\n⛔️\(error)⛔️")
             }//end try catch
         }
         print("✅✅✅✅✅✅")
@@ -530,8 +530,13 @@ print("\n------------ RootObject > mainGroup > \(mainGroupChildrenKeys.count)-ch
         print()
         print("rootObject.mainGroup.child[\(i)]")
         print(childKey, pbxObjects[childKey]!)
-        if i == 0 || ( childObj.name != "Products" && !childObj.path.hasSuffix("Tests") ) {
+        if i == 0 {
+            mainSourceKey = childKey            // first child is usually the program
+            if !isTestOrProductOrFramework(name: childObj.name) { break }
+        }
+        if !isTestOrProductOrFramework(name: childObj.name) {
             mainSourceKey = childKey
+            break
         }
     }
     print("----------------------------------------------------------------")
@@ -542,7 +547,7 @@ print("\n------------ RootObject > mainGroup > \(mainGroupChildrenKeys.count)-ch
         print()
         print("---- Most likely child to have swift source files ----")
         print("mainSourceObj = ",mainSourceObj)
-        let dirPath = mainSourceObj.path
+        let dirPath = mainSourceObj.path.replacingOccurrences(of: "\"", with: "")
         print()
         print("😈mainSourceObj.path = \"\(dirPath)\"")
         let sourceFileKeys = mainSourceObj.children
@@ -568,6 +573,10 @@ print("\n------------ RootObject > mainGroup > \(mainGroupChildrenKeys.count)-ch
 
     print("\n--------------------------------------------------\n")
 }//end func preProcess
+
+private func isTestOrProductOrFramework(name: String) -> Bool {
+     return name == "Frameworks" || name == "Products" || name.hasSuffix("Tests")
+}
 
 // Get the isa of the pbxObject refered to by string
 private func getAssigneeIsa(string: String, pbxObjects: [String : PBX]) -> String {
@@ -705,13 +714,52 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {
     text += "createdOnToolsVersion = \(xcodeProj.createdOnToolsVersion)\n"
     text += "sdkRoot = \(xcodeProj.sdkRoot)\n"
     text += "\(xcodeProj.deploymentTarget)\n"    // deploymentTarget
-    text += "\(xcodeProj.swiftURLs.count) Swift files."
 
+    var totalCodeLineCount     = 0
+    var totalNonCamelCaseCount = 0
+    var totalForceUnwrapCount  = 0
+    var totalVbCompatCallCount = 0
+
+    text += "\n                           ---- \(xcodeProj.swiftURLs.count) Swift files ----\n"
+    text += "----- FileName -----       CodeLines  NonCamelCase  ForceUnwrap VBcompatability\n"
+    for swiftSummary in xcodeProj.swiftSummaries {
+        let name = swiftSummary.fileName
+        let isTest = swiftSummary.url.path.contains("TestSharedCode")
+        if isTest || (name != "VBcompatablity.swift" && name != "MyFuncs.swift" && name != "StringExtension.swift") {
+            let c1 = swiftSummary.codeLineCount
+            totalCodeLineCount      += c1
+            let c2 = swiftSummary.nonCamelCases.count
+            totalNonCamelCaseCount  += c2
+            let c3 = swiftSummary.forceUnwraps.count
+            totalForceUnwrapCount   += c3
+            let c4 = swiftSummary.vbCompatCalls.count
+            totalVbCompatCallCount  += c4
+            //text += "\(swiftSummary.url.lastPathComponent)  -  nonCamel \(swiftSummary.nonCamelCases.count)\n"
+            text += format2(swiftSummary.url.lastPathComponent,c1,c2,c3,c4)
+        } else {
+            text += "(\(swiftSummary.url.lastPathComponent))\n"
+        }
+    }//next
+    text += "\n\(format2("",totalCodeLineCount,totalNonCamelCaseCount,totalForceUnwrapCount,totalVbCompatCallCount))\n"
+    text += "\n\(totalCodeLineCount) total CodeLines.\n"
+
+    text += "\n-------- Possible Issues --------\n"
+    text += "\(totalNonCamelCaseCount) total NonCamelCase Variables.\n"
+    text += "\(totalForceUnwrapCount) total ForceUnwraps.\n"
+    text += "\(totalVbCompatCallCount) total VBcompatabiliy Calls.\n"
+
+    //        txvMain.font = NSFont(name: "Courier", size: 12)
 
     let textAttributes: [NSAttributedString.Key: Any] = [
-        NSAttributedString.Key.font: NSFont.systemFont(ofSize: 18),
+        NSAttributedString.Key.font: NSFont(name: "Courier", size: 14)!,        //systemFont(ofSize: 18),
         NSAttributedString.Key.paragraphStyle: NSParagraphStyle.default
     ]
     let formattedText = NSMutableAttributedString(string: text, attributes: textAttributes)
     return formattedText
+}//end func
+
+private func format2(_ name: String, _ c1: Int, _ c2: Int, _ c3: Int, _ c4: Int) -> String {
+    let txt = name.PadRight(24) + formatInt(number: c1, fieldLen: 8) + formatInt(number: c2, fieldLen: 13) +
+        formatInt(number: c3, fieldLen: 13)  + formatInt(number: c4, fieldLen: 13) + "\n"
+    return txt
 }
