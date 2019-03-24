@@ -21,9 +21,19 @@
 
 //AnalyseXcodeproj"
 // View source
-// Target info
+// Show xcodeproj FileName
+// Display in NSTable with links to AnalyseSwift.
+// Flag CodeLineCount > 500; funcCodeLines > 200
+// Flag missing Unit-Test, UITest
+// Flag name & productName different
+// Show MainGroup.Children {Framework}
+// User Prefs: Max Codelines, Max funcCodelines; Under_score allowed
+// Bug: Deployment Target Version & sdkRoot
+// Bug: "mainSourceKey = childKey", "Most likely child" may pick wrong child.
+// Eliminate file scan from analyseSwiftFile()
 
 //AnalyseSwift:
+// Move "possible issues" to top
 // Make handling quotes more robust - (codeLineClean)
 // inTripleQuote """
 // dependency
@@ -376,12 +386,13 @@ extension ViewController {
                     let verPath = verStr + " " + pathName
                     printablePaths.append(verPath)
 
-                    if dictVersions[verStr] == nil {
-                        dictVersions[verStr] = 1
+                    if let dictVerCount = dictVersions[verStr] {
+                        dictVersions[verStr] = dictVerCount + 1
                     } else {
-                        dictVersions[verStr] = dictVersions[verStr]! + 1
+                        dictVersions[verStr] = 1
                     }
-                }
+
+                }//endif No errorCode
             }//next url
 
             // List the Swift Versions found in version-order, with counts

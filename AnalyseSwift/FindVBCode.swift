@@ -17,7 +17,7 @@ let funcVBs = ["UCase", "LCase", "Left", "Right", "Mid", "MidEquals", "InStr", "
             "CDate", "ChangeExtension", "PathCombine", "GetFileNameWithoutExtension", "GetFileName",
             "GetParentPath", "Format", "Str", "Ljust", "Rjust", "Asc", "Char", "Like", "MsgBox"]
 let fileIOVBs = ["FileOpen", "GetNumberOfLines", "FileClose", "LineInput", "EOF", "WriteLine", "Print", "PrintLine", "FreeFile"]
-let VBdotVBs  = ["VB.Left", "VB.Right", "VB.DirectoryExists", "VB.FileExists", "VB.CreateDirectory", "VB.CreateFile", "VB.DeleteFile"
+let vbVBs  = ["VB.Left", "VB.Right", "VB.DirectoryExists", "VB.FileExists", "VB.CreateDirectory", "VB.CreateFile", "VB.DeleteFile"
                 ,"VB.Rename", "VB.CopyFile", "VB.Month", "VB.Day", "VB.Year", "VB.Hour", "VB.Minute", "VB.Second"]
 let pseudoBoxVBs = ["ListBox", "RichTextBox"]
 let strExtVBs = [".Substring", ".Split"]
@@ -34,7 +34,7 @@ public func resetVBwords() {
     for word in fileIOVBs {
         gDictVBwords[word] = 0
     }
-    for word in VBdotVBs {
+    for word in vbVBs {
         gDictVBwords[word] = 0
     }
     for word in strExtVBs {

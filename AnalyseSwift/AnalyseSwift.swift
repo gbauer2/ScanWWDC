@@ -258,13 +258,13 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes) ->
 
     // MARK: Main Loop 258-562 = 304-lines
     for line in lines {
-        if selecFileInfo.url != ViewController.latestUrl {
-            if let latestUrl = ViewController.latestUrl {
-                //print("😎Working on \(selecFileInfo.url!),\n but \(latestUrl) is now current😎")
-                //let tx  = NSMutableAttributedString(string: "Abort!")
-                //return (swiftSummary, tx)
-            }
-        }
+//        if selecFileInfo.url != ViewController.latestUrl {
+//            if let latestUrl = ViewController.latestUrl {
+//                //print("😎Working on \(selecFileInfo.url!),\n but \(latestUrl) is now current😎")
+//                //let tx  = NSMutableAttributedString(string: "Abort!")
+//                //return (swiftSummary, tx)
+//            }
+//        }
         lineNum += 1
         var netCurlys = 0
         let aa = line.trim
