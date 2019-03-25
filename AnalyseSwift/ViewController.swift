@@ -1,11 +1,12 @@
-/**
- * Copyright (c) 2018,2019 George Bauer
- *
- */
+//
+//  ViewController.swift
+//  AnalyseSwiftCode
+//
+//  Created by George Bauer on 11/8/18.
+//  Copyright © 2018,2019 George Bauer. All rights reserved.//
 
 // Make ">" companion to "< Up"
 // When in full screen mode - Show file-path above window
-// Aggregate all swift file data in selected dir  "*.xcodeproj/project.pbxproj"
 // recursivly find all file of type .swift
 // change state storage to userDefaults
 // make btnFindAllxcodeproj the default if popup touched.
@@ -13,6 +14,7 @@
 // selectively enable View & Analyse buttons or use segmented button.
 // Use Menus: File/Find_All_xcodeproj_Files, Help
 // Help System
+// When opening a folder: If there is a single xcodeproj file, analyse it.
 
 // showContents - Swift file:
 //  Fix namesColor to include:  classNames, funcNames, InstanceVars, Globals, & library names (MK- for MapKit,  etc.)
@@ -28,8 +30,9 @@
 // Flag name & productName different
 // Show MainGroup.Children {Framework}
 // User Prefs: Max Codelines, Max funcCodelines; Under_score allowed
-// Bug: Deployment Target Version & sdkRoot
+// Bug: Deployment Target Version
 // Bug: "mainSourceKey = childKey", "Most likely child" may pick wrong child.
+// Bug: AnalyseXcodeproj called twice on startup
 // Eliminate file scan from analyseSwiftFile()
 
 //AnalyseSwift:

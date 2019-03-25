@@ -1,6 +1,6 @@
 //
 //  AnalyseSwift.swift
-//
+//  AnalyseSwiftCode
 //
 //  Created by George Bauer on 1/10/18.
 //  Copyright © 2018,2019 George Bauer. All rights reserved.

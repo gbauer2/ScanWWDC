@@ -287,19 +287,13 @@ public func analyseXcodeproj(url: URL, goDeep: Bool) -> (String, XcodeProj) {   
 
         let xcodeprojLines = storedData.components(separatedBy: "\n")
         var gotBuildSettings = false
+
+        // Scan pbxproj file for stuff not covered in preProcess()
         for (idx, line) in xcodeprojLines.enumerated() {
             let lineNum = idx+1
 
             if gotBuildSettings {       // In BuildSettings
-                if line.contains("SDKROOT") {
-                    //let x = xcodeProj.sdkRoot
-                    let (_, sdkRoot) = keyValDecode(line)             // ???? xcodeProj.sdkRoot
-                    if !sdkRoot.isEmpty && !xcodeProj.sdkRoot.isEmpty && sdkRoot != xcodeProj.sdkRoot {
-                        print("⛔️⛔️ mismatch line \(#line) \"\(sdkRoot)\" != \"\(xcodeProj.sdkRoot)\" ⛔️⛔️")
-                    }
-                    if idx < 11 { print("✅ \(lineNum) \"SDKROOT\" \(line)") }
-
-                } else if line.contains("DEPLOYMENT_TARGET") {
+               if line.contains("DEPLOYMENT_TARGET") {
                     print("✅ \(lineNum) \"DEPLOYMENT_TARGET\" \(line)")
                     let (key, val) = keyValDecode(line)
                     //let x = xcodeProj.DEPLOYMENT_TARGET
@@ -478,7 +472,8 @@ func preProcess(_ str: String) {        //404-662 = 258-lines
                                 let (propertyName, vals) = getPropertyAndVals(from: parts[2])
                                 let got1: Bool
                                 switch propertyName {
-                                case "SDKROOT"                   : got1 = true
+                                case "SDKROOT"                   : got1 = true;
+                                    print("Got SDKROOT")
                                 case "SWIFT_VERSION"             : got1 = true
                                 case "MACOSX_DEPLOYMENT_TARGET"  : got1 = true
                                 case "IPHONEOS_DEPLOYMENT_TARGET": got1 = true
@@ -546,10 +541,13 @@ func preProcess(_ str: String) {        //404-662 = 258-lines
     //xcodeProj.sdkRoot, xcodeProj.deploymentTarget, xcodeProj.swiftVerMin, xcodeProj.swiftVerMax, xcodeProj.createdOnToolsVersion
 
     //Analyse rootObject
+
+    //RootObject
     print("\n\(#line) ----0 Root Object [PBXProject] ------------------------")
     let rootObject = pbxObjects[rootObjectKey]!
     print(rootObjectKey, rootObject)
 
+    //RootObject > mainGroup
     let mainGroupKey = rootObject.mainGroup
     let mainGroupObj = pbxObjects[mainGroupKey]!
     print()
@@ -577,15 +575,36 @@ func preProcess(_ str: String) {        //404-662 = 258-lines
         }
     }
 
+    //RootObject > productRefGroup
     let productRefGroupKey = rootObject.productRefGroup
     print("\n\(#line) --------1 rootObject.productRefGroup [PBXGroup] - children are [PBXFileReference] ------------")
     print("              * Same as mainGroup.child named \"Products\"")
     print(productRefGroupKey, pbxObjects[productRefGroupKey] ?? "⛔️ #line-\(#line)Error: Missing rootObject.productRefGroup")
 
+    //RootObject > buildConfigurationList
     let buildConfigurationListKey = rootObject.buildConfigurationList
     print("\n\(#line) --------1 rootObject.buildConfigurationList [XCConfigurationList] - children are [XCBuildConfiguration] ------------")
     print(buildConfigurationListKey, pbxObjects[buildConfigurationListKey] ?? "⛔️ #line-\(#line)Error: Missing rootObject.buildConfigurationList")
 
+    let rootbuildConfigurationListKey = rootObject.buildConfigurationList
+    let rootbuildConfigurationListObj = pbxObjects[rootbuildConfigurationListKey]!
+    for (i, buildConfigurationKey) in rootbuildConfigurationListObj.buildConfigurations.enumerated() {
+        let buildConfigurationObj = pbxObjects[buildConfigurationKey]!
+        print("\n\(#line) ------------2 rootObject.buildConfigurationList.buildConfiguration[\(i)] [PBXBuildConfiguration] --------")
+        print(buildConfigurationKey, pbxObjects[buildConfigurationKey] ?? "⛔️ #line-\(#line)Error: Missing rootObject.buildConfigurationKey")
+        let sdkroot = buildConfigurationObj.SDKROOT
+        print("🔹 \(buildConfigurationKey) SDKROOT = \"\(sdkroot)\"")
+        if !sdkroot.isEmpty {
+            if !xcodeProj.sdkRoot.isEmpty && xcodeProj.sdkRoot != sdkroot {
+                print("⛔️⛔️ sdkRoot mismatch: \(xcodeProj.sdkRoot) != \(sdkroot)  ⛔️⛔️")
+            } else {
+                xcodeProj.sdkRoot = sdkroot
+            }
+        }
+    }//next
+
+
+    //RootObject > targets
     let targetKeys = rootObject.targets
     print("\n\(#line) --------1 RootObject > \(targetKeys.count)-targets [PBXNativeTarget] ------------")
     for ( i, targetKey) in targetKeys.enumerated() {
@@ -625,9 +644,6 @@ print("----------------------------------------------------------------")
         for buildConfigurationKey in buildConfigurationListObj.buildConfigurations {
             guard let  buildConfigurationObj = pbxObjects[buildConfigurationKey] else { continue }
 
-            let sdkroot = buildConfigurationObj.SDKROOT
-            print("🔹 \(buildConfigurationKey) SDKROOT = \"\(sdkroot)\"")
-
             let swiftVer = buildConfigurationObj.SWIFT_VERSION
             let ver = getVersionNumber(text: swiftVer)
             if ver > xcodeProj.swiftVerMax { xcodeProj.swiftVerMax = ver }
@@ -649,13 +665,6 @@ print("----------------------------------------------------------------")
                 }
                 xcodeProj.deploymentTarget = "MacOS"
                 print("🔹 \(buildConfigurationKey) MACOSX_DEPLOYMENT_TARGET = \"\(macOSXDeploymentTarget)\"")
-            }
-
-
-            if !xcodeProj.sdkRoot.isEmpty && !sdkroot.isEmpty && xcodeProj.sdkRoot != sdkroot {
-                print("⛔️⛔️ sdkRoot mismatch: \(xcodeProj.sdkRoot) != \(sdkroot)  ⛔️⛔️")
-            } else {
-                xcodeProj.sdkRoot = sdkroot
             }
 
         }//next buildConfigurationKey
@@ -793,14 +802,14 @@ private func isObjectKey(_ str: String) -> Bool {
 
 //MARK: NSAttributedString stuff - Called from ViewController
 
-//let attributesLargeFont  = [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 20), NSAttributedStringKey.paragraphStyle: paragraphStyleA1]
-//let attributesMediumFont = [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 16), NSAttributedStringKey.paragraphStyle: paragraphStyleA1]
+//let attributesLargeFont  = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 20), NSAttributedString.Key.paragraphStyle: paragraphStyleA1]
+//let attributesMediumFont = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 16), NSAttributedString.Key.paragraphStyle: paragraphStyleA1]
 //let attributesSmallFont  = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 12), NSAttributedString.Key.paragraphStyle: paragraphStyleA1]
 //var attTxt  = NSMutableAttributedString(string: "", attributes: attributesSmallFont)
 
 public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {
     var text = ""
-
+    text += "          ---------------- \(xcodeProj.name) ----------------\n"
     if xcodeProj.swiftVerMin != xcodeProj.swiftVerMax {
         text += "Multiple Swift Versions: \(xcodeProj.swiftVerMin) & \(xcodeProj.swiftVerMax)\n"
     } else {
@@ -823,7 +832,7 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {
     var totalVbCompatCallCount = 0
 
     text += "\n                           ---- \(xcodeProj.swiftURLs.count) Swift files ----\n"
-    text += "----- FileName -----       CodeLines  NonCamelCase  ForceUnwrap VBcompatability\n"
+    text += "------ FileName ------     CodeLines  NonCamelCase  ForceUnwrap VBcompatability\n"
     for swiftSummary in xcodeProj.swiftSummaries {
         let name = swiftSummary.fileName
         let isTest = swiftSummary.url.path.contains("TestSharedCode")
@@ -842,8 +851,8 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {
             text += "(\(swiftSummary.url.lastPathComponent))\n"
         }
     }//next
-    text += "\n\(format2("",totalCodeLineCount,totalNonCamelCaseCount,totalForceUnwrapCount,totalVbCompatCallCount))\n"
-    text += "\n\(totalCodeLineCount) total CodeLines.\n"
+    text += "\n\(format2("  -- Totals --",totalCodeLineCount,totalNonCamelCaseCount,totalForceUnwrapCount,totalVbCompatCallCount))\n"
+//    text += "\n\(totalCodeLineCount) total CodeLines.\n"
 
     text += "\n-------- Possible Issues --------\n"
     text += "\(totalNonCamelCaseCount) total NonCamelCase Variables.\n"
@@ -861,8 +870,8 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {
 }//end func
 
 private func format2(_ name: String, _ c1: Int, _ c2: Int, _ c3: Int, _ c4: Int) -> String {
-    let txt = name.PadRight(24) + fmtI(c1, wid: 8) + fmtI(c2, wid: 13) +
-        fmtI(c3, wid: 13)  + fmtI(c4, wid: 13) + "\n"
+    let txt = name.PadRight(26) + fmtI(c1, wid: 8)  + fmtI(c2, wid: 11) +
+                                  fmtI(c3, wid: 13) + fmtI(c4, wid: 13) + "\n"
     return txt
 }
 private func fmtI(_ number: Int, wid: Int) -> String {
