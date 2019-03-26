@@ -23,17 +23,13 @@
 
 //AnalyseXcodeproj"
 // View source
-// Show xcodeproj FileName
 // Display in NSTable with links to AnalyseSwift.
 // Flag CodeLineCount > 500; funcCodeLines > 200
 // Flag missing Unit-Test, UITest
-// Flag name & productName different
 // Show MainGroup.Children {Framework}
-// User Prefs: Max Codelines, Max funcCodelines; Under_score allowed
-// Bug: Deployment Target Version
+// User Prefs: Max Codelines, Max funcCodelines; Under_score allowed, min SwiftVer; Alowed Organization; AppName<>productName allowed
 // Bug: "mainSourceKey = childKey", "Most likely child" may pick wrong child.
 // Bug: AnalyseXcodeproj called twice on startup
-// Eliminate file scan from analyseSwiftFile()
 // At start of analyseSwiftFile(), "swiftFilename =" should print last 3 path componants
 
 //AnalyseSwift:

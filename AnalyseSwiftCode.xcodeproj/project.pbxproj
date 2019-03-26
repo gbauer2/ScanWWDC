@@ -195,7 +195,7 @@
 			};
 			buildConfigurationList = 26ECD3321E874B5B00380F56 /* Build configuration list for PBXProject "AnalyseSwiftCode" */;
 			compatibilityVersion = "Xcode 3.2";
-			developmentRegion = English;
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,

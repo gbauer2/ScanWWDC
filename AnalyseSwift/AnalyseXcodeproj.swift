@@ -14,23 +14,25 @@ private var xcodeProj  = XcodeProj()
 
 //MARK:- structs
 public struct XcodeProj {
-    var name            = ""        // from URL
-    var organizationName = ""
-    var archiveVersion  = ""        // base level
-    var objectVersion   = ""        // base level
-    var compatibilityVersion = ""   // root object
-    var LastSwiftUpdateCheck = ""   // root object
-    var LastUpgradeCheck = ""       // root object
-    var createdOnToolsVersion = ""  // PBXProject section > attributes > TargetAttributes
-    var swiftVerMin     = 0.0       // from XCBuildConfiguration.buildSettings."SWIFT_VERSION = 4.2"
-    var swiftVerMax     = 0.0
-    var sdkRoot         = ""        // from XCBuildConfiguration.buildSettings.SDKROOT = macosx
-    var deploymentTarget = ""       // from XCBuildConfiguration.buildSettings."MACOSX_DEPLOYMENT_TARGET = 10.12"
-    var deploymentVerMin = 0.0
-    var deploymentVerMax = 0.0
-    var swiftURLs       = [URL]()
-    var swiftSummaries  = [SwiftSummary]()
-    var targets         = PBXNativeTarget()
+    var filename            = ""        // from URL
+    var appName             = ""        // from app target
+    var productName         = ""        // from app target
+    var organizationName    = ""
+    var archiveVersion      = ""        // base level
+    var objectVersion       = ""        // base level
+    var compatibilityVersion = ""       // root object
+    var LastSwiftUpdateCheck = ""       // root object
+    var LastUpgradeCheck    = ""        // root object
+    var createdOnToolsVersion = ""      // PBXProject section > attributes > TargetAttributes
+    var swiftVerMin         = 0.0       // from XCBuildConfiguration.buildSettings."SWIFT_VERSION = 4.2"
+    var swiftVerMax         = 0.0
+    var sdkRoot             = ""        // from XCBuildConfiguration.buildSettings.SDKROOT = macosx
+    var deploymentTarget    = ""        // from XCBuildConfiguration.buildSettings."MACOSX_DEPLOYMENT_TARGET = 10.12"
+    var deploymentVerMin    = 0.0
+    var deploymentVerMax    = 0.0
+    var swiftURLs           = [URL]()
+    var swiftSummaries      = [SwiftSummary]()
+    var targets             = PBXNativeTarget()
     var url = FileManager.default.homeDirectoryForCurrentUser   // from URL
 }
 
@@ -284,51 +286,17 @@ public struct PBX: CustomDebugStringConvertible {       //64-272 = 218-lines
 public func analyseXcodeproj(url: URL, goDeep: Bool, deBug: Bool = true) -> (String, XcodeProj) {   //278-351 = 73-lines
     xcodeProj = XcodeProj()
     xcodeProj.url = url
-    xcodeProj.name = url.lastPathComponent
+    xcodeProj.filename = url.lastPathComponent
     let pbxprojURL = url.appendingPathComponent("project.pbxproj")
     let urlFile = URL(fileURLWithPath: #file)
     let swiftFilename = urlFile.lastPathComponent
-    print("\n🔷 \(swiftFilename) line#\(#line) Start processing 😃\(xcodeProj.name)😃")
+    print("\n🔷 \(swiftFilename) line#\(#line) Start processing 😃\(xcodeProj.filename)😃")
 
     do {
         let storedData = try String(contentsOf: pbxprojURL)
 
         pbxToXcodeProj(storedData, deBug: deBug)
 
-        let xcodeprojLines = storedData.components(separatedBy: "\n")
-        var gotBuildSettings = false
-
-        // Scan pbxproj file for stuff not covered in pbxToXcodeProj()
-        for (idx, line) in xcodeprojLines.enumerated() {
-            let lineNum = idx+1
-
-            if gotBuildSettings {       // In BuildSettings
-                if line.contains("DEPLOYMENT_TARGET") {
-                    if !line.contains("MACOSX") && !line.contains("IPHONEOS") && !line.contains("WATCHOS_") {
-                        print("⛔️ #\(#line) \(line) ??? ⛔️")
-                    }
-                    if deBug {print("✅ \(lineNum) \"DEPLOYMENT_TARGET\" \(line)")}
-                    //let (key, val) = keyValDecode(line)
-                    let x = xcodeProj.deploymentTarget
-                    if x.isEmpty {
-                        print("⛔️ Missing \(line)")
-                    }
-                    //                    xcodeProj.deploymentTarget = key + " = " + val          // ???? xcodeProj.deploymentTarget
-
-                } else if line.contains("SWIFT_VERSION") {
-
-                } else if line.lowercased().contains("ver") && !line.contains("NVER") {
-                    if deBug {print("✅ \(lineNum) \"ver\" \(line)")}
-                }
-            } else {
-                if line.contains("buildSettings =") { gotBuildSettings = true }
-//                if line.contains("CreatedOnToolsVersion") {
-//                    (_, xcodeProj.createdOnToolsVersion) = keyValDecode(line)
-//                    if deBug {print("✅ \(lineNum) \"CreatedOnToolsVersion\" \(line)")}
-//                }
-            }
-
-        }//next line
         if deBug {print("\n🍎 \(xcodeProj)")}
     } catch {
         return  ( "Error: Could not read \"\(pbxprojURL.lastPathComponent)\"\n\(pbxprojURL.path)", xcodeProj)
@@ -521,12 +489,12 @@ func pbxToXcodeProj(_ str: String, deBug: Bool = true) {        //389-702 = 313-
                         }
                         // ↔️183-6 ["26ECD32F1E874B5B00380F56 =", "attributes =", "TargetAttributes =", "26ECD3361E874B5B00380F56 =", "CreatedOnToolsVersion = 8.2.1"]
                         let targetKey = String(parts[3].dropLast()).trim   // remove " =" from objKey
-                        let (propertyName, vals) = getPropertyAndVals(from: parts[2])
+                        let (propertyName, vals) = getPropertyAndVals(from: parts[4])
                         let got1: Bool
                         switch propertyName {
-                        case "CreatedOnToolsVersion" : got1 = true
-                        case "LastSwiftMigration"    : got1 = true
-                        case "TestTargetID"          : got1 = true
+                        case "CreatedOnToolsVersion": got1 = true
+                        case "LastSwiftMigration"   : got1 = true
+                        case "TestTargetID"         : got1 = true
                         default: got1 = false
                         }
                         if got1 {
@@ -559,15 +527,15 @@ func pbxToXcodeProj(_ str: String, deBug: Bool = true) {        //389-702 = 313-
     //        -> buildConfigurationList
     //        -> targets[PBXNativeTarget]
 
-    //"SDKROOT", "MACOSX_DEPLOYMENT_TARGET = 10.12", "SWIFT_VERSION = 4.2", "CreatedOnToolsVersion = 9.2"
-    //xcodeProj.sdkRoot, xcodeProj.deploymentTarget, xcodeProj.swiftVerMin, xcodeProj.swiftVerMax, xcodeProj.createdOnToolsVersion
-
     //Analyse rootObject
 
     //RootObject
-    if deBug {print("\n\(#line) ----0 Root Object [PBXProject] ------------------------")}
     let rootObject = pbxObjects[rootObjectKey]!
-    if deBug {print(rootObjectKey, rootObject)}
+
+    if deBug {
+        print("\n\(#line) ----0 Root Object [PBXProject] ------------------------")
+        print(rootObjectKey, rootObject)
+    }
 
     //RootObject > mainGroup
     let mainGroupKey = rootObject.mainGroup
@@ -588,6 +556,7 @@ func pbxToXcodeProj(_ str: String, deBug: Bool = true) {        //389-702 = 313-
             print("\n\(#line) ------------2 rootObject.mainGroup.child[\(i)] [PBXGroup] - children are [PBXFileReference] --------")
             print(childKey, pbxObjects[childKey] ?? "⛔️ #line-\(#line)Error: Missing mainGroupChildrenKey")
         }
+        // real stuff
         if i == 0 {
             appSourceKey = childKey            // first child is usually the app
             if !isTestOrProductOrFramework(name: childObj.name) { break }
@@ -598,19 +567,20 @@ func pbxToXcodeProj(_ str: String, deBug: Bool = true) {        //389-702 = 313-
         }
     }
 
-    //RootObject > productRefGroup
-    let productRefGroupKey = rootObject.productRefGroup
+    //RootObject > productRefGroup - debug print
     if deBug {
+        let productRefGroupKey = rootObject.productRefGroup
         print("\n\(#line) --------1 rootObject.productRefGroup [PBXGroup] - children are [PBXFileReference] ------------")
         print("              * Same as mainGroup.child named \"Products\"")
         print(productRefGroupKey, pbxObjects[productRefGroupKey] ?? "⛔️ #line-\(#line)Error: Missing rootObject.productRefGroup")
     }
-    //RootObject > buildConfigurationList
-    let buildConfigurationListKey = rootObject.buildConfigurationList
+    //RootObject > buildConfigurationList - debug print
     if deBug {
+        let buildConfigurationListKey = rootObject.buildConfigurationList
         print("\n\(#line) --------1 rootObject.buildConfigurationList [XCConfigurationList] - children are [XCBuildConfiguration] ------------")
         print(buildConfigurationListKey, pbxObjects[buildConfigurationListKey] ?? "⛔️ #line-\(#line)Error: Missing rootObject.buildConfigurationList")
     }
+
     let rootbuildConfigurationListKey = rootObject.buildConfigurationList
     let rootbuildConfigurationListObj = pbxObjects[rootbuildConfigurationListKey]!
     for (i, buildConfigurationKey) in rootbuildConfigurationListObj.buildConfigurations.enumerated() {
@@ -618,12 +588,13 @@ func pbxToXcodeProj(_ str: String, deBug: Bool = true) {        //389-702 = 313-
             print("\n\(#line) ------------2 rootObject.buildConfigurationList.buildConfiguration[\(i)] [PBXBuildConfiguration] --------")
             print(buildConfigurationKey, pbxObjects[buildConfigurationKey] ?? "⛔️ #line-\(#line)Error: Missing rootObject.buildConfigurationKey")
         }
+
         let buildConfigurationObj = pbxObjects[buildConfigurationKey]!
         let sdkroot = buildConfigurationObj.SDKROOT
         if deBug {print("🔹 \(buildConfigurationKey) SDKROOT = \"\(sdkroot)\"")}
         if !sdkroot.isEmpty {
             if !xcodeProj.sdkRoot.isEmpty && xcodeProj.sdkRoot != sdkroot {
-                print("⛔️⛔️ sdkRoot mismatch: \(xcodeProj.sdkRoot) != \(sdkroot)  ⛔️⛔️")
+                print("⛔️⛔️ #line-\(#line) sdkRoot mismatch: \(xcodeProj.sdkRoot) != \(sdkroot)  ⛔️⛔️")
             } else {
                 xcodeProj.sdkRoot = sdkroot
             }
@@ -647,7 +618,8 @@ func pbxToXcodeProj(_ str: String, deBug: Bool = true) {        //389-702 = 313-
 
     xcodeProj.compatibilityVersion = rootObject.compatibilityVersion
     xcodeProj.LastSwiftUpdateCheck = rootObject.LastSwiftUpdateCheck
-    xcodeProj.LastUpgradeCheck = rootObject.LastUpgradeCheck
+    xcodeProj.LastUpgradeCheck     = rootObject.LastUpgradeCheck
+    xcodeProj.organizationName     = rootObject.ORGANIZATIONNAME
 
     if !appSourceKey.isEmpty {
         appSourceObj = pbxObjects[appSourceKey]!
@@ -675,13 +647,17 @@ func pbxToXcodeProj(_ str: String, deBug: Bool = true) {        //389-702 = 313-
     // Set SDKROOT, SWIFT_VERSION, MACOSX_DEPLOYMENT_TARGET
     // for each target in rootObject
     for targetKey in rootObject.targets {
-        guard let targetObj = pbxObjects[targetKey] else { continue }
+        guard let targetObj = pbxObjects[targetKey] else { continue }   // make non-optional targetObj
         let productType = targetObj.productType
-        if deBug {print(targetKey, targetObj)}
-        if !productType.contains(".application") { continue }
+        //if deBug {print(targetKey, targetObj)}
+        if !productType.contains(".application") { continue }           // only pay attention to application target
+        xcodeProj.appName = targetObj.name
+        xcodeProj.productName = targetObj.productName
+        xcodeProj.createdOnToolsVersion = targetObj.CreatedOnToolsVersion
+
         let buildConfigurationListKey = targetObj.buildConfigurationList
-        if buildConfigurationListKey.isEmpty { continue }
-        guard let buildConfigurationListObj = pbxObjects[buildConfigurationListKey] else { continue }
+        if buildConfigurationListKey.isEmpty { continue }                   // missing buildConfigurationListKey
+        guard let buildConfigurationListObj = pbxObjects[buildConfigurationListKey] else { continue }   // "
         for buildConfigurationKey in buildConfigurationListObj.buildConfigurations {
             guard let  buildConfigurationObj = pbxObjects[buildConfigurationKey] else { continue }
 
@@ -701,7 +677,6 @@ func pbxToXcodeProj(_ str: String, deBug: Bool = true) {        //389-702 = 313-
                 print("⚠️ IPHONEOS_DEPLOYMENT_TARGET found in Target buildConfiguration")
                 //xcodeProj.deploymentTarget = "iPhoneOS Deployment Target = " + iPhoneOSDeploymentTarget
             }
-
 
         }//next buildConfigurationKey
     }//next targetKey
@@ -862,25 +837,39 @@ private func isObjectKey(_ str: String) -> Bool {
 
 public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {
     var text = ""
-    text += "          ---------------- \(xcodeProj.name) ----------------\n"
+    var issues = [String]()
+    text += "          ---------------- \(xcodeProj.filename) ----------------\n"
+    text += "Application Name         = \(xcodeProj.appName)\n"
+    if xcodeProj.appName != xcodeProj.productName {
+        text += "Product Name             = \(xcodeProj.productName)\n"
+        issues.append("Application Name is different from Product Name")
+    }
+
     if xcodeProj.swiftVerMin != xcodeProj.swiftVerMax {
-        text += "Multiple Swift Versions: \(xcodeProj.swiftVerMin) & \(xcodeProj.swiftVerMax)\n"
+        let issue = "Multiple Swift Versions: \(xcodeProj.swiftVerMin) & \(xcodeProj.swiftVerMax)"
+        text += "\(issue)\n"
+        issues.append(issue)
     } else {
         if xcodeProj.swiftVerMin == 0.0 {
-            text += "No Swift Version found!\n"
+            let issue = "No Swift Version found"
+            text += "\(issue)!\n"
+            issues.append(issue)
         } else {
+            if xcodeProj.swiftVerMin < 4.0 {
+                issues.append("Obsolete Swift Version \(xcodeProj.swiftVerMin)")
+            }
             text += "Swift Version used       = \(xcodeProj.swiftVerMin)\n"
         }
     }
-
     text += "Archive Version          = \(xcodeProj.archiveVersion)\n"
     text += "Object Version           = \(xcodeProj.objectVersion)\n"
     text += "Compatibility Version    = \(xcodeProj.compatibilityVersion)\n"
     text += "Last Swift Update Check  = \(xcodeProj.LastSwiftUpdateCheck)\n"
     text += "Last Upgrade Check       = \(xcodeProj.LastUpgradeCheck)\n"
+    text += "Organization Name        = \(xcodeProj.organizationName)\n"
     text += "Created On Tools Version = \(xcodeProj.createdOnToolsVersion)\n"
     text += "SDK Root                 = \(xcodeProj.sdkRoot)\n"
-    text += " \(xcodeProj.deploymentTarget)\n"    // deploymentTarget
+    text += "\(xcodeProj.deploymentTarget)\n"    // deploymentTarget
 
     var totalCodeLineCount     = 0
     var totalNonCamelCaseCount = 0
@@ -908,19 +897,26 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {
             text += "(\(swiftSummary.url.lastPathComponent))\n"
         }
     }//next
-
     text += "\n\(format2("  -- Totals --",totalCodeLineCount,totalNonCamelCaseCount,totalForceUnwrapCount,totalVbCompatCallCount))\n"
 
-    let totalIssueCount = totalNonCamelCaseCount + totalForceUnwrapCount + totalVbCompatCallCount
+    //------------------------------------------------------------------
+    //------------- Issues --------------
+    let totalIssueCount = totalNonCamelCaseCount + totalForceUnwrapCount + totalVbCompatCallCount + issues.count
 
     if totalIssueCount == 0 {
         text += "\n-------- No Issues --------\n"
     } else {
         text += "\n-------- \(totalIssueCount) Possible \("Issue".pluralize(totalIssueCount)) --------\n"
-        text += "\(showCount(count: totalNonCamelCaseCount, name: "NonCamelCase Variable")).\n"
-        text += "\(showCount(count: totalForceUnwrapCount,  name: "ForceUnwrap")).\n"
-        text += "\(showCount(count: totalVbCompatCallCount, name: "VBcompatability Call")).\n"
+        if totalNonCamelCaseCount > 0 {text += "\(showCount(count: totalNonCamelCaseCount, name: "NonCamelCase Variable")).\n"}
+        if totalForceUnwrapCount  > 0 {text += "\(showCount(count: totalForceUnwrapCount,  name: "ForceUnwrap")).\n"}
+        if totalVbCompatCallCount > 0 {text += "\(showCount(count: totalVbCompatCallCount, name: "VBcompatability Call")).\n"}
     }
+    for issue in issues {
+        text += issue + "\n"
+    }
+
+
+    // ------- NSAttributedString -------
     //        txvMain.font = NSFont(name: "Courier", size: 12)
 
     let textAttributes: [NSAttributedString.Key: Any] = [
