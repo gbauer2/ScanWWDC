@@ -34,6 +34,7 @@
 // Bug: "mainSourceKey = childKey", "Most likely child" may pick wrong child.
 // Bug: AnalyseXcodeproj called twice on startup
 // Eliminate file scan from analyseSwiftFile()
+// At start of analyseSwiftFile(), "swiftFilename =" should print last 3 path componants
 
 //AnalyseSwift:
 // Move "possible issues" to top
@@ -51,13 +52,15 @@
 // Flag //TODO: //FIXME:
 // bug: "// Check for Forced Unwrapping" may fail with multiple "!"s
 
+//Done:
+
 import Cocoa    /* partial-line Block Comment does not work.*/
 /* single-line Block Comment does work. */
 
 /* To generate compiler warnings:
  #warning("This code is incomplete.")
 */
-class ViewController: NSViewController {
+class ViewController: NSViewController, NSWindowDelegate {
 
     enum AnalyseMode {
         case /* embedded Block Comment now works.*/ none
@@ -184,6 +187,7 @@ class ViewController: NSViewController {
         super.viewWillAppear()
         splitView.setPosition(222.0, ofDividerAt: 0)
         restoreCurrentSelections()
+        self.view.window?.delegate = self
     }
 
     override func viewDidAppear() {
@@ -199,6 +203,11 @@ class ViewController: NSViewController {
     override func viewWillDisappear() {
         saveCurrentSelections()
         super.viewWillDisappear()
+    }
+
+    // Terminate application when this window closes - (needs to be delegate)
+    func windowWillClose(_ notification: Notification) {
+        NSApplication.shared.terminate(self)
     }
 
     // MARK: - Methods
@@ -379,7 +388,7 @@ extension ViewController {
                 DispatchQueue.main.async {
                     self.infoTextView.string = str
                 }
-                let (errCode, xcodeProj) = analyseXcodeproj(url:url, goDeep: false)
+                let (errCode, xcodeProj) = analyseXcodeproj(url:url, goDeep: false, deBug: false)
                 if errCode.isEmpty {
                     let verStr = xcodeProj.swiftVerMin == 0 ? "2.x" : String(format: "%.1f", xcodeProj.swiftVerMin)
                     let barePath = url.deletingPathExtension().path
@@ -567,7 +576,7 @@ extension ViewController {
                 }//end try catch
 
             } else if analyseMode == .xcodeproj {
-                let (errCode, xcodeProj) = analyseXcodeproj(url:url, goDeep: true)
+                let (errCode, xcodeProj) = analyseXcodeproj(url:url, goDeep: true, deBug: true)
                 let formattedText: NSAttributedString
                 if errCode.isEmpty {
                     formattedText = showXcodeproj(xcodeProj)

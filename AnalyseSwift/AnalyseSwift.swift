@@ -436,7 +436,12 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes) ->
                     var itemName = "????"
                     if posItem < words.count {
                         itemName = words[posItem + 1]   // get the word that follows "func"
-                        if !isCamelCase(itemName) {nonCamelVars.append(LineItem(lineNum: lineNum, name: itemName, extra: ""))}
+                        if !isCamelCase(itemName) {
+                            let lineItem = LineItem(lineNum: lineNum, name: itemName, extra: "")
+                            print("➡️ \(lineItem.lineNum) Non-CamelCased \(lineItem.name)")
+                            nonCamelVars.append(lineItem)
+                            swiftSummary.nonCamelCases.append(lineItem.name)
+                        }
                     }
 
                     checkCurlys(codeName: codeName, itemName: itemName, posItem: posItem, pOpenCurlyF: pOpenCurlyF, pOpenCurlyR: pOpenCurlyR, pCloseCurlyF: pCloseCurlyF, pCloseCurlyR: pCloseCurlyR)
@@ -552,9 +557,12 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes) ->
                     }
                     if !isCamelCase(name) {
                         let lineItem = LineItem(lineNum: lineNum, name: name, extra: "")
-                        print("➡️ \(lineItem.lineNum) \(name)")
+                        print("➡️ \(lineItem.lineNum) Non-CamelCased \(lineItem.name)")
                         nonCamelVars.append(lineItem)
                         swiftSummary.nonCamelCases.append(lineItem.name)
+                        if nonCamelVars.count != swiftSummary.nonCamelCases.count {
+                            print("⛔️ analyseSwift #\(#line) \(nonCamelVars.count) != \(swiftSummary.nonCamelCases.count)")
+                        }
                     }
                 }//next assignee
             }

@@ -18,6 +18,9 @@ public struct XcodeProj {
     var organizationName = ""
     var archiveVersion  = ""        // base level
     var objectVersion   = ""        // base level
+    var compatibilityVersion = ""   // root object
+    var LastSwiftUpdateCheck = ""   // root object
+    var LastUpgradeCheck = ""       // root object
     var createdOnToolsVersion = ""  // PBXProject section > attributes > TargetAttributes
     var swiftVerMin     = 0.0       // from XCBuildConfiguration.buildSettings."SWIFT_VERSION = 4.2"
     var swiftVerMax     = 0.0
@@ -61,7 +64,7 @@ struct PBXNativeTarget {
 //  1) "var XXX ="         (1 place);
 //  2) func changeProperty (2 places)           case "XXX": self.XXX = vals.first ?? ""
 //  3) "debugDescription"  (3 places) if !self.XXX.isEmpty    { str += ", XXX=" + self.XXX }
-public struct PBX: CustomDebugStringConvertible {       //66-273 = 217-lines
+public struct PBX: CustomDebugStringConvertible {       //64-272 = 218-lines
     var isa         = ""
     var name        = ""
     var path        = ""
@@ -110,10 +113,11 @@ public struct PBX: CustomDebugStringConvertible {       //66-273 = 217-lines
     var CODE_SIGN_IDENTITY  = ""
     var MACOSX_DEPLOYMENT_TARGET   = ""
     var IPHONEOS_DEPLOYMENT_TARGET = ""
+    var WATCH_DEPLOYMENT_TARGET   = ""
     var ENABLE_STRICT_OBJC_MSGSEND = ""
     var PRODUCT_BUNDLE_IDENTIFIER  = ""
 
-    mutating func changeProperty(propertyName: String, vals: [String]) {    //118-182 = 64-lines
+    mutating func changeProperty(propertyName: String, vals: [String]) {    //116-181 = 65-lines
         switch propertyName {
         case "isa":         self.isa        = vals.first ?? ""
         case "name":        self.name       = vals.first ?? ""
@@ -163,6 +167,7 @@ public struct PBX: CustomDebugStringConvertible {       //66-273 = 217-lines
         case "CODE_SIGN_IDENTITY":  self.CODE_SIGN_IDENTITY     = vals.first ?? ""
         case "MACOSX_DEPLOYMENT_TARGET":    self.MACOSX_DEPLOYMENT_TARGET   = vals.first ?? ""
         case "IPHONEOS_DEPLOYMENT_TARGET":  self.IPHONEOS_DEPLOYMENT_TARGET = vals.first ?? ""
+        case "WATCH_DEPLOYMENT_TARGET":     self.WATCH_DEPLOYMENT_TARGET   = vals.first ?? ""
         case "PRODUCT_BUNDLE_IDENTIFIER":   self.PRODUCT_BUNDLE_IDENTIFIER  = vals.first ?? ""
         case "ENABLE_STRICT_OBJC_MSGSEND":  self.ENABLE_STRICT_OBJC_MSGSEND = vals.first ?? ""
         default:
@@ -171,16 +176,17 @@ public struct PBX: CustomDebugStringConvertible {       //66-273 = 217-lines
              "explicitFileType","includeInIndex","buildActionMask","runOnlyForDeploymentPostprocessing",
              "developmentRegion","hasScannedForEncodings","knownRegions","buildPhases",
              "projectDirPath","projectRoot","targetProxy","defaultConfigurationIsVisible",
+             "indentWidth","tabWidth"
             ]
             if !ignore.contains(propertyName) {
-                print("⛔️⛔️⛔️⛔️ \(propertyName) not handled! ⛔️⛔️⛔️⛔️")
+                print("⛔️⛔️⛔️⛔️ #\(#line) property \"\(propertyName) = \(vals[0])\" not handled! ⛔️⛔️⛔️⛔️")
             }
 
         }//end switch
     }//end func
 
     //---- debugDescription - used for print
-    public var debugDescription: String {       //185-243 = 58-lines
+    public var debugDescription: String {       //184-242 = 58-lines
         //let sep = "\(sep)"
         let sep = "\n\t"
         let selfName = self.name.isEmpty ? "" : " - name: \"\(self.name)\""
@@ -234,6 +240,7 @@ public struct PBX: CustomDebugStringConvertible {       //66-273 = 217-lines
         if !self.CODE_SIGN_IDENTITY.isEmpty     { str += "\(sep)CODE_SIGN_IDENTITY = "  + self.CODE_SIGN_IDENTITY }
         if !self.MACOSX_DEPLOYMENT_TARGET.isEmpty   { str += "\(sep)MACOSX_DEPLOYMENT_TARGET = "   + self.MACOSX_DEPLOYMENT_TARGET }
         if !self.IPHONEOS_DEPLOYMENT_TARGET.isEmpty { str += "\(sep)IPHONEOS_DEPLOYMENT_TARGET = " + self.IPHONEOS_DEPLOYMENT_TARGET }
+        if !self.WATCH_DEPLOYMENT_TARGET.isEmpty    { str += "\(sep)WATCH_DEPLOYMENT_TARGET = "    + self.WATCH_DEPLOYMENT_TARGET }
         if !self.PRODUCT_BUNDLE_IDENTIFIER.isEmpty  { str += "\(sep)PRODUCT_BUNDLE_IDENTIFIER = "  + self.PRODUCT_BUNDLE_IDENTIFIER }
         if !self.ENABLE_STRICT_OBJC_MSGSEND.isEmpty { str += "\(sep)ENABLE_STRICT_OBJC_MSGSEND = " + self.ENABLE_STRICT_OBJC_MSGSEND }
 
@@ -253,13 +260,13 @@ public struct PBX: CustomDebugStringConvertible {       //66-273 = 217-lines
     static func setDictPropertyPBX(dict: inout [String : PBX], key: String, propertyName: String, vals: [String]) {
 
         if vals.isEmpty {
-            print("⛔️⛔️⛔️⛔️ No value for pbxDict[\(key)] ⛔️⛔️⛔️⛔️")
+            print("⛔️⛔️⛔️⛔️ \(#line) No value for pbxDict[\(key)] ⛔️⛔️⛔️⛔️")
             return
         }
         if dict[key] == nil {
             dict[key] = PBX()
             if propertyName != "isa" {
-                print("⛔️⛔️⛔️⛔️ Cannot set pbxDict[\(key)] = \(vals[0]), because it does't exist. ⛔️⛔️⛔️⛔️")
+                print("⛔️⛔️⛔️⛔️ \(#line) Cannot set pbxDict[\(key)] = \(vals[0]), because it does't exist. ⛔️⛔️⛔️⛔️")
                 return
             }
         }
@@ -272,49 +279,57 @@ public struct PBX: CustomDebugStringConvertible {       //66-273 = 217-lines
 
 //MARK:- funcs
 
-//MARK: analyseXcodeproj 89-lines
+//MARK: analyseXcodeproj 73-lines
 //---- analyseXcodeproj - Analyse a .xcodeproj file, returning an errorText and an XcodeProj instance
-public func analyseXcodeproj(url: URL, goDeep: Bool) -> (String, XcodeProj) {   //277-366 = 89-lines
+public func analyseXcodeproj(url: URL, goDeep: Bool, deBug: Bool = true) -> (String, XcodeProj) {   //278-351 = 73-lines
     xcodeProj = XcodeProj()
     xcodeProj.url = url
     xcodeProj.name = url.lastPathComponent
     let pbxprojURL = url.appendingPathComponent("project.pbxproj")
+    let urlFile = URL(fileURLWithPath: #file)
+    let swiftFilename = urlFile.lastPathComponent
+    print("\n🔷 \(swiftFilename) line#\(#line) Start processing 😃\(xcodeProj.name)😃")
 
     do {
         let storedData = try String(contentsOf: pbxprojURL)
 
-        preProcess(storedData)
+        pbxToXcodeProj(storedData, deBug: deBug)
 
         let xcodeprojLines = storedData.components(separatedBy: "\n")
         var gotBuildSettings = false
 
-        // Scan pbxproj file for stuff not covered in preProcess()
+        // Scan pbxproj file for stuff not covered in pbxToXcodeProj()
         for (idx, line) in xcodeprojLines.enumerated() {
             let lineNum = idx+1
 
             if gotBuildSettings {       // In BuildSettings
-               if line.contains("DEPLOYMENT_TARGET") {
-                    print("✅ \(lineNum) \"DEPLOYMENT_TARGET\" \(line)")
-                    let (key, val) = keyValDecode(line)
-                    //let x = xcodeProj.DEPLOYMENT_TARGET
-                    xcodeProj.deploymentTarget = key + " = " + val          // ???? xcodeProj.deploymentTarget
+                if line.contains("DEPLOYMENT_TARGET") {
+                    if !line.contains("MACOSX") && !line.contains("IPHONEOS") && !line.contains("WATCHOS_") {
+                        print("⛔️ #\(#line) \(line) ??? ⛔️")
+                    }
+                    if deBug {print("✅ \(lineNum) \"DEPLOYMENT_TARGET\" \(line)")}
+                    //let (key, val) = keyValDecode(line)
+                    let x = xcodeProj.deploymentTarget
+                    if x.isEmpty {
+                        print("⛔️ Missing \(line)")
+                    }
+                    //                    xcodeProj.deploymentTarget = key + " = " + val          // ???? xcodeProj.deploymentTarget
 
                 } else if line.contains("SWIFT_VERSION") {
 
                 } else if line.lowercased().contains("ver") && !line.contains("NVER") {
-                    print("✅ \(lineNum) \"ver\" \(line)")
+                    if deBug {print("✅ \(lineNum) \"ver\" \(line)")}
                 }
             } else {
                 if line.contains("buildSettings =") { gotBuildSettings = true }
-                if line.contains("CreatedOnToolsVersion") {
-                    (_, xcodeProj.createdOnToolsVersion) = keyValDecode(line)
-                    print("✅ \(lineNum) \"CreatedOnToolsVersion\" \(line)")
-                }
+//                if line.contains("CreatedOnToolsVersion") {
+//                    (_, xcodeProj.createdOnToolsVersion) = keyValDecode(line)
+//                    if deBug {print("✅ \(lineNum) \"CreatedOnToolsVersion\" \(line)")}
+//                }
             }
 
         }//next line
-        print()
-        print("🍎 \(xcodeProj)")
+        if deBug {print("\n🍎 \(xcodeProj)")}
     } catch {
         return  ( "Error: Could not read \"\(pbxprojURL.lastPathComponent)\"\n\(pbxprojURL.path)", xcodeProj)
     }
@@ -333,9 +348,11 @@ public func analyseXcodeproj(url: URL, goDeep: Bool) -> (String, XcodeProj) {   
                 print("⛔️ analyseContentsButtonClicked error: ⛔️\n⛔️\(error)⛔️")
             }//end try catch
         }
-        print("✅✅✅✅✅✅")
-        print(xcodeProj)
-        print("✅✅✅✅✅✅")
+        if deBug {
+            print("✅✅✅✅✅✅")
+            print(xcodeProj)
+            print("✅✅✅✅✅✅")
+        }
     }
 
     return ( "", xcodeProj)
@@ -343,7 +360,7 @@ public func analyseXcodeproj(url: URL, goDeep: Bool) -> (String, XcodeProj) {   
 }//end func analyseXcodeproj
 
 
-func stripComments(_ line: String) -> String {      //369-401 = 32-lines
+func stripComments(_ line: String) -> String {      //354-386 = 32-lines
     var cleanLine = line
     if cleanLine.contains("//") {
         let comps = cleanLine.components(separatedBy: "//")
@@ -377,12 +394,15 @@ func stripComments(_ line: String) -> String {      //369-401 = 32-lines
     return cleanerLine
 }//end func
 
-//MARK:preProcess 258-lines
-func preProcess(_ str: String) {        //404-662 = 258-lines
-    print("🏄‍♂️")
-    print("🏄‍♂️ Uncomment to get a fresh copy of projectpbxproj.txt")
-    //print(str)      // Use to copy & paste into text editor for debugging
-    print("🏄‍♂️")
+//MARK: pbxToXcodeProj 313-lines
+func pbxToXcodeProj(_ str: String, deBug: Bool = true) {        //389-702 = 313-lines
+    if deBug {
+        print("Start pbxToXcodeProj")
+        print("🏄‍♂️")
+        print("🏄‍♂️ Uncomment to get a fresh copy of projectpbxproj.txt")
+        //print(str)      // Use to copy & paste into text editor for debugging
+        print("🏄‍♂️")
+    }
     pbxObjects.removeAll()
     var rootObjectKey  = ""
     let (strClean,linePtr) = stripCommentsAndNewlines(str)
@@ -397,14 +417,14 @@ func preProcess(_ str: String) {        //404-662 = 258-lines
 
         if char == "{" {                                    // "{"
             bufrs[depth] = bufrs[depth].trim
-            if !bufrs[depth].hasSuffix("=") { print("⛔️ NO EQUAL SIGN ⛔️") }
-            //print("🐯⬇️ bufrs[\(depth)]: \"\(bufrs[depth])\" { Getting properties ...")
+            if !bufrs[depth].hasSuffix("=") { print("⛔️ #\(#line) NO EQUAL SIGN in \"\(bufrs[depth])\" ⛔️") }
+            //if deBug { print("🐯⬇️ bufrs[\(depth)]: \"\(bufrs[depth])\" { Getting properties ...")}
             depth += 1
             bufrs.append("")
 
         } else if char == "}" {
-            if depth > 0 && !bufrs[depth-1].hasSuffix("=") { print("⛔️ NO EQUAL SIGN ⛔️") }
-            //print("🐯⬆️ bufrs[\(depth-1)]: \"\(bufrs[depth-1])\"")
+            if depth > 0 && !bufrs[depth-1].hasSuffix("=") { print("⛔️ #\(#line) NO EQUAL SIGN in \"\(bufrs[depth])\" ⛔️") }
+            //if deBug {print("🐯⬆️ bufrs[\(depth-1)]: \"\(bufrs[depth-1])\"")}
             bufrs.removeLast()
             depth -= 1
 
@@ -421,17 +441,20 @@ func preProcess(_ str: String) {        //404-662 = 258-lines
 
             if let partLast = parts.last {
                 if !partLast.hasSuffix("=") {
-                    if parts.count < 2 || parts[1].hasPrefix("isa =") { print() }   // blank line before "isa ="
 
-                    if parts.count < 3 || parts[1] != "buildSettings" || !parts[2].contains("GCC") || !parts[2].contains("CLANG") {
-                        print("↔️\(linePtr[ptrChar])-\(depth) \(parts)")
+                    if deBug {
+                        if parts.count < 2 || parts[1].hasPrefix("isa =") { print() }   // blank line before "isa ="
+
+                        if parts.count < 3 || parts[1] != "buildSettings" || !parts[2].contains("GCC") || !parts[2].contains("CLANG") {
+                            print("↔️\(linePtr[ptrChar])-\(depth) \(parts)")
+                        }
                     }
 
                     let assignee = parts[0]
                     let objKey = String(assignee.dropLast()).trim   // remove " =" from objKey
                     let isa0 = getAssigneeIsa(string: assignee, pbxObjects: pbxObjects)
                     if parts.count == 1 {
-                        print(partLast)
+                        //if deBug {print(partLast)}
                         let (key, val) = keyValDecode(partLast)
                         switch key {
                         case "archiveVersion":
@@ -449,10 +472,10 @@ func preProcess(_ str: String) {        //404-662 = 258-lines
                             PBX.setDictPropertyPBX(dict: &pbxObjects, key: objKey, propertyName: propertyName, vals: vals)
                         }
                     } else if parts.count == 3 {
-                        //print("3parts:", parts)
+                        //if deBug {print("3parts:", parts)}
 
                         if isa0 == "PBXProject" && parts[1] == "attributes =" {     // PBXProject > attributes
-                            print("   PBXProject attribute: \(parts[2])")
+                            if deBug {print("   PBXProject attribute: \(parts[2])")}
                             let (propertyName, vals) = getPropertyAndVals(from: parts[2])
                             let got1: Bool
                             switch propertyName {
@@ -464,7 +487,7 @@ func preProcess(_ str: String) {        //404-662 = 258-lines
                             if got1 {
                                 PBX.setDictPropertyPBX(dict: &pbxObjects, key: objKey, propertyName: propertyName, vals: vals)
                             } else {
-                                print("😡3😡??? Unimplemented attribute: \"\(isa0)\", \"\(parts[1])\", \"\(parts[2])\" 😡😡")
+                                if deBug {print("😡3😡??? Unimplemented attribute: \"\(isa0)\", \"\(parts[1])\", \"\(parts[2])\" 😡😡")}
                             }
 
                         } else if isa0 == "XCBuildConfiguration" && parts[1] == "buildSettings ="   {
@@ -473,29 +496,28 @@ func preProcess(_ str: String) {        //404-662 = 258-lines
                                 let got1: Bool
                                 switch propertyName {
                                 case "SDKROOT"                   : got1 = true;
-                                    print("Got SDKROOT")
                                 case "SWIFT_VERSION"             : got1 = true
                                 case "MACOSX_DEPLOYMENT_TARGET"  : got1 = true
                                 case "IPHONEOS_DEPLOYMENT_TARGET": got1 = true
+                                case "WATCHOS_DEPLOYMENT_TARGET" : got1 = true
                                 default: got1 = false
                                 }
                                 if got1 {
-                                    print(objKey, pbxObjects[objKey] ?? "???")
+                                    //if deBug {print(objKey, pbxObjects[objKey] ?? "???")}
                                     PBX.setDictPropertyPBX(dict: &pbxObjects, key: objKey, propertyName: propertyName, vals: vals)
-                                    print(objKey, pbxObjects[objKey] ?? "???")
-                                    print()
+                                    if deBug {print(objKey, pbxObjects[objKey] ?? "???\n")}
                                 } else {
-                                    print("😡3😡??? Unimplemented attribute \(isa0), \(parts[1]), \(parts[2]) 😡😡")
+                                    if deBug {print("😡3😡??? Unimplemented attribute \(isa0), \(parts[1]), \(parts[2]) 😡😡")}
                                 }
 
                             }
                         } else {
-                            print("😡😡??", isa0, parts[1], parts[2], "😡😡")
+                            if deBug {print("😡😡??", isa0, parts[1], parts[2], "😡😡")}
                         }
 
                     } else {    // parts.count > 3
                         if parts[1] != "attributes =" || parts[2] != "TargetAttributes =" {
-                            print("😡\(parts.count)😡??? Unimplemented TargetAttributes \(isa0), \(parts[1]), \(parts[2]) 😡😡")
+                            if deBug {print("😡\(parts.count)😡??? Unimplemented TargetAttributes \(isa0), \(parts[1]), \(parts[2]) 😡😡")}
                         }
                         // ↔️183-6 ["26ECD32F1E874B5B00380F56 =", "attributes =", "TargetAttributes =", "26ECD3361E874B5B00380F56 =", "CreatedOnToolsVersion = 8.2.1"]
                         let targetKey = String(parts[3].dropLast()).trim   // remove " =" from objKey
@@ -510,7 +532,7 @@ func preProcess(_ str: String) {        //404-662 = 258-lines
                         if got1 {
                             PBX.setDictPropertyPBX(dict: &pbxObjects, key: targetKey, propertyName: propertyName, vals: vals)
                         } else {
-                            print("😡\(parts.count)😡??? Unimplemented attribute \(isa0), \(parts[1]), \(parts[2]) 😡😡")
+                            if deBug {print("😡\(parts.count)😡??? Unimplemented attribute \(isa0), \(parts[1]), \(parts[2]) 😡😡")}
                         }
 
                         /* 5 (-6)  "TargetAttributes =", "26ECD3361E874B5B00380F56 =",
@@ -543,57 +565,62 @@ func preProcess(_ str: String) {        //404-662 = 258-lines
     //Analyse rootObject
 
     //RootObject
-    print("\n\(#line) ----0 Root Object [PBXProject] ------------------------")
+    if deBug {print("\n\(#line) ----0 Root Object [PBXProject] ------------------------")}
     let rootObject = pbxObjects[rootObjectKey]!
-    print(rootObjectKey, rootObject)
+    if deBug {print(rootObjectKey, rootObject)}
 
     //RootObject > mainGroup
     let mainGroupKey = rootObject.mainGroup
     let mainGroupObj = pbxObjects[mainGroupKey]!
-    print()
-    print("\n\(#line) --------1 rootObject > mainGroup [PBXGroup] ------------")
-    print(mainGroupKey, mainGroupObj)
-
+    if deBug {
+        print("\n\n\(#line) --------1 rootObject > mainGroup [PBXGroup] ------------")
+        print(mainGroupKey, mainGroupObj)
+    }
     let mainGroupChildrenKeys = mainGroupObj.children
-    var mainSourceKey = ""
-    var mainSourceObj = PBX()
+    var appSourceKey = ""
+    var appSourceObj = PBX()
 
-    print("\n\(#line) --------1 RootObject.mainGroup > \(mainGroupChildrenKeys.count)-children [PBXGroup] ------------")
+    if deBug {print("\n\(#line) --------1 RootObject.mainGroup > \(mainGroupChildrenKeys.count)-children [PBXGroup] ------------")}
     // find Most likely child to have swift source files
     for ( i, childKey) in mainGroupChildrenKeys.enumerated() {
         let childObj = pbxObjects[childKey]!
-        print()
-        print("\(#line) ------------2 rootObject.mainGroup.child[\(i)] [PBXGroup] --------")
-        print(childKey, pbxObjects[childKey] ?? "⛔️ #line-\(#line)Error: Missing mainGroupChildrenKey")
+        if deBug {
+            print("\n\(#line) ------------2 rootObject.mainGroup.child[\(i)] [PBXGroup] - children are [PBXFileReference] --------")
+            print(childKey, pbxObjects[childKey] ?? "⛔️ #line-\(#line)Error: Missing mainGroupChildrenKey")
+        }
         if i == 0 {
-            mainSourceKey = childKey            // first child is usually the program
+            appSourceKey = childKey            // first child is usually the app
             if !isTestOrProductOrFramework(name: childObj.name) { break }
         }
         if !isTestOrProductOrFramework(name: childObj.name) {
-            mainSourceKey = childKey
+            appSourceKey = childKey
             break
         }
     }
 
     //RootObject > productRefGroup
     let productRefGroupKey = rootObject.productRefGroup
-    print("\n\(#line) --------1 rootObject.productRefGroup [PBXGroup] - children are [PBXFileReference] ------------")
-    print("              * Same as mainGroup.child named \"Products\"")
-    print(productRefGroupKey, pbxObjects[productRefGroupKey] ?? "⛔️ #line-\(#line)Error: Missing rootObject.productRefGroup")
-
+    if deBug {
+        print("\n\(#line) --------1 rootObject.productRefGroup [PBXGroup] - children are [PBXFileReference] ------------")
+        print("              * Same as mainGroup.child named \"Products\"")
+        print(productRefGroupKey, pbxObjects[productRefGroupKey] ?? "⛔️ #line-\(#line)Error: Missing rootObject.productRefGroup")
+    }
     //RootObject > buildConfigurationList
     let buildConfigurationListKey = rootObject.buildConfigurationList
-    print("\n\(#line) --------1 rootObject.buildConfigurationList [XCConfigurationList] - children are [XCBuildConfiguration] ------------")
-    print(buildConfigurationListKey, pbxObjects[buildConfigurationListKey] ?? "⛔️ #line-\(#line)Error: Missing rootObject.buildConfigurationList")
-
+    if deBug {
+        print("\n\(#line) --------1 rootObject.buildConfigurationList [XCConfigurationList] - children are [XCBuildConfiguration] ------------")
+        print(buildConfigurationListKey, pbxObjects[buildConfigurationListKey] ?? "⛔️ #line-\(#line)Error: Missing rootObject.buildConfigurationList")
+    }
     let rootbuildConfigurationListKey = rootObject.buildConfigurationList
     let rootbuildConfigurationListObj = pbxObjects[rootbuildConfigurationListKey]!
     for (i, buildConfigurationKey) in rootbuildConfigurationListObj.buildConfigurations.enumerated() {
+        if deBug {
+            print("\n\(#line) ------------2 rootObject.buildConfigurationList.buildConfiguration[\(i)] [PBXBuildConfiguration] --------")
+            print(buildConfigurationKey, pbxObjects[buildConfigurationKey] ?? "⛔️ #line-\(#line)Error: Missing rootObject.buildConfigurationKey")
+        }
         let buildConfigurationObj = pbxObjects[buildConfigurationKey]!
-        print("\n\(#line) ------------2 rootObject.buildConfigurationList.buildConfiguration[\(i)] [PBXBuildConfiguration] --------")
-        print(buildConfigurationKey, pbxObjects[buildConfigurationKey] ?? "⛔️ #line-\(#line)Error: Missing rootObject.buildConfigurationKey")
         let sdkroot = buildConfigurationObj.SDKROOT
-        print("🔹 \(buildConfigurationKey) SDKROOT = \"\(sdkroot)\"")
+        if deBug {print("🔹 \(buildConfigurationKey) SDKROOT = \"\(sdkroot)\"")}
         if !sdkroot.isEmpty {
             if !xcodeProj.sdkRoot.isEmpty && xcodeProj.sdkRoot != sdkroot {
                 print("⛔️⛔️ sdkRoot mismatch: \(xcodeProj.sdkRoot) != \(sdkroot)  ⛔️⛔️")
@@ -601,43 +628,57 @@ func preProcess(_ str: String) {        //404-662 = 258-lines
                 xcodeProj.sdkRoot = sdkroot
             }
         }
+
+        updateDeploymentTarget(buildConfigurationObj: buildConfigurationObj)
+
     }//next
 
 
     //RootObject > targets
     let targetKeys = rootObject.targets
-    print("\n\(#line) --------1 RootObject > \(targetKeys.count)-targets [PBXNativeTarget] ------------")
-    for ( i, targetKey) in targetKeys.enumerated() {
-        print("\n\(#line) ------------2 rootObject.target[\(i)] [PBXNativeTarget] --------")
-        print(targetKey, pbxObjects[targetKey] ?? "⛔️ #line-\(#line)Error: Missing rootObject.targetKey")
+    if deBug {
+        print("\n\(#line) --------1 RootObject > \(targetKeys.count)-targets [PBXNativeTarget] ------------")
+        for ( i, targetKey) in targetKeys.enumerated() {
+            print("\n\(#line) ------------2 rootObject.target[\(i)] [PBXNativeTarget] --------")
+            print(targetKey, pbxObjects[targetKey] ?? "⛔️ #line-\(#line)Error: Missing rootObject.targetKey")
+        }
+        print("----------------------------------------------------------------")
     }
 
-print("----------------------------------------------------------------")
+    xcodeProj.compatibilityVersion = rootObject.compatibilityVersion
+    xcodeProj.LastSwiftUpdateCheck = rootObject.LastSwiftUpdateCheck
+    xcodeProj.LastUpgradeCheck = rootObject.LastUpgradeCheck
 
-    if !mainSourceKey.isEmpty {
-        mainSourceObj = pbxObjects[mainSourceKey]!
-        print()
-        print("---- Most likely child to have swift source files [PBXGroup]. Children are [PBXFileReference] ----")
-        print("mainSourceObj = ",mainSourceObj)
-        let dirPath = mainSourceObj.path.replacingOccurrences(of: "\"", with: "")
-        print()
-        print("😈mainSourceObj.path = \"\(dirPath)\"")
-        let sourceFileKeys = mainSourceObj.children
+    if !appSourceKey.isEmpty {
+        appSourceObj = pbxObjects[appSourceKey]!
+        let dirPath = appSourceObj.path.replacingOccurrences(of: "\"", with: "")
+        if deBug {
+            print()
+            print("---- Most likely child to have swift source files [PBXGroup]. Children are [PBXFileReference] ----")
+            print("appSourceObj = ",appSourceObj)
+            print()
+            print("😈appSourceObj.path = \"\(dirPath)\"")
+        }
+        let sourceFileKeys = appSourceObj.children
         for sourceFileKey in sourceFileKeys {
             let sourceFileObj = pbxObjects[sourceFileKey]!
             let filePath = sourceFileObj.path
             if filePath.hasSuffix(".swift") {
                 let url = xcodeProj.url.deletingLastPathComponent().appendingPathComponent(dirPath).appendingPathComponent(filePath)
                 xcodeProj.swiftURLs.append(url)
-                print(url.path)
+                if deBug {print(url.path)}
             }
-            print("😈", sourceFileObj)
+            if deBug {print("😈", sourceFileObj)}
         }
     }
 
     // Set SDKROOT, SWIFT_VERSION, MACOSX_DEPLOYMENT_TARGET
+    // for each target in rootObject
     for targetKey in rootObject.targets {
         guard let targetObj = pbxObjects[targetKey] else { continue }
+        let productType = targetObj.productType
+        if deBug {print(targetKey, targetObj)}
+        if !productType.contains(".application") { continue }
         let buildConfigurationListKey = targetObj.buildConfigurationList
         if buildConfigurationListKey.isEmpty { continue }
         guard let buildConfigurationListObj = pbxObjects[buildConfigurationListKey] else { continue }
@@ -648,30 +689,42 @@ print("----------------------------------------------------------------")
             let ver = getVersionNumber(text: swiftVer)
             if ver > xcodeProj.swiftVerMax { xcodeProj.swiftVerMax = ver }
             if xcodeProj.swiftVerMin == 0.0 || ver < xcodeProj.swiftVerMin { xcodeProj.swiftVerMin = ver }
-            print("🔹 \(buildConfigurationKey) SWIFT_VERSION = \"\(swiftVer)\"")
+            if deBug {print("🔹 \(buildConfigurationKey) SWIFT_VERSION = \"\(swiftVer)\"")}
 
             let macOSXDeploymentTarget = buildConfigurationObj.MACOSX_DEPLOYMENT_TARGET
             let iPhoneOSDeploymentTarget = buildConfigurationObj.IPHONEOS_DEPLOYMENT_TARGET
-            if !iPhoneOSDeploymentTarget.isEmpty {
-                if xcodeProj.deploymentTarget == "MacOS" {
-                    print("⛔️⛔️ #line \(#line) deploymentTarget mismatch ⛔️⛔️")
-                }
-                xcodeProj.deploymentTarget = "iPhoneOS"
-                print("🔹 \(buildConfigurationKey) IPHONEOS_DEPLOYMENT_TARGET = \"\(iPhoneOSDeploymentTarget)\"")
-            }
             if !macOSXDeploymentTarget.isEmpty {
-                if xcodeProj.deploymentTarget == "iPhoneOS" {
-                    print("⛔️⛔️ #line \(#line) deploymentTarget mismatch ⛔️⛔️")
-                }
-                xcodeProj.deploymentTarget = "MacOS"
-                print("🔹 \(buildConfigurationKey) MACOSX_DEPLOYMENT_TARGET = \"\(macOSXDeploymentTarget)\"")
+                print("⚠️ MACOSX_DEPLOYMENT_TARGET found in Target buildConfiguration")
+                //xcodeProj.deploymentTarget = "macOS Deployment Target = " + macOSXDeploymentTarget
             }
+            if !iPhoneOSDeploymentTarget.isEmpty {
+                print("⚠️ IPHONEOS_DEPLOYMENT_TARGET found in Target buildConfiguration")
+                //xcodeProj.deploymentTarget = "iPhoneOS Deployment Target = " + iPhoneOSDeploymentTarget
+            }
+
 
         }//next buildConfigurationKey
     }//next targetKey
 
-    print("\n--------------------------------------------------\n")
-}//end func preProcess
+    if deBug {print("\n--------------------------------------------------\n")}
+}//end func pbxToXcodeProj
+
+
+private func updateDeploymentTarget(buildConfigurationObj: PBX) {
+    var os = "macOS"    //    "macOS Deployment Target = "
+    var deploymentTarget = buildConfigurationObj.MACOSX_DEPLOYMENT_TARGET
+    if deploymentTarget.isEmpty {
+        os = "iPhoneOS"
+        deploymentTarget = buildConfigurationObj.IPHONEOS_DEPLOYMENT_TARGET
+    }
+    if deploymentTarget.isEmpty {
+        deploymentTarget = buildConfigurationObj.WATCH_DEPLOYMENT_TARGET
+        os = "WatchOS"
+    }
+    if !deploymentTarget.isEmpty {
+        xcodeProj.deploymentTarget = os + " Deployment Target = " + deploymentTarget
+    }
+}
 
 private func isTestOrProductOrFramework(name: String) -> Bool {
     return name == "Frameworks" || name == "Products" || name.hasSuffix("Tests")
@@ -720,9 +773,9 @@ func getPropertyAndVals(from text: String) -> (propName: String, vals: [String])
 //---- stripCommentsAndNewlines -
 //Returns String stripped of comments, newLines, tabs & double-spaces.
 //Also returns linePointer witch contains a Line-Number for each Character.
-func stripCommentsAndNewlines(_ str: String) -> (String, [Int]) {       //702-751 = 49-lines
+func stripCommentsAndNewlines(_ str: String) -> (String, [Int]) {       //751-800 = 49-lines
     if str.contains("//") {
-        print("⛔️⛔️⛔️ Contains \" // \"")
+        print("⛔️⛔️⛔️  #\(#line) Contains \" // \"")
     }
     if !str.contains("/*") { return (str, [Int]() ) }
     if !str.contains("*/") {
@@ -816,23 +869,27 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {
         if xcodeProj.swiftVerMin == 0.0 {
             text += "No Swift Version found!\n"
         } else {
-            text += "Swift Version used = \(xcodeProj.swiftVerMin)\n"
+            text += "Swift Version used       = \(xcodeProj.swiftVerMin)\n"
         }
     }
 
-    text += "ArchiveVersion = \(xcodeProj.archiveVersion)\n"
-    text += "ObjectVersion = \(xcodeProj.objectVersion)\n"
-    text += "createdOnToolsVersion = \(xcodeProj.createdOnToolsVersion)\n"
-    text += "sdkRoot = \(xcodeProj.sdkRoot)\n"
-    text += "\(xcodeProj.deploymentTarget)\n"    // deploymentTarget
+    text += "Archive Version          = \(xcodeProj.archiveVersion)\n"
+    text += "Object Version           = \(xcodeProj.objectVersion)\n"
+    text += "Compatibility Version    = \(xcodeProj.compatibilityVersion)\n"
+    text += "Last Swift Update Check  = \(xcodeProj.LastSwiftUpdateCheck)\n"
+    text += "Last Upgrade Check       = \(xcodeProj.LastUpgradeCheck)\n"
+    text += "Created On Tools Version = \(xcodeProj.createdOnToolsVersion)\n"
+    text += "SDK Root                 = \(xcodeProj.sdkRoot)\n"
+    text += " \(xcodeProj.deploymentTarget)\n"    // deploymentTarget
 
     var totalCodeLineCount     = 0
     var totalNonCamelCaseCount = 0
     var totalForceUnwrapCount  = 0
     var totalVbCompatCallCount = 0
 
-    text += "\n                           ---- \(xcodeProj.swiftURLs.count) Swift files ----\n"
+    text += "\n                           ---- \(showCount(count: xcodeProj.swiftURLs.count, name: "Swift file")) ----\n"   // "Swift files"
     text += "------ FileName ------     CodeLines  NonCamelCase  ForceUnwrap VBcompatability\n"
+
     for swiftSummary in xcodeProj.swiftSummaries {
         let name = swiftSummary.fileName
         let isTest = swiftSummary.url.path.contains("TestSharedCode")
@@ -851,14 +908,19 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {
             text += "(\(swiftSummary.url.lastPathComponent))\n"
         }
     }//next
+
     text += "\n\(format2("  -- Totals --",totalCodeLineCount,totalNonCamelCaseCount,totalForceUnwrapCount,totalVbCompatCallCount))\n"
-//    text += "\n\(totalCodeLineCount) total CodeLines.\n"
 
-    text += "\n-------- Possible Issues --------\n"
-    text += "\(totalNonCamelCaseCount) total NonCamelCase Variables.\n"
-    text += "\(totalForceUnwrapCount) total ForceUnwraps.\n"
-    text += "\(totalVbCompatCallCount) total VBcompatabiliy Calls.\n"
+    let totalIssueCount = totalNonCamelCaseCount + totalForceUnwrapCount + totalVbCompatCallCount
 
+    if totalIssueCount == 0 {
+        text += "\n-------- No Issues --------\n"
+    } else {
+        text += "\n-------- \(totalIssueCount) Possible \("Issue".pluralize(totalIssueCount)) --------\n"
+        text += "\(showCount(count: totalNonCamelCaseCount, name: "NonCamelCase Variable")).\n"
+        text += "\(showCount(count: totalForceUnwrapCount,  name: "ForceUnwrap")).\n"
+        text += "\(showCount(count: totalVbCompatCallCount, name: "VBcompatability Call")).\n"
+    }
     //        txvMain.font = NSFont(name: "Courier", size: 12)
 
     let textAttributes: [NSAttributedString.Key: Any] = [
