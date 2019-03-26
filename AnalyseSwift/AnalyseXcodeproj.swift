@@ -13,30 +13,31 @@ private var pbxObjects = [String : PBX]()
 private var xcodeProj  = XcodeProj()
 
 //MARK:- structs
+
 public struct XcodeProj {
-    var filename            = ""        // from URL
-    var appName             = ""        // from app target
-    var productName         = ""        // from app target
-    var organizationName    = ""
-    var archiveVersion      = ""        // base level
-    var objectVersion       = ""        // base level
-    var compatibilityVersion = ""       // root object
-    var LastSwiftUpdateCheck = ""       // root object
-    var LastUpgradeCheck    = ""        // root object
-    var createdOnToolsVersion = ""      // PBXProject section > attributes > TargetAttributes
-    var swiftVerMin         = 0.0       // from XCBuildConfiguration.buildSettings."SWIFT_VERSION = 4.2"
-    var swiftVerMax         = 0.0
-    var sdkRoot             = ""        // from XCBuildConfiguration.buildSettings.SDKROOT = macosx
-    var deploymentTarget    = ""        // from XCBuildConfiguration.buildSettings."MACOSX_DEPLOYMENT_TARGET = 10.12"
-    var deploymentVerMin    = 0.0
-    var deploymentVerMax    = 0.0
-    var swiftURLs           = [URL]()
-    var swiftSummaries      = [SwiftSummary]()
-    var targets             = PBXNativeTarget()
+    var filename             = ""   // from URL
+    var appName              = ""   // from app target
+    var productName          = ""   // from app target
+    var archiveVersion       = ""   // base level
+    var objectVersion        = ""   // base level
+    var organizationName     = ""   // root object
+    var compatibilityVersion = ""   // root object
+    var LastSwiftUpdateCheck = ""   // root object
+    var LastUpgradeCheck     = ""   // root object
+    var createdOnToolsVersion = ""  // PBXProject section > attributes > TargetAttributes
+    var swiftVerMin          = 0.0  // from XCBuildConfiguration.buildSettings."SWIFT_VERSION = 4.2"
+    var swiftVerMax          = 0.0  // from XCBuildConfiguration.buildSettings."SWIFT_VERSION = 4.2"
+    var sdkRoot              = ""   // from XCBuildConfiguration.buildSettings.SDKROOT = macosx
+    var deploymentTarget     = ""   // from XCBuildConfiguration.buildSettings."MACOSX_DEPLOYMENT_TARGET = 10.12"
+    var deploymentVerMin     = 0.0
+    var deploymentVerMax     = 0.0
+    var swiftURLs            = [URL]()
+    var swiftSummaries       = [SwiftSummary]()
+    var targets              = PBXNativeTarget()
     var url = FileManager.default.homeDirectoryForCurrentUser   // from URL
 }
 
-//13 sections
+// component of XcodeProj
 struct PBXNativeTarget {
     var name = ""                   // "AnalyseSwiftCode"
     var productName = ""            // "FileSpy"
@@ -51,17 +52,7 @@ struct PBXNativeTarget {
     var ORGANIZATIONNAME    = ""    // ORGANIZATIONNAME = "Ray Wenderlich"
 }
 
-//struct XCBuildConfiguration {
-//    var name = ""                       // Release or Debug
-//    var SDKROOT = ""                    // macosx
-//    var SWIFT_VERSION = ""              // SWIFT_VERSION = 4.2
-//    var TEST_HOST = ""                  // \"$(BUILT_PRODUCTS_DIR)/AnalyseSwiftCode.app/Contents/MacOS/AnalyseSwiftCode\""
-//    var MACOSX_DEPLOYMENT_TARGET = ""   // MACOSX_DEPLOYMENT_TARGET = 10.12
-//    var IPHONEOS_DEPLOYMENT_TARGET = "" // IPHONEOS_DEPLOYMENT_TARGET = 11.1
-//    var PRODUCT_BUNDLE_IDENTIFIER = ""  // PRODUCT_BUNDLE_IDENTIFIER = com.georgebauer.analyseswiftcode
-//}
-
-// Struct to hold values set by .xcodeproj > project.pbxproj file
+// Struct to hold values set by .xcodeproj/project.pbxproj file
 // To Add property:
 //  1) "var XXX ="         (1 place);
 //  2) func changeProperty (2 places)           case "XXX": self.XXX = vals.first ?? ""
@@ -116,10 +107,11 @@ public struct PBX: CustomDebugStringConvertible {       //64-272 = 218-lines
     var MACOSX_DEPLOYMENT_TARGET   = ""
     var IPHONEOS_DEPLOYMENT_TARGET = ""
     var WATCH_DEPLOYMENT_TARGET   = ""
+    var TV_DEPLOYMENT_TARGET   = ""
     var ENABLE_STRICT_OBJC_MSGSEND = ""
     var PRODUCT_BUNDLE_IDENTIFIER  = ""
 
-    mutating func changeProperty(propertyName: String, vals: [String]) {    //116-181 = 65-lines
+    mutating func changeProperty(propertyName: String, vals: [String]) {    //114-181 = 67-lines
         switch propertyName {
         case "isa":         self.isa        = vals.first ?? ""
         case "name":        self.name       = vals.first ?? ""
@@ -169,7 +161,8 @@ public struct PBX: CustomDebugStringConvertible {       //64-272 = 218-lines
         case "CODE_SIGN_IDENTITY":  self.CODE_SIGN_IDENTITY     = vals.first ?? ""
         case "MACOSX_DEPLOYMENT_TARGET":    self.MACOSX_DEPLOYMENT_TARGET   = vals.first ?? ""
         case "IPHONEOS_DEPLOYMENT_TARGET":  self.IPHONEOS_DEPLOYMENT_TARGET = vals.first ?? ""
-        case "WATCH_DEPLOYMENT_TARGET":     self.WATCH_DEPLOYMENT_TARGET   = vals.first ?? ""
+        case "WATCH_DEPLOYMENT_TARGET":     self.WATCH_DEPLOYMENT_TARGET    = vals.first ?? ""
+        case "TV_DEPLOYMENT_TARGET":        self.TV_DEPLOYMENT_TARGET       = vals.first ?? ""
         case "PRODUCT_BUNDLE_IDENTIFIER":   self.PRODUCT_BUNDLE_IDENTIFIER  = vals.first ?? ""
         case "ENABLE_STRICT_OBJC_MSGSEND":  self.ENABLE_STRICT_OBJC_MSGSEND = vals.first ?? ""
         default:
@@ -188,7 +181,7 @@ public struct PBX: CustomDebugStringConvertible {       //64-272 = 218-lines
     }//end func
 
     //---- debugDescription - used for print
-    public var debugDescription: String {       //184-242 = 58-lines
+    public var debugDescription: String {       //184-244 = 60-lines
         //let sep = "\(sep)"
         let sep = "\n\t"
         let selfName = self.name.isEmpty ? "" : " - name: \"\(self.name)\""
@@ -243,6 +236,7 @@ public struct PBX: CustomDebugStringConvertible {       //64-272 = 218-lines
         if !self.MACOSX_DEPLOYMENT_TARGET.isEmpty   { str += "\(sep)MACOSX_DEPLOYMENT_TARGET = "   + self.MACOSX_DEPLOYMENT_TARGET }
         if !self.IPHONEOS_DEPLOYMENT_TARGET.isEmpty { str += "\(sep)IPHONEOS_DEPLOYMENT_TARGET = " + self.IPHONEOS_DEPLOYMENT_TARGET }
         if !self.WATCH_DEPLOYMENT_TARGET.isEmpty    { str += "\(sep)WATCH_DEPLOYMENT_TARGET = "    + self.WATCH_DEPLOYMENT_TARGET }
+        if !self.TV_DEPLOYMENT_TARGET.isEmpty       { str += "\(sep)TV_DEPLOYMENT_TARGET = "       + self.TV_DEPLOYMENT_TARGET }
         if !self.PRODUCT_BUNDLE_IDENTIFIER.isEmpty  { str += "\(sep)PRODUCT_BUNDLE_IDENTIFIER = "  + self.PRODUCT_BUNDLE_IDENTIFIER }
         if !self.ENABLE_STRICT_OBJC_MSGSEND.isEmpty { str += "\(sep)ENABLE_STRICT_OBJC_MSGSEND = " + self.ENABLE_STRICT_OBJC_MSGSEND }
 
@@ -281,9 +275,9 @@ public struct PBX: CustomDebugStringConvertible {       //64-272 = 218-lines
 
 //MARK:- funcs
 
-//MARK: analyseXcodeproj 73-lines
+//MARK: analyseXcodeproj 42-lines
 //---- analyseXcodeproj - Analyse a .xcodeproj file, returning an errorText and an XcodeProj instance
-public func analyseXcodeproj(url: URL, goDeep: Bool, deBug: Bool = true) -> (String, XcodeProj) {   //278-351 = 73-lines
+public func analyseXcodeproj(url: URL, goDeep: Bool, deBug: Bool = true) -> (String, XcodeProj) {   //280-322 = 42-lines
     xcodeProj = XcodeProj()
     xcodeProj.url = url
     xcodeProj.filename = url.lastPathComponent
@@ -328,7 +322,7 @@ public func analyseXcodeproj(url: URL, goDeep: Bool, deBug: Bool = true) -> (Str
 }//end func analyseXcodeproj
 
 
-func stripComments(_ line: String) -> String {      //354-386 = 32-lines
+func stripComments(_ line: String) -> String {      //325-357 = 32-lines
     var cleanLine = line
     if cleanLine.contains("//") {
         let comps = cleanLine.components(separatedBy: "//")
@@ -362,8 +356,8 @@ func stripComments(_ line: String) -> String {      //354-386 = 32-lines
     return cleanerLine
 }//end func
 
-//MARK: pbxToXcodeProj 313-lines
-func pbxToXcodeProj(_ str: String, deBug: Bool = true) {        //389-702 = 313-lines
+//MARK: pbxToXcodeProj 319-lines
+func pbxToXcodeProj(_ str: String, deBug: Bool = true) {        //360-679 = 319-lines
     if deBug {
         print("Start pbxToXcodeProj")
         print("🏄‍♂️")
@@ -696,6 +690,11 @@ private func updateDeploymentTarget(buildConfigurationObj: PBX) {
         deploymentTarget = buildConfigurationObj.WATCH_DEPLOYMENT_TARGET
         os = "WatchOS"
     }
+    if deploymentTarget.isEmpty {
+        deploymentTarget = buildConfigurationObj.TV_DEPLOYMENT_TARGET
+        os = "tvOS"
+    }
+
     if !deploymentTarget.isEmpty {
         xcodeProj.deploymentTarget = os + " Deployment Target = " + deploymentTarget
     }
@@ -835,14 +834,27 @@ private func isObjectKey(_ str: String) -> Bool {
 //let attributesSmallFont  = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 12), NSAttributedString.Key.paragraphStyle: paragraphStyleA1]
 //var attTxt  = NSMutableAttributedString(string: "", attributes: attributesSmallFont)
 
+public struct IssuePreferences {
+    var maxFileCodeLines = 500
+    var maxFuncCodeLines = 200
+    var diffentProductNameAllowed = false
+    var allowedOrganizations = ["GeorgeBauer","georgebauer"]
+    var underscoreAllowed = false
+    var minumumSwiftVersion = 4.0
+}
+
 public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {
+    let issuePreferences = IssuePreferences()
+
     var text = ""
     var issues = [String]()
     text += "          ---------------- \(xcodeProj.filename) ----------------\n"
     text += "Application Name         = \(xcodeProj.appName)\n"
     if xcodeProj.appName != xcodeProj.productName {
         text += "Product Name             = \(xcodeProj.productName)\n"
-        issues.append("Application Name is different from Product Name")
+        if !issuePreferences.diffentProductNameAllowed {
+            issues.append("AppName: \"\(xcodeProj.appName)\" != ProductName: \"\(xcodeProj.productName)\"")
+        }
     }
 
     if xcodeProj.swiftVerMin != xcodeProj.swiftVerMax {
@@ -855,7 +867,7 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {
             text += "\(issue)!\n"
             issues.append(issue)
         } else {
-            if xcodeProj.swiftVerMin < 4.0 {
+            if xcodeProj.swiftVerMin < issuePreferences.minumumSwiftVersion {
                 issues.append("Obsolete Swift Version \(xcodeProj.swiftVerMin)")
             }
             text += "Swift Version used       = \(xcodeProj.swiftVerMin)\n"
@@ -871,6 +883,11 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {
     text += "SDK Root                 = \(xcodeProj.sdkRoot)\n"
     text += "\(xcodeProj.deploymentTarget)\n"    // deploymentTarget
 
+    if !issuePreferences.allowedOrganizations.isEmpty {
+        if !issuePreferences.allowedOrganizations.contains(xcodeProj.organizationName) {
+            issues.append("External Organization \"\(xcodeProj.organizationName)\"")
+        }
+    }
     var totalCodeLineCount     = 0
     var totalNonCamelCaseCount = 0
     var totalForceUnwrapCount  = 0
@@ -883,8 +900,11 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {
         let name = swiftSummary.fileName
         let isTest = swiftSummary.url.path.contains("TestSharedCode")
         if isTest || (name != "VBcompatablity.swift" && name != "MyFuncs.swift" && name != "StringExtension.swift") {
-            let c1 = swiftSummary.codeLineCount
-            totalCodeLineCount      += c1
+            let count = swiftSummary.codeLineCount
+            totalCodeLineCount      += count
+            if count > issuePreferences.maxFileCodeLines {
+                issues.append("\"\(name)\" has \(count) code-lines (>\(issuePreferences.maxFileCodeLines)).")
+            }
             let c2 = swiftSummary.nonCamelCases.count
             totalNonCamelCaseCount  += c2
             let c3 = swiftSummary.forceUnwraps.count
@@ -892,7 +912,7 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {
             let c4 = swiftSummary.vbCompatCalls.count
             totalVbCompatCallCount  += c4
             //text += "\(swiftSummary.url.lastPathComponent)  -  nonCamel \(swiftSummary.nonCamelCases.count)\n"
-            text += format2(swiftSummary.url.lastPathComponent,c1,c2,c3,c4)
+            text += format2(swiftSummary.url.lastPathComponent,count,c2,c3,c4)
         } else {
             text += "(\(swiftSummary.url.lastPathComponent))\n"
         }

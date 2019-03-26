@@ -24,8 +24,8 @@
 //AnalyseXcodeproj"
 // View source
 // Display in NSTable with links to AnalyseSwift.
-// Flag CodeLineCount > 500; funcCodeLines > 200
-// Flag missing Unit-Test, UITest
+// Flag funcCodeLines > 200
+// Flag missing Unit-Test
 // Show MainGroup.Children {Framework}
 // User Prefs: Max Codelines, Max funcCodelines; Under_score allowed, min SwiftVer; Alowed Organization; AppName<>productName allowed
 // Bug: "mainSourceKey = childKey", "Most likely child" may pick wrong child.
@@ -33,7 +33,7 @@
 // At start of analyseSwiftFile(), "swiftFilename =" should print last 3 path componants
 
 //AnalyseSwift:
-// Move "possible issues" to top
+// ?Move "possible issues" to top
 // Make handling quotes more robust - (codeLineClean)
 // inTripleQuote """
 // dependency
@@ -41,9 +41,9 @@
 // analysis: show func params
 // analysis: show non-camelCased params
 // analysis: show global vars, instance vars
-// analysis: organize by MARK: or by extension
+// analysis: show methods vs free functions
 // analysis: show commentLinesCount, MarkupLineCount
-// show methods vs free functions
+// analysis: organize by MARK: or by extension
 // allow extensions other than class
 // Flag //TODO: //FIXME:
 // bug: "// Check for Forced Unwrapping" may fail with multiple "!"s

@@ -156,7 +156,7 @@ extension ViewController {
         var isLookingForWord = true
         var inColoredWord = false
         var pEndWord = -1
-        var terminatingChar = Character(" ")
+        //var terminatingChar = Character(" ")
         for (i, char) in chars.enumerated() {
             if i == pEndWord {
                 isLookingForWord = true
@@ -209,7 +209,7 @@ extension ViewController {
                         if char != " " && char != "(" && char != ")" && char != "[" && char != "]" && char != "." {
                             isLookingForWord = false
 
-                            (pEndWord, terminatingChar) = findEndOfWord(chars: chars, pFirst: i)
+                            (pEndWord, _) = findEndOfWord(chars: chars, pFirst: i)
                             if "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ#@".contains(char) {
                                 isLookingForWord = false
                                 var charsInWord = [Character]()
@@ -238,7 +238,7 @@ extension ViewController {
         return colorMarks        // Mixed Code
     }//end func markCodeLine
 
-    //
+    //---- findEndOfWord - returns an Int pointer to the end if word, and the Character that terminates it.
     func findEndOfWord(chars: [Character], pFirst: Int) -> (Int, Character)  {
         for p in pFirst..<chars.count {
             var char = chars[p]
