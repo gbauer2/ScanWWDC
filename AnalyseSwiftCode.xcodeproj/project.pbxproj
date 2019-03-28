@@ -182,12 +182,13 @@
 					26ECD3361E874B5B00380F56 = {
 						CreatedOnToolsVersion = 8.2.1;
 						DevelopmentTeam = XD8UZ6484B;
-						LastSwiftMigration = 1010;
+						LastSwiftMigration = 1020;
 						ProvisioningStyle = Automatic;
 					};
 					CE1D751021BDA90B00286967 = {
 						CreatedOnToolsVersion = 10.1;
 						DevelopmentTeam = XD8UZ6484B;
+						LastSwiftMigration = 1020;
 						ProvisioningStyle = Automatic;
 						TestTargetID = 26ECD3361E874B5B00380F56;
 					};
@@ -401,7 +402,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.georgebauer.analyseswiftcode;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -419,7 +420,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.georgebauer.analyseswiftcode;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
@@ -443,7 +444,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.georgebauer.AnalyseSwiftCodeUnitTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AnalyseSwiftCode.app/Contents/MacOS/AnalyseSwiftCode";
 			};
 			name = Debug;
@@ -467,7 +468,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.georgebauer.AnalyseSwiftCodeUnitTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AnalyseSwiftCode.app/Contents/MacOS/AnalyseSwiftCode";
 			};
 			name = Release;

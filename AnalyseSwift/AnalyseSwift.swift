@@ -8,7 +8,7 @@
 
 import Cocoa
 
-// MARK: - Properties of analyseSwiftFile
+// MARK: - Properties of analyseSwiftFile (instance vars)
 var curlyDepth      = 0                     //accessed from gotOpenCurly, gotCloseCurly, getSelecFileInfo
 var blockOnDeck     = BlockInfo()           //accessed from gotOpenCurly,                analyseSwiftFile
 var blockStack      = [BlockInfo]()         //accessed from gotOpenCurly, gotCloseCurly, analyseSwiftFile
@@ -22,28 +22,34 @@ public struct SwiftSummary {
     var codeLineCount   = 0
     var byteCount       = 0
     var totalLineCount  = 0
-    var funcNames       = [String]()
-    var ibActionNames   = [String]()
-    var overrideNames   = [String]()
+    var funcs           = [FuncInfo]()
+    var ibActionFuncs   = [FuncInfo]()
+    var overrideFuncs   = [FuncInfo]()
     var importNames     = [String]()
     var classNames      = [String]()
     var structNames     = [String]()
     var protocolNames   = [String]()
     var extensionNames  = [String]()
     var enumNames       = [String]()
-
     // issues
     var nonCamelCases   = [String]()
     var forceUnwraps    = [String]()
     var vbCompatCalls   = [String]()
+    var massiveFuncs    = [FuncInfo]()
+    var massiveFile     = 0
     var url = FileManager.default.homeDirectoryForCurrentUser
+}
+
+public struct FuncInfo {
+    var name = ""
+    var codeLineCount = 0
 }
 
 enum BlockType: Int {
     case None           = 0
     case Func           = 1
-    case IBAction_Func  = 2
-    case Override_Func  = 3
+    case IBActionFunc   = 2
+    case OverrideFunc   = 3
     case Struct         = 4
     case Enum           = 5
     case Extension      = 6
@@ -67,42 +73,41 @@ struct BlockAggregate {
 }
 
 struct BlockInfo {
-    var blockType = BlockType.None
-    var lineNum  = 0
+    var blockType        = BlockType.None
+    var lineNum          = 0
     var codeLinesAtStart = 0
-    var name     = ""
-    var extra    = ""
-    var numLines = 0
+    var name             = ""
+    var extra            = ""
+    var codeLineCount    = 0
 }
 
 private struct LineItem {
     let lineNum: Int
-    let name: String
+    let name:  String
     let extra: String
 }
 
 // MARK: - Helper funcs
 
-// push "ondeck" onto stack, clear ondeck,  stackedCounter = nCodeLines
-private func gotOpenCurly(lineNum: Int) {
-    //print("\(lineNum) got open curly; depth \(curlyDepth) -> \(curlyDepth+1)")
+//---- gotOpenCurly - push "ondeck" onto stack, clear ondeck,  stackedCounter = nCodeLines
+private func gotOpenCurly(lineNum: Int, deBug: Bool = false) {
+    //if deBug { print("\(lineNum) got open curly; depth \(curlyDepth) -> \(curlyDepth+1)") }
     blockStack.insert(blockOnDeck, at: 0)
     blockOnDeck = BlockInfo()
     curlyDepth += 1
 }
 
-// pop stackedCounter lines4item = nCodeLines - stackedCounter
-private func gotCloseCurly(lineNum: Int, nCodeLine: Int) {
-
-    //print("\(lineNum) got close curly; depth \(curlyDepth) -> \(curlyDepth-1)")
+//---- gotCloseCurly - pop stackedCounter lines4item = nCodeLines - stackedCounter
+private func gotCloseCurly(lineNum: Int, nCodeLine: Int, deBug: Bool = false) {
+    //if deBug {print("\(lineNum) got close curly; depth \(curlyDepth) -> \(curlyDepth-1)")}
     curlyDepth -= 1
     var block = blockStack.remove(at: 0)
     if block.blockType != .None {
-        //print("\(block.name)")
-        block.numLines = nCodeLine - block.codeLinesAtStart // lineNum - block.lineNum
+        //if deBug {print("\(block.name)")}
+        block.codeLineCount = nCodeLine - block.codeLinesAtStart // lineNum - block.lineNum
         codeElements.append(block)
     }
-}
+}//end func
 
 // Check that there is no "}" and no more the 1 "{" and only AFTER class,extension,func,struc,enum declaration
 private func checkCurlys(codeName: String, itemName: String,posItem: Int, pOpenCurlyF: Int, pOpenCurlyR: Int, pCloseCurlyF: Int, pCloseCurlyR: Int) {
@@ -193,9 +198,9 @@ func removeQuotedStuff(_ str: String) -> String {
     return strNew
 }
 
-// MARK: - the main event 530-lines
-// called from analyseContentsButtonClicked         //197-727 = 530-lines
-func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes) -> (SwiftSummary, NSAttributedString) {
+// MARK: - the main event 561-lines
+// called from analyseContentsButtonClicked         //202-763 = 561-lines
+func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, deBug: Bool = true) -> (SwiftSummary, NSAttributedString) {
     let lines = contentFromFile.components(separatedBy: "\n")
 
     resetVBwords()
@@ -206,15 +211,15 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes) ->
     swiftSummary.url = selecFileInfo.url!
 
     var blockTypes = [BlockAggregate]()
-    blockTypes.append(BlockAggregate(blockType: .None,          subType: .None, codeName: "",              displayName: "unNamed",      showNone: false, count: 0))
-    blockTypes.append(BlockAggregate(blockType: .Func,          subType: .Func, codeName: "func",          displayName: "Regular func", showNone: true, count: 0))
-    blockTypes.append(BlockAggregate(blockType: .IBAction_Func, subType: .Func, codeName: "IBAction func", displayName: "IBAction func",showNone: false, count: 0))
-    blockTypes.append(BlockAggregate(blockType: .Override_Func, subType: .Func, codeName: "override func", displayName: "Override func",showNone: false, count: 0))
-    blockTypes.append(BlockAggregate(blockType: .Struct,        subType: .Struct, codeName: "struct",      displayName: "Struct",       showNone: false, count: 0))
-    blockTypes.append(BlockAggregate(blockType: .Enum,          subType: .Enum,  codeName: "enum",         displayName: "Enum",         showNone: false, count: 0))
-    blockTypes.append(BlockAggregate(blockType: .Extension,     subType: .Class, codeName: "extension",    displayName: "Extension",    showNone: false, count: 0))
-    blockTypes.append(BlockAggregate(blockType: .Class,         subType: .Class, codeName: "class",        displayName: "Class",        showNone: true, count: 0))
-    blockTypes.append(BlockAggregate(blockType: .isProtocol,    subType: .isProtocol,codeName: "protocol", displayName: "Protocol",     showNone: false, count: 0))
+    blockTypes.append(BlockAggregate(blockType: .None,        subType: .None, codeName: "",             displayName: "unNamed",      showNone: false,count: 0))
+    blockTypes.append(BlockAggregate(blockType: .Func,        subType: .Func, codeName: "func",         displayName: "Regular func", showNone: true, count: 0))
+    blockTypes.append(BlockAggregate(blockType: .IBActionFunc,subType: .Func, codeName: "IBAction func",displayName: "IBAction func",showNone: false,count: 0))
+    blockTypes.append(BlockAggregate(blockType: .OverrideFunc,subType: .Func, codeName: "override func",displayName: "Override func",showNone: false,count: 0))
+    blockTypes.append(BlockAggregate(blockType: .Struct,      subType: .Struct,codeName:"struct",       displayName: "Struct",       showNone: false,count: 0))
+    blockTypes.append(BlockAggregate(blockType: .Enum,        subType: .Enum, codeName: "enum",         displayName: "Enum",         showNone: false,count: 0))
+    blockTypes.append(BlockAggregate(blockType: .Extension,   subType: .Class,codeName: "extension",    displayName: "Extension",    showNone: false,count: 0))
+    blockTypes.append(BlockAggregate(blockType: .Class,       subType: .Class,codeName: "class",        displayName: "Class",        showNone: true, count: 0))
+    blockTypes.append(BlockAggregate(blockType: .isProtocol,  subType: .isProtocol,codeName: "protocol",displayName: "Protocol",     showNone: false,count: 0))
     for i in 0..<blockTypes.count {         // Error check location in array vs. enum
         let ty = blockTypes[i]
         if i != ty.blockType.rawValue {
@@ -256,8 +261,9 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes) ->
 
     //infoTextView.string = "Analysing..."
 
-    // MARK: Main Loop 258-562 = 304-lines
+    // MARK: Main Loop 265-574 = 309-lines
     for line in lines {
+//        // Multitasking Check
 //        if selecFileInfo.url != ViewController.latestUrl {
 //            if let latestUrl = ViewController.latestUrl {
 //                //print("😎Working on \(selecFileInfo.url!),\n but \(latestUrl) is now current😎")
@@ -293,7 +299,7 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes) ->
             nBlankLine += 1
             if aa == "{" { gotOpenCurly(lineNum: lineNum) }                                 // single "{" on line
             if aa == "}" { gotCloseCurly(lineNum: lineNum, nCodeLine: nCodeLine) }          // single "}" on line
-        } else {                                        // code! 298 - 561 = 263-lines
+        } else {                                        // code! 302 - 573 = 271-lines
             // MARK: Code!
             nCodeLine += 1
 
@@ -341,7 +347,7 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes) ->
             var codeLineClean = codeLine
             if pQuoteFirst >= 0 && pQuoteLast > pQuoteFirst+1 {
                 codeLineClean  = removeQuotedStuff(codeLine)
-                //print(lineNum,codeLine," --> ",codeLineClean)
+                //if deBug {print(lineNum,codeLine," --> ",codeLineClean)}
             }
 
             // Create a CharacterSet of delimiters.
@@ -380,8 +386,10 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes) ->
                         if prefix.count + word.count > 70 && suffix.count > 3 {
                             suffix = "..."
                         }
-                        print("line \(lineNum): \(word)")
-                        print(codeLineClean)
+                        if deBug {
+                            print("line \(lineNum): \(word)")
+                            print(codeLineClean)
+                        }
                         if word.contains(".") {
                             let comps = word.components(separatedBy: ".")
                             xword = "." + comps.last!
@@ -413,7 +421,7 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes) ->
                 } else {
 
                 }
-                //print("\(lineNum) \(codeName) = \(itemName)")
+                //if deBug {print("\(lineNum) \(codeName) = \(itemName)")}
                 continue                                        // isImport
             }
 
@@ -423,7 +431,7 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes) ->
             //---------------------------------------------------------------   // func
             codeName = "func"
             if !foundNamedBlock && codeLineClean.contains(codeName) {
-                //print("\(codeLine)")
+                //if deBug {print("\(codeLine)")}
                 var posItem = -1
                 for i in 0..<words.count {
                     if words[i] == codeName {
@@ -438,24 +446,22 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes) ->
                         itemName = words[posItem + 1]   // get the word that follows "func"
                         if !isCamelCase(itemName) {
                             let lineItem = LineItem(lineNum: lineNum, name: itemName, extra: "")
-                            print("➡️ \(lineItem.lineNum) Non-CamelCased \(lineItem.name)")
+                            if deBug {print("➡️ \(lineItem.lineNum) Non-CamelCased \(lineItem.name)")}
                             nonCamelVars.append(lineItem)
                             swiftSummary.nonCamelCases.append(lineItem.name)
                         }
                     }
 
                     checkCurlys(codeName: codeName, itemName: itemName, posItem: posItem, pOpenCurlyF: pOpenCurlyF, pOpenCurlyR: pOpenCurlyR, pCloseCurlyF: pCloseCurlyF, pCloseCurlyR: pCloseCurlyR)
-                    blockOnDeck = BlockInfo(blockType: .Func, lineNum: lineNum, codeLinesAtStart: nCodeLine, name: itemName, extra: "", numLines: 0)
+                    blockOnDeck = BlockInfo(blockType: .Func, lineNum: lineNum, codeLinesAtStart: nCodeLine, name: itemName, extra: "", codeLineCount: 0)
                     //inFuncName = itemName
                     if firstWord == "override" {
-                        swiftSummary.overrideNames.append(itemName)
-                        index = BlockType.Override_Func.rawValue                                // Override_Func
-                        blockOnDeck.blockType = .Override_Func
+                        index = BlockType.OverrideFunc.rawValue                                // OverrideFunc
+                        blockOnDeck.blockType = .OverrideFunc
                         blockTypes[index].count += 1
                     } else if firstWord == "@IBAction" {
-                        swiftSummary.ibActionNames.append(itemName)
-                        index = BlockType.IBAction_Func.rawValue                                // IBAction_Func
-                        blockOnDeck.blockType = .IBAction_Func
+                        index = BlockType.IBActionFunc.rawValue                                // IBActionFunc
+                        blockOnDeck.blockType = .IBActionFunc
                         blockTypes[index].count += 1
                     } else {                            //private, internal, fileprivate, public
                         index = BlockType.Func.rawValue                                         // Func
@@ -464,8 +470,6 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes) ->
                             containerName = (blockStack.last!.name)
                             blockOnDeck.name = "\(containerName).\(blockOnDeck.name)"
                         }
-                        swiftSummary.funcNames.append(itemName)
-                        print("✅ func \(blockOnDeck.name)")
                         blockTypes[index].count += 1
                     }
                     foundNamedBlock = true
@@ -496,7 +500,7 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes) ->
                             whatViewController = words[2]
                         }
                         checkCurlys(codeName: codeName, itemName: itemName, posItem: posItem, pOpenCurlyF: pOpenCurlyF, pOpenCurlyR: pOpenCurlyR, pCloseCurlyF: pCloseCurlyF, pCloseCurlyR: pCloseCurlyR)
-                        blockOnDeck = BlockInfo(blockType: blockTypes[index].blockType, lineNum: lineNum, codeLinesAtStart: nCodeLine, name: itemName, extra: extra, numLines: 0)
+                        blockOnDeck = BlockInfo(blockType: blockTypes[index].blockType, lineNum: lineNum, codeLinesAtStart: nCodeLine, name: itemName, extra: extra, codeLineCount: 0)
 
                         switch index {
                         case 4 :  swiftSummary.structNames.append(itemName)
@@ -537,7 +541,7 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes) ->
                 }
             }
 
-            //print("➡️ \(codeLineClean)")
+            //if deBug {print("➡️ \(codeLineClean)")}
             if codeLineClean.hasPrefix("let ") || codeLineClean.hasPrefix("var ") {
                 codeLineClean = String(codeLineClean.dropFirst(4))
                 let comps1 = codeLineClean.components(separatedBy: "=")
@@ -546,7 +550,7 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes) ->
                 assigneeList = comps2[0]                                    // Strip off right side of ":"
                 let assignees = assigneeList.components(separatedBy: ",")
                 //assignees = assignees.map { $0.trim }
-                //print(codeLineClean, assignees)
+                //if deBug {print(codeLineClean, assignees)}
                 for assignee in assignees {
                     var name = assignee.trim
                     if name.hasPrefix("(") {
@@ -557,7 +561,7 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes) ->
                     }
                     if !isCamelCase(name) {
                         let lineItem = LineItem(lineNum: lineNum, name: name, extra: "")
-                        print("➡️ \(lineItem.lineNum) Non-CamelCased \(lineItem.name)")
+                        if deBug {print("➡️ \(lineItem.lineNum) Non-CamelCased \(lineItem.name)")}
                         nonCamelVars.append(lineItem)
                         swiftSummary.nonCamelCases.append(lineItem.name)
                         if nonCamelVars.count != swiftSummary.nonCamelCases.count {
@@ -575,7 +579,7 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes) ->
     var tx: NSMutableAttributedString = NSMutableAttributedString(string: "")
     let txt:NSMutableAttributedString = NSMutableAttributedString(string: "")
 
-    print()
+    if deBug {print()}
 
     // Set the Tab-stops
     let tabInterval: CGFloat = 100.0
@@ -640,11 +644,12 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes) ->
     tx  = NSMutableAttributedString(string: "\(nBlankLine) blank lines.\n", attributes: attributesSmallFont)
     txt.append(tx)
     swiftSummary.codeLineCount = nCodeLine
+    if nCodeLine > IssuePreferences.maxFileCodeLines { swiftSummary.massiveFile = 1 }
     tx  = NSMutableAttributedString(string: "\(nCodeLine) lines of code.  ", attributes: attributesMediumFont)
     txt.append(tx)
     tx  = NSMutableAttributedString(string: "\(nTrailing) with trailing comments.\n", attributes: attributesSmallFont)
     txt.append(tx)
-    //print()
+    //if deBug {print()}
 
     // Print Imports
     swiftSummary.importNames = imports.map { $0.name }
@@ -656,8 +661,8 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes) ->
                       BlockType.isProtocol.rawValue,
                       BlockType.Class.rawValue,
                       BlockType.Extension.rawValue,
-                      BlockType.Override_Func.rawValue,
-                      BlockType.IBAction_Func.rawValue,
+                      BlockType.OverrideFunc.rawValue,
+                      BlockType.IBActionFunc.rawValue,
                       BlockType.Func.rawValue,
                       BlockType.None.rawValue]
 
@@ -669,7 +674,7 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes) ->
     for i in 0..<blockTypes.count - 1 {
         let b = blockTypes[printOrder[i]]
         tx = showNamedBlock(name: b.displayName, blockType: b.blockType, list: codeElements)
-        print(tx.string)
+        if deBug {print(tx.string)}
         if b.showNone || b.count > 0 {txt.append(tx)}
     }
 
@@ -677,42 +682,65 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes) ->
         print("😡⛔️😡 Error: Final Curly-Depth = \(curlyDepth) 😡⛔️😡")
     }
 
-    print(codeElements.count, " named blocks")          // Sanity Check
+    if deBug { print(codeElements.count, " named blocks") }         // Sanity Check
     for c in codeElements {
         let i = Int(c.blockType.rawValue)
         let cType = ("\(c.blockType)" + "        ").left(14)
-        print("# \(c.lineNum),\t\(c.numLines) lines, \t\(cType)\t\(c.name)  \(c.extra)  \(i)")
+        if deBug {print("# \(c.lineNum),\t\(c.codeLineCount) lines, \t\(cType)\t\(c.name)  \(c.extra)  \(i)")}
+
+        switch c.blockType {
+        case .Func:
+            swiftSummary.funcs.append(FuncInfo(name: c.name, codeLineCount: c.codeLineCount))
+            if c.codeLineCount > IssuePreferences.maxFuncCodeLines {
+                swiftSummary.massiveFuncs.append(FuncInfo(name: c.name, codeLineCount: c.codeLineCount))
+            }
+        case .IBActionFunc: swiftSummary.ibActionFuncs.append(FuncInfo(name: c.name, codeLineCount: c.codeLineCount))
+        case .OverrideFunc: swiftSummary.overrideFuncs.append(FuncInfo(name: c.name, codeLineCount: c.codeLineCount))
+        default: break
+        }
     }
 
+    //MARK: Show Issues
+
     let issuesTitle: String
-    if nonCamelVars.count + forceUnwraps.count + nVBwords == 0 {
+    let totalIssueCount = nonCamelVars.count + forceUnwraps.count + nVBwords + swiftSummary.massiveFile + swiftSummary.massiveFuncs.count
+    if totalIssueCount == 0 {
         issuesTitle = "No Issues"
     } else {
-        issuesTitle = "Possible Issues"
+        issuesTitle = "\(totalIssueCount) Possible Issues"
     }
     tx = showDivider(title: issuesTitle)
     txt.append(tx)
 
+    if swiftSummary.massiveFile > 0 {
+        tx = showIssue(text: "Massive file at \(swiftSummary.codeLineCount) code lines")
+        txt.append(tx)
+    }
+
+    for massiveFunc in swiftSummary.massiveFuncs {
+            tx = showIssue(text: "Massive func \(massiveFunc.name) at \(massiveFunc.codeLineCount) code lines")
+            txt.append(tx)
+    }
     // print non-camelCased variables
-    print("\n\n😡 \(selecFileInfo.name)\t\t\(selecFileInfo.modificationDate!.ToString("MM-dd-yyyy hh:mm"))")
+    if deBug {print("\n\n😡 \(selecFileInfo.name)\t\t\(selecFileInfo.modificationDate!.ToString("MM-dd-yyyy hh:mm"))")}
     if nonCamelVars.count > 0 {
-        print("\n😡 \(nonCamelVars.count) non-CamelCased variables")
+        if deBug {print("\n😡 \(nonCamelVars.count) non-CamelCased variables")}
         for nonCamel in nonCamelVars {
-            print("😡 line \(nonCamel.lineNum): \(nonCamel.name)")
+            if deBug {print("😡 line \(nonCamel.lineNum): \(nonCamel.name)")}
         }
-        print()
+        if deBug {print()}
         tx = showLineItems(name: "Non-CamelCased Var", items: nonCamelVars)
         txt.append(tx)
     }
 
     // print forced unwraps
-    print("\n\n😡 \(selecFileInfo.name)\t\t\(selecFileInfo.modificationDate!.ToString("MM-dd-yyyy hh:mm"))")
+    if deBug {print("\n\n😡 \(selecFileInfo.name)\t\t\(selecFileInfo.modificationDate!.ToString("MM-dd-yyyy hh:mm"))")}
     if forceUnwraps.count > 0 {
-        print("\n😡 \(forceUnwraps.count) non-forceCased variables")
+        if deBug {print("\n😡 \(forceUnwraps.count) non-forceCased variables")}
         for forceUnwrap in forceUnwraps {
-            print("😡 line \(forceUnwrap.lineNum): \(forceUnwrap.name)")
+            if deBug {print("😡 line \(forceUnwrap.lineNum): \(forceUnwrap.name)")}
         }
-        print()
+        if deBug {print()}
         tx = showLineItems(name: "Forced Unwrap", items: forceUnwraps)
         txt.append(tx)
     }
@@ -720,15 +748,15 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes) ->
     // print VBCompatability stuff
     if nVBwords > 0 {
         var vbLineItems = [LineItem]()
-        print("😡 \(nUniqueVBWords) unique VBCompatability calls, for a total of \(nVBwords).")
+        if deBug {print("😡 \(nUniqueVBWords) unique VBCompatability calls, for a total of \(nVBwords).")}
         for (key,value) in gDictVBwords.sorted(by: {$0.key < $1.key}) {
             if value > 0 {
                 let extra = "\(showCount(count: value, name: "time"))"
-                print("😡   \(key.PadRight(12)) \(extra)")
+                if deBug {print("😡   \(key.PadRight(12)) \(extra)")}
                 vbLineItems.append(LineItem(lineNum: 0, name: key, extra: extra))
             }
         }
-        print("\n")
+        if deBug {print("\n")}
         tx = showLineItems(name: "VBCompatability call", items: vbLineItems)
         txt.append(tx)
     }
@@ -742,6 +770,12 @@ let paragraphStyleA1 = NSMutableParagraphStyle()    //accessed from showLineItem
 
 private func showDivider(title: String) -> NSMutableAttributedString {
     let txt = "\n------------------- \(title) -------------------\n"
+    let nsAttTxt = NSMutableAttributedString(string: txt, attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 15), NSAttributedString.Key.paragraphStyle: paragraphStyleA1])
+    return nsAttTxt
+}
+
+private func showIssue(text: String) -> NSMutableAttributedString {
+    let txt = "\(text)\n"
     let nsAttTxt = NSMutableAttributedString(string: txt, attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 15), NSAttributedString.Key.paragraphStyle: paragraphStyleA1])
     return nsAttTxt
 }
@@ -787,7 +821,7 @@ private func showNamedBlock(name: String, blockType : BlockType, list: [BlockInf
     let txt = "\n" + showCount(count: items.count, name: name, ifZero: "No") + ":\n"
     let nsAttTxt = NSMutableAttributedString(string: txt, attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 18), NSAttributedString.Key.paragraphStyle: paragraphStyleA1])
     for item in items {
-        var tx = "\t\(formatInt(number: item.numLines, fieldLen: 5))\t lines @\t\(item.lineNum) \t\(item.name)"
+        var tx = "\t\(formatInt(number: item.codeLineCount, fieldLen: 5))\t lines @\t\(item.lineNum) \t\(item.name)"
         if !item.extra.isEmpty {tx += "  (\(item.extra) )"}
         tx += "\n"
         let nsAttTx = NSAttributedString(string: tx, attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 14), NSAttributedString.Key.paragraphStyle: paragraphStyleA2])

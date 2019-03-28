@@ -57,7 +57,7 @@ struct PBXNativeTarget {
 //  1) "var XXX ="         (1 place);
 //  2) func changeProperty (2 places)           case "XXX": self.XXX = vals.first ?? ""
 //  3) "debugDescription"  (3 places) if !self.XXX.isEmpty    { str += ", XXX=" + self.XXX }
-public struct PBX: CustomDebugStringConvertible {       //64-272 = 218-lines
+public struct PBX: CustomDebugStringConvertible {       //60-274 = 214-lines
     var isa         = ""
     var name        = ""
     var path        = ""
@@ -106,8 +106,8 @@ public struct PBX: CustomDebugStringConvertible {       //64-272 = 218-lines
     var CODE_SIGN_IDENTITY  = ""
     var MACOSX_DEPLOYMENT_TARGET   = ""
     var IPHONEOS_DEPLOYMENT_TARGET = ""
-    var WATCH_DEPLOYMENT_TARGET   = ""
-    var TV_DEPLOYMENT_TARGET   = ""
+    var WATCHOS_DEPLOYMENT_TARGET  = ""
+    var TVOS_DEPLOYMENT_TARGET     = ""
     var ENABLE_STRICT_OBJC_MSGSEND = ""
     var PRODUCT_BUNDLE_IDENTIFIER  = ""
 
@@ -161,8 +161,8 @@ public struct PBX: CustomDebugStringConvertible {       //64-272 = 218-lines
         case "CODE_SIGN_IDENTITY":  self.CODE_SIGN_IDENTITY     = vals.first ?? ""
         case "MACOSX_DEPLOYMENT_TARGET":    self.MACOSX_DEPLOYMENT_TARGET   = vals.first ?? ""
         case "IPHONEOS_DEPLOYMENT_TARGET":  self.IPHONEOS_DEPLOYMENT_TARGET = vals.first ?? ""
-        case "WATCH_DEPLOYMENT_TARGET":     self.WATCH_DEPLOYMENT_TARGET    = vals.first ?? ""
-        case "TV_DEPLOYMENT_TARGET":        self.TV_DEPLOYMENT_TARGET       = vals.first ?? ""
+        case "WATCHOS_DEPLOYMENT_TARGET":   self.WATCHOS_DEPLOYMENT_TARGET  = vals.first ?? ""
+        case "TVOS_DEPLOYMENT_TARGET":      self.TVOS_DEPLOYMENT_TARGET     = vals.first ?? ""
         case "PRODUCT_BUNDLE_IDENTIFIER":   self.PRODUCT_BUNDLE_IDENTIFIER  = vals.first ?? ""
         case "ENABLE_STRICT_OBJC_MSGSEND":  self.ENABLE_STRICT_OBJC_MSGSEND = vals.first ?? ""
         default:
@@ -235,8 +235,8 @@ public struct PBX: CustomDebugStringConvertible {       //64-272 = 218-lines
         if !self.CODE_SIGN_IDENTITY.isEmpty     { str += "\(sep)CODE_SIGN_IDENTITY = "  + self.CODE_SIGN_IDENTITY }
         if !self.MACOSX_DEPLOYMENT_TARGET.isEmpty   { str += "\(sep)MACOSX_DEPLOYMENT_TARGET = "   + self.MACOSX_DEPLOYMENT_TARGET }
         if !self.IPHONEOS_DEPLOYMENT_TARGET.isEmpty { str += "\(sep)IPHONEOS_DEPLOYMENT_TARGET = " + self.IPHONEOS_DEPLOYMENT_TARGET }
-        if !self.WATCH_DEPLOYMENT_TARGET.isEmpty    { str += "\(sep)WATCH_DEPLOYMENT_TARGET = "    + self.WATCH_DEPLOYMENT_TARGET }
-        if !self.TV_DEPLOYMENT_TARGET.isEmpty       { str += "\(sep)TV_DEPLOYMENT_TARGET = "       + self.TV_DEPLOYMENT_TARGET }
+        if !self.WATCHOS_DEPLOYMENT_TARGET.isEmpty  { str += "\(sep)WATCHOS_DEPLOYMENT_TARGET = "  + self.WATCHOS_DEPLOYMENT_TARGET }
+        if !self.TVOS_DEPLOYMENT_TARGET.isEmpty     { str += "\(sep)TVOS_DEPLOYMENT_TARGET = "     + self.TVOS_DEPLOYMENT_TARGET }
         if !self.PRODUCT_BUNDLE_IDENTIFIER.isEmpty  { str += "\(sep)PRODUCT_BUNDLE_IDENTIFIER = "  + self.PRODUCT_BUNDLE_IDENTIFIER }
         if !self.ENABLE_STRICT_OBJC_MSGSEND.isEmpty { str += "\(sep)ENABLE_STRICT_OBJC_MSGSEND = " + self.ENABLE_STRICT_OBJC_MSGSEND }
 
@@ -304,7 +304,7 @@ public func analyseXcodeproj(url: URL, goDeep: Bool, deBug: Bool = true) -> (Str
 
             do {
                 let contentFromFile = try String(contentsOf: url, encoding: String.Encoding.utf8)
-                let (swiftSummary, _) = analyseSwiftFile(contentFromFile: contentFromFile, selecFileInfo: fileInfo )
+                let (swiftSummary, _) = analyseSwiftFile(contentFromFile: contentFromFile, selecFileInfo: fileInfo, deBug: false )
                 xcodeProj.swiftSummaries.append(swiftSummary)
             } catch let error as NSError {
                 print("⛔️ analyseContentsButtonClicked error: ⛔️\n⛔️\(error)⛔️")
@@ -457,7 +457,7 @@ func pbxToXcodeProj(_ str: String, deBug: Bool = true) {        //360-679 = 319-
                                 let (propertyName, vals) = getPropertyAndVals(from: parts[2])
                                 let got1: Bool
                                 switch propertyName {
-                                case "SDKROOT"                   : got1 = true;
+                                case "SDKROOT"                   : got1 = true
                                 case "SWIFT_VERSION"             : got1 = true
                                 case "MACOSX_DEPLOYMENT_TARGET"  : got1 = true
                                 case "IPHONEOS_DEPLOYMENT_TARGET": got1 = true
@@ -687,11 +687,11 @@ private func updateDeploymentTarget(buildConfigurationObj: PBX) {
         deploymentTarget = buildConfigurationObj.IPHONEOS_DEPLOYMENT_TARGET
     }
     if deploymentTarget.isEmpty {
-        deploymentTarget = buildConfigurationObj.WATCH_DEPLOYMENT_TARGET
+        deploymentTarget = buildConfigurationObj.WATCHOS_DEPLOYMENT_TARGET
         os = "WatchOS"
     }
     if deploymentTarget.isEmpty {
-        deploymentTarget = buildConfigurationObj.TV_DEPLOYMENT_TARGET
+        deploymentTarget = buildConfigurationObj.TVOS_DEPLOYMENT_TARGET
         os = "tvOS"
     }
 
@@ -747,7 +747,7 @@ func getPropertyAndVals(from text: String) -> (propName: String, vals: [String])
 //---- stripCommentsAndNewlines -
 //Returns String stripped of comments, newLines, tabs & double-spaces.
 //Also returns linePointer witch contains a Line-Number for each Character.
-func stripCommentsAndNewlines(_ str: String) -> (String, [Int]) {       //751-800 = 49-lines
+func stripCommentsAndNewlines(_ str: String) -> (String, [Int]) {       //750-799 = 49-lines
     if str.contains("//") {
         print("⛔️⛔️⛔️  #\(#line) Contains \" // \"")
     }
@@ -835,16 +835,17 @@ private func isObjectKey(_ str: String) -> Bool {
 //var attTxt  = NSMutableAttributedString(string: "", attributes: attributesSmallFont)
 
 public struct IssuePreferences {
-    var maxFileCodeLines = 500
-    var maxFuncCodeLines = 200
-    var diffentProductNameAllowed = false
-    var allowedOrganizations = ["GeorgeBauer","georgebauer"]
-    var underscoreAllowed = false
-    var minumumSwiftVersion = 4.0
+    // swift file
+    static var maxFileCodeLines = 500
+    static var maxFuncCodeLines = 200
+    static var underscoreAllowed = false
+    // xcodeproj file
+    static var diffentProductNameAllowed = false
+    static var allowedOrganizations = ["GeorgeBauer","georgebauer"]
+    static var minumumSwiftVersion = 4.0
 }
 
 public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {
-    let issuePreferences = IssuePreferences()
 
     var text = ""
     var issues = [String]()
@@ -852,7 +853,7 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {
     text += "Application Name         = \(xcodeProj.appName)\n"
     if xcodeProj.appName != xcodeProj.productName {
         text += "Product Name             = \(xcodeProj.productName)\n"
-        if !issuePreferences.diffentProductNameAllowed {
+        if !IssuePreferences.diffentProductNameAllowed {
             issues.append("AppName: \"\(xcodeProj.appName)\" != ProductName: \"\(xcodeProj.productName)\"")
         }
     }
@@ -867,7 +868,7 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {
             text += "\(issue)!\n"
             issues.append(issue)
         } else {
-            if xcodeProj.swiftVerMin < issuePreferences.minumumSwiftVersion {
+            if xcodeProj.swiftVerMin < IssuePreferences.minumumSwiftVersion {
                 issues.append("Obsolete Swift Version \(xcodeProj.swiftVerMin)")
             }
             text += "Swift Version used       = \(xcodeProj.swiftVerMin)\n"
@@ -883,8 +884,8 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {
     text += "SDK Root                 = \(xcodeProj.sdkRoot)\n"
     text += "\(xcodeProj.deploymentTarget)\n"    // deploymentTarget
 
-    if !issuePreferences.allowedOrganizations.isEmpty {
-        if !issuePreferences.allowedOrganizations.contains(xcodeProj.organizationName) {
+    if !IssuePreferences.allowedOrganizations.isEmpty {
+        if !IssuePreferences.allowedOrganizations.contains(xcodeProj.organizationName) {
             issues.append("External Organization \"\(xcodeProj.organizationName)\"")
         }
     }
@@ -900,19 +901,19 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {
         let name = swiftSummary.fileName
         let isTest = swiftSummary.url.path.contains("TestSharedCode")
         if isTest || (name != "VBcompatablity.swift" && name != "MyFuncs.swift" && name != "StringExtension.swift") {
-            let count = swiftSummary.codeLineCount
-            totalCodeLineCount      += count
-            if count > issuePreferences.maxFileCodeLines {
-                issues.append("\"\(name)\" has \(count) code-lines (>\(issuePreferences.maxFileCodeLines)).")
+            let clCt = swiftSummary.codeLineCount
+            totalCodeLineCount      += clCt
+            if clCt > IssuePreferences.maxFileCodeLines {
+                issues.append("\"\(name)\" has \(clCt) code-lines (>\(IssuePreferences.maxFileCodeLines)).")
             }
-            let c2 = swiftSummary.nonCamelCases.count
-            totalNonCamelCaseCount  += c2
-            let c3 = swiftSummary.forceUnwraps.count
-            totalForceUnwrapCount   += c3
-            let c4 = swiftSummary.vbCompatCalls.count
-            totalVbCompatCallCount  += c4
+            let ccCt = swiftSummary.nonCamelCases.count
+            totalNonCamelCaseCount  += ccCt
+            let fuCt = swiftSummary.forceUnwraps.count
+            totalForceUnwrapCount   += fuCt
+            let vbCt = swiftSummary.vbCompatCalls.count
+            totalVbCompatCallCount  += vbCt
             //text += "\(swiftSummary.url.lastPathComponent)  -  nonCamel \(swiftSummary.nonCamelCases.count)\n"
-            text += format2(swiftSummary.url.lastPathComponent,count,c2,c3,c4)
+            text += format2(swiftSummary.url.lastPathComponent,clCt,ccCt,fuCt,vbCt)
         } else {
             text += "(\(swiftSummary.url.lastPathComponent))\n"
         }

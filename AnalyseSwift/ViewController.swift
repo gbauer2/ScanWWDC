@@ -31,6 +31,7 @@
 // Bug: "mainSourceKey = childKey", "Most likely child" may pick wrong child.
 // Bug: AnalyseXcodeproj called twice on startup
 // At start of analyseSwiftFile(), "swiftFilename =" should print last 3 path componants
+// Check Subdirectories for Swift files
 
 //AnalyseSwift:
 // ?Move "possible issues" to top
@@ -40,7 +41,7 @@
 // computed variables, var observer
 // analysis: show func params
 // analysis: show non-camelCased params
-// analysis: show global vars, instance vars
+// analysis: show global vars, singletons (dependency injection?)
 // analysis: show methods vs free functions
 // analysis: show commentLinesCount, MarkupLineCount
 // analysis: organize by MARK: or by extension
@@ -548,7 +549,7 @@ extension ViewController {
                         var txt: NSAttributedString
                         if  self.analyseMode == .swift {
                             //var swiftSummary = SwiftSummary()
-                            (_, txt) = analyseSwiftFile(contentFromFile: contentFromFile, selecFileInfo: self.selecFileInfo )
+                            (_, txt) = analyseSwiftFile(contentFromFile: contentFromFile, selecFileInfo: self.selecFileInfo, deBug: true )
                         } else if self.analyseMode == .WWDC {
                             txt = analyseWWDC(contentFromFile, selecFileInfo: self.selecFileInfo)
                         } else {
