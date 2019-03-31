@@ -198,8 +198,8 @@ func removeQuotedStuff(_ str: String) -> String {
     return strNew
 }
 
-// MARK: - the main event 561-lines
-// called from analyseContentsButtonClicked         //202-763 = 561-lines
+// MARK: - the main event 544-lines
+// called from analyseContentsButtonClicked         //203-746 = 544-lines
 func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, deBug: Bool = true) -> (SwiftSummary, NSAttributedString) {
     let lines = contentFromFile.components(separatedBy: "\n")
 
@@ -261,7 +261,7 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
 
     //infoTextView.string = "Analysing..."
 
-    // MARK: Main Loop 265-574 = 309-lines
+    // MARK: Main Loop 265-556 = 291-lines
     for line in lines {
 //        // Multitasking Check
 //        if selecFileInfo.url != ViewController.latestUrl {
@@ -299,7 +299,7 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
             nBlankLine += 1
             if aa == "{" { gotOpenCurly(lineNum: lineNum) }                                 // single "{" on line
             if aa == "}" { gotCloseCurly(lineNum: lineNum, nCodeLine: nCodeLine) }          // single "}" on line
-        } else {                                        // code! 302 - 573 = 271-lines
+        } else {                                        // code! 302 - 555 = 253-lines
             // MARK: Code!
             nCodeLine += 1
 
@@ -363,38 +363,20 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
             for word in words {
                 // Check for Forced Unwrapping
                 if word.hasSuffix("!") && !codeLineClean.hasPrefix("@IBOutlet") {
-                    var xword = word
-                    var prefix = ""
-                    var suffix = ""
-                    let maxPrefixLen = 34
-                    let p = codeLineClean.IndexOf(word)                     // p is pointer to word
-                    if p > 0 && codeLineClean[p-1] != " " {                 // must not have whitespace before "!"
-                        prefix = codeLineClean.mid(begin: 0, length: p)     //prefix is stuff before word
-                        if p >= maxPrefixLen {
-                            prefix = prefix.replacingOccurrences(of: "~~~~", with: "~") // remove excess garbage
-                            prefix = prefix.replacingOccurrences(of: "~~~~", with: "~")
-                            if prefix.count > maxPrefixLen {    // still too long
-                                if prefix.contains(" = ") {     // cut off all before "="
-                                    let comps = prefix.components(separatedBy: " = ")
-                                    prefix = "= " + comps.last!
-                                }
-                                prefix = "..." + prefix.suffix(maxPrefixLen)
-                            }
-                        }
-                        let pTrail = p + word.count
-                        suffix = codeLineClean.mid(begin: pTrail)
-                        if prefix.count + word.count > 70 && suffix.count > 3 {
-                            suffix = "..."
-                        }
+                    let p = codeLineClean.IndexOf(word)                             // p is pointer to word
+                    let isOK = word.count > 1 || p == 0 || codeLineClean[p-1] != " "    // must not have whitespace before "!"
+                    if isOK {
+                        let extra = getExtraForFoceUnwrap(codeLineClean: codeLineClean, word: word, p: p)
                         if deBug {
                             print("line \(lineNum): \(word)")
                             print(codeLineClean)
                         }
+                        var xword = word
                         if word.contains(".") {
                             let comps = word.components(separatedBy: ".")
                             xword = "." + comps.last!
                         }
-                        forceUnwraps.append(LineItem(lineNum: lineNum, name: xword, extra: prefix + word + suffix))
+                        forceUnwraps.append(LineItem(lineNum: lineNum, name: xword, extra: extra))
                         swiftSummary.forceUnwraps.append(xword)
                     }
                 }
@@ -713,12 +695,12 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
     txt.append(tx)
 
     if swiftSummary.massiveFile > 0 {
-        tx = showIssue(text: "Massive file at \(swiftSummary.codeLineCount) code lines")
+        tx = showIssue("\(swiftSummary.fileName) at \(swiftSummary.codeLineCount) code lines, is too big. (>\(IssuePreferences.maxFileCodeLines))")
         txt.append(tx)
     }
 
     for massiveFunc in swiftSummary.massiveFuncs {
-            tx = showIssue(text: "Massive func \(massiveFunc.name) at \(massiveFunc.codeLineCount) code lines")
+            tx = showIssue("func \"\(massiveFunc.name)()\" at \(massiveFunc.codeLineCount) code lines, is too big. (>\(IssuePreferences.maxFuncCodeLines))")
             txt.append(tx)
     }
     // print non-camelCased variables
@@ -763,6 +745,31 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
     return (swiftSummary, txt)
 }//end func analyseSwiftFile
 
+private func getExtraForFoceUnwrap(codeLineClean: String, word: String, p: Int) -> String {
+    let maxPrefixLen = 44
+    let maxSuffixLen = 22
+    var prefix = codeLineClean.mid(begin: 0, length: p)         // prefix is stuff before word
+
+    prefix = prefix.replacingOccurrences(of: "~~~~", with: "~") // remove excess garbage
+    prefix = prefix.replacingOccurrences(of: "~~~~", with: "~")
+    if prefix.contains(" = ") {                             // cut off all before "="
+        let comps = prefix.components(separatedBy: " = ")
+        prefix = "...= " + comps.last!
+    }
+    if prefix.count > maxPrefixLen {    // still too long
+        prefix = "..." + prefix.suffix(maxPrefixLen)
+    }
+
+    let pTrail = p + word.count
+    var suffix = codeLineClean.mid(begin: pTrail)
+    if suffix.count > maxSuffixLen {
+        suffix = suffix.prefix(maxSuffixLen - 3) + "..."
+    }
+    if prefix.count + word.count + suffix.count > 60 && suffix.count > 3 {
+        suffix = "..."
+    }
+    return prefix + word + suffix
+}
 
 //MARK:- Attrubuted Strings
 
@@ -774,7 +781,7 @@ private func showDivider(title: String) -> NSMutableAttributedString {
     return nsAttTxt
 }
 
-private func showIssue(text: String) -> NSMutableAttributedString {
+private func showIssue(_ text: String) -> NSMutableAttributedString {
     let txt = "\(text)\n"
     let nsAttTxt = NSMutableAttributedString(string: txt, attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 15), NSAttributedString.Key.paragraphStyle: paragraphStyleA1])
     return nsAttTxt
@@ -805,7 +812,7 @@ private func showLineItems(name: String, items: [LineItem]) -> NSMutableAttribut
 }
 
 // Returns NSMutableAttributedString showing name as a title, followed by list of items (line#, name, extra)
-private func showNamedBlock(name: String, blockType : BlockType, list: [BlockInfo]) -> NSMutableAttributedString {
+private func showNamedBlock(name: String, blockType: BlockType, list: [BlockInfo]) -> NSMutableAttributedString {
     let items = list.filter { $0.blockType == blockType}
     let paragraphStyleA2 = NSMutableParagraphStyle()
     var tabStop0 = NSTextTab(textAlignment: .left, location: 0)

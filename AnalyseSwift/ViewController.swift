@@ -5,9 +5,8 @@
 //  Created by George Bauer on 11/8/18.
 //  Copyright © 2018,2019 George Bauer. All rights reserved.//
 
-// Make ">" companion to "< Up"
+// Make ">" companion to "< Up" or maybe a "< back"
 // When in full screen mode - Show file-path above window
-// recursivly find all file of type .swift
 // change state storage to userDefaults
 // make btnFindAllxcodeproj the default if popup touched.
 // toggle btnFindAllxcodeproj to "Abort" when running, (and disable other buttons).
@@ -15,43 +14,51 @@
 // Use Menus: File/Find_All_xcodeproj_Files, Help
 // Help System
 // When opening a folder: If there is a single xcodeproj file, analyse it.
+// Error Handler
+// Single Click for analyse & change dir - no double Click
+// if newly opened folder has a single xcodeproj: analyse it
 
 // showContents - Swift file:
 //  Fix namesColor to include:  classNames, funcNames, InstanceVars, Globals, & library names (MK- for MapKit,  etc.)
 //  Use CharacterSets for type-of-char lookup
 //  user chooses colors & truncation
 
-//AnalyseXcodeproj"
+//AnalyseXcodeproj:
 // View source
-// Display in NSTable with links to AnalyseSwift.
-// Flag funcCodeLines > 200
+// Display in NSTable with links to AnalyseSwift & with option for printable.
 // Flag missing Unit-Test
 // Show MainGroup.Children {Framework}
 // User Prefs: Max Codelines, Max funcCodelines; Under_score allowed, min SwiftVer; Alowed Organization; AppName<>productName allowed
 // Bug: "mainSourceKey = childKey", "Most likely child" may pick wrong child.
 // Bug: AnalyseXcodeproj called twice on startup
 // At start of analyseSwiftFile(), "swiftFilename =" should print last 3 path componants
+// Eliminate non-error error messages.
+// Fix Unhandled
 // Check Subdirectories for Swift files
 
 //AnalyseSwift:
 // ?Move "possible issues" to top
 // Make handling quotes more robust - (codeLineClean)
-// inTripleQuote """
+// Handle Raw Strings" #"literal"#
+// Handle multi-line Strings:  inTripleQuote """
+// bug: in GetKeyWords/ViewController.swift -> finds error inside triple-quote
 // dependency
 // computed variables, var observer
 // analysis: show func params
 // analysis: show non-camelCased params
 // analysis: show global vars, singletons (dependency injection?)
 // analysis: show methods vs free functions
-// analysis: show commentLinesCount, MarkupLineCount
+// analysis: show commentLinesCount(dead code?), MarkupLineCount
 // analysis: organize by MARK: or by extension
-// allow extensions other than class
 // Flag //TODO: //FIXME:
+// allow extensions other than class
 // bug: "// Check for Forced Unwrapping" may fail with multiple "!"s
+// Display as expandable tree, with option for printable
+// remove display code (tx=, txt=, etc.) from analyseSwiftFile()
 
 //Done:
 
-import Cocoa    /* partial-line Block Comment does not work.*/
+import Cocoa    /* partial-line Block Comment does work.*/
 /* single-line Block Comment does work. */
 
 /* To generate compiler warnings:
@@ -311,11 +318,11 @@ extension ViewController {
             dateFormatter.timeStyle = .short        // 11:05 AM
 
             key = FileAttributeKey(rawValue: "NSFileCreationDate")
-            let date1 = attributes[key] as! Date
+            let date1 = attributes[key] as? Date ?? Date.distantPast
             report.append("\(key.rawValue):\t\(dateFormatter.string(from: date1))")
 
             key = FileAttributeKey(rawValue: "NSFileModificationDate")
-            let date2 = attributes[key] as! Date
+            let date2 = attributes[key] as? Date ?? Date.distantPast
             report.append("\(key.rawValue):\t\(dateFormatter.string(from: date2))")
 
             key = FileAttributeKey(rawValue: "NSFileSize")
@@ -665,7 +672,7 @@ extension ViewController {
     private func selectUrlInTable(_ url: URL?) {
         guard let url = url else { tableView.deselectAll(nil); return }
 
-        if let rowNumber = filesList.index(of: url) {
+        if let rowNumber = filesList.firstIndex(of: url) {
             let indexSet = IndexSet(integer: rowNumber)
             DispatchQueue.main.async {
                 self.tableView.selectRowIndexes(indexSet, byExtendingSelection: false)

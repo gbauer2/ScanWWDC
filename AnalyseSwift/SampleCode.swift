@@ -13,7 +13,27 @@ import Cocoa    /* ????? partial-line Block Comment does not work.*/
  #warning("This code is incomplete.")
  */
 
-private func TestCamelCase(p1: Int, p2 : Int , Param3:String) {
+private func testForceUnwrap() {
+    var dict = [String: String]()
+    dict["as!"] = "as!"
+    let val = dict["as!"]!
+    print(val)
+
+    let attributes = try! FileManager.default.attributesOfItem(atPath: "123")
+
+    var key = FileAttributeKey(rawValue: "NSFileType")
+    let str = attributes[key] as! String
+
+    key = FileAttributeKey(rawValue: "NSFileModificationDate")
+    let date = attributes[key] as! Date
+
+    key = FileAttributeKey(rawValue: "NSFileSize")
+    let int = attributes[key] as! Int
+
+    print(str, date, int)
+}
+
+private func TestCamelCase(p1: Int, p2: Int , Param3:String) {
     let n, Bad1:   Int
     var i,j_bad2:  Int      //?????
     var k , Bad3 : Int      //?????

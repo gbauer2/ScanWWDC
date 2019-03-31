@@ -8,7 +8,7 @@
 import Foundation
 
 //MARK:- Globals
-var gDictVBwords = [String : Int]()
+var gDictVBwords = [String: Int]()
 
 //MARK:- List of Words
 let varVBs =  ["vbCr", "vbLf", "VBcompPrintToLog", "knownProblems"]

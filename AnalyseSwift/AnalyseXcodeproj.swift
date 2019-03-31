@@ -9,7 +9,7 @@ import Cocoa
 
 //MARK:- Globals
 
-private var pbxObjects = [String : PBX]()
+private var pbxObjects = [String: PBX]()
 private var xcodeProj  = XcodeProj()
 
 //MARK:- structs
@@ -57,7 +57,7 @@ struct PBXNativeTarget {
 //  1) "var XXX ="         (1 place);
 //  2) func changeProperty (2 places)           case "XXX": self.XXX = vals.first ?? ""
 //  3) "debugDescription"  (3 places) if !self.XXX.isEmpty    { str += ", XXX=" + self.XXX }
-public struct PBX: CustomDebugStringConvertible {       //60-274 = 214-lines
+public struct PBX: CustomDebugStringConvertible {       //60-275 = 215-lines
     var isa         = ""
     var name        = ""
     var path        = ""
@@ -111,7 +111,7 @@ public struct PBX: CustomDebugStringConvertible {       //60-274 = 214-lines
     var ENABLE_STRICT_OBJC_MSGSEND = ""
     var PRODUCT_BUNDLE_IDENTIFIER  = ""
 
-    mutating func changeProperty(propertyName: String, vals: [String]) {    //114-181 = 67-lines
+    mutating func changeProperty(propertyName: String, vals: [String]) {    //114-185 = 71-lines
         switch propertyName {
         case "isa":         self.isa        = vals.first ?? ""
         case "name":        self.name       = vals.first ?? ""
@@ -171,7 +171,11 @@ public struct PBX: CustomDebugStringConvertible {       //60-274 = 214-lines
              "explicitFileType","includeInIndex","buildActionMask","runOnlyForDeploymentPostprocessing",
              "developmentRegion","hasScannedForEncodings","knownRegions","buildPhases",
              "projectDirPath","projectRoot","targetProxy","defaultConfigurationIsVisible",
-             "indentWidth","tabWidth"
+             "indentWidth","tabWidth","plistStructureDefinitionIdentifier",
+             "inputPaths","outputPaths","shellPath","shellScript","PODS_PODFILE_DIR_PATH",
+             "xcLanguageSpecificationIdentifier","baseConfigurationReference","FRAMEWORK_SEARCH_PATHS",
+             "showEnvVarsInLog","SYMROOT","lineEnding","usesTabs","PRODUCT_BUNDLE_IDENTIFIER",
+             "currentVersion","versionGroupType","dstPath","dstSubfolderSpec"
             ]
             if !ignore.contains(propertyName) {
                 print("⛔️⛔️⛔️⛔️ #\(#line) property \"\(propertyName) = \(vals[0])\" not handled! ⛔️⛔️⛔️⛔️")
@@ -181,7 +185,7 @@ public struct PBX: CustomDebugStringConvertible {       //60-274 = 214-lines
     }//end func
 
     //---- debugDescription - used for print
-    public var debugDescription: String {       //184-244 = 60-lines
+    public var debugDescription: String {       //188-248 = 60-lines
         //let sep = "\(sep)"
         let sep = "\n\t"
         let selfName = self.name.isEmpty ? "" : " - name: \"\(self.name)\""
@@ -253,8 +257,7 @@ public struct PBX: CustomDebugStringConvertible {       //60-274 = 214-lines
         return str
     }
 
-    static func setDictPropertyPBX(dict: inout [String : PBX], key: String, propertyName: String, vals: [String]) {
-
+    static func setDictPropertyPBX(dict: inout [String: PBX], key: String, propertyName: String, vals: [String]) {
         if vals.isEmpty {
             print("⛔️⛔️⛔️⛔️ \(#line) No value for pbxDict[\(key)] ⛔️⛔️⛔️⛔️")
             return
@@ -266,10 +269,8 @@ public struct PBX: CustomDebugStringConvertible {       //60-274 = 214-lines
                 return
             }
         }
-
         dict[key]!.changeProperty(propertyName: propertyName, vals: vals)
-
-    }
+    }//end func
 
 }//end struct PBX
 
@@ -277,7 +278,7 @@ public struct PBX: CustomDebugStringConvertible {       //60-274 = 214-lines
 
 //MARK: analyseXcodeproj 42-lines
 //---- analyseXcodeproj - Analyse a .xcodeproj file, returning an errorText and an XcodeProj instance
-public func analyseXcodeproj(url: URL, goDeep: Bool, deBug: Bool = true) -> (String, XcodeProj) {   //280-322 = 42-lines
+public func analyseXcodeproj(url: URL, goDeep: Bool, deBug: Bool = true) -> (String, XcodeProj) {   //281-323 = 42-lines
     xcodeProj = XcodeProj()
     xcodeProj.url = url
     xcodeProj.filename = url.lastPathComponent
@@ -321,7 +322,6 @@ public func analyseXcodeproj(url: URL, goDeep: Bool, deBug: Bool = true) -> (Str
 
 }//end func analyseXcodeproj
 
-
 func stripComments(_ line: String) -> String {      //325-357 = 32-lines
     var cleanLine = line
     if cleanLine.contains("//") {
@@ -356,8 +356,8 @@ func stripComments(_ line: String) -> String {      //325-357 = 32-lines
     return cleanerLine
 }//end func
 
-//MARK: pbxToXcodeProj 319-lines
-func pbxToXcodeProj(_ str: String, deBug: Bool = true) {        //360-679 = 319-lines
+//MARK: pbxToXcodeProj 329-lines
+func pbxToXcodeProj(_ str: String, deBug: Bool = true) {        //360-689 = 329-lines
     if deBug {
         print("Start pbxToXcodeProj")
         print("🏄‍♂️")
@@ -379,13 +379,17 @@ func pbxToXcodeProj(_ str: String, deBug: Bool = true) {        //360-679 = 319-
 
         if char == "{" {                                    // "{"
             bufrs[depth] = bufrs[depth].trim
-            if !bufrs[depth].hasSuffix("=") { print("⛔️ #\(#line) NO EQUAL SIGN in \"\(bufrs[depth])\" ⛔️") }
+            if !bufrs[depth].hasSuffix("=") && !bufrs[depth].isEmpty  {
+                print("⛔️ #\(#line) NO EQUAL SIGN in \"\(bufrs[depth])\" ⛔️")
+            }
             //if deBug { print("🐯⬇️ bufrs[\(depth)]: \"\(bufrs[depth])\" { Getting properties ...")}
             depth += 1
             bufrs.append("")
 
         } else if char == "}" {
-            if depth > 0 && !bufrs[depth-1].hasSuffix("=") { print("⛔️ #\(#line) NO EQUAL SIGN in \"\(bufrs[depth])\" ⛔️") }
+            if depth > 0 && !bufrs[depth-1].isEmpty && !bufrs[depth-1].hasSuffix("=") {
+                print("⛔️ #\(#line) NO EQUAL SIGN in \"\(bufrs[depth])\" ⛔️")
+            }
             //if deBug {print("🐯⬆️ bufrs[\(depth-1)]: \"\(bufrs[depth-1])\"")}
             bufrs.removeLast()
             depth -= 1
@@ -664,11 +668,11 @@ func pbxToXcodeProj(_ str: String, deBug: Bool = true) {        //360-679 = 319-
             let macOSXDeploymentTarget = buildConfigurationObj.MACOSX_DEPLOYMENT_TARGET
             let iPhoneOSDeploymentTarget = buildConfigurationObj.IPHONEOS_DEPLOYMENT_TARGET
             if !macOSXDeploymentTarget.isEmpty {
-                print("⚠️ MACOSX_DEPLOYMENT_TARGET found in Target buildConfiguration")
+                if deBug {print("⚠️ MACOSX_DEPLOYMENT_TARGET found in Target buildConfiguration")}
                 //xcodeProj.deploymentTarget = "macOS Deployment Target = " + macOSXDeploymentTarget
             }
             if !iPhoneOSDeploymentTarget.isEmpty {
-                print("⚠️ IPHONEOS_DEPLOYMENT_TARGET found in Target buildConfiguration")
+                if deBug {print("⚠️ IPHONEOS_DEPLOYMENT_TARGET found in Target buildConfiguration")}
                 //xcodeProj.deploymentTarget = "iPhoneOS Deployment Target = " + iPhoneOSDeploymentTarget
             }
 
@@ -705,7 +709,7 @@ private func isTestOrProductOrFramework(name: String) -> Bool {
 }
 
 // Get the isa of the pbxObject refered to by string
-private func getAssigneeIsa(string: String, pbxObjects: [String : PBX]) -> String {
+private func getAssigneeIsa(string: String, pbxObjects: [String: PBX]) -> String {
     var objKey = string
     var isa = ""
     if objKey.hasSuffix("=") { objKey = String(string.dropLast()).trim }
@@ -746,10 +750,14 @@ func getPropertyAndVals(from text: String) -> (propName: String, vals: [String])
 
 //---- stripCommentsAndNewlines -
 //Returns String stripped of comments, newLines, tabs & double-spaces.
-//Also returns linePointer witch contains a Line-Number for each Character.
-func stripCommentsAndNewlines(_ str: String) -> (String, [Int]) {       //750-799 = 49-lines
+//Also returns linePointer that contains a Line-Number for each Character.
+func stripCommentsAndNewlines(_ str: String) -> (String, [Int]) {       //760-814 = 54-lines
+    var pStart = 1
+    if str.hasPrefix("//") {
+        pStart = str.IndexOf("\n") + 1
+    }
     if str.contains("//") {
-        print("⛔️⛔️⛔️  #\(#line) Contains \" // \"")
+        //print("⛔️⛔️⛔️  #\(#line) Contains \" // \"")
     }
     if !str.contains("/*") { return (str, [Int]() ) }
     if !str.contains("*/") {
@@ -758,10 +766,10 @@ func stripCommentsAndNewlines(_ str: String) -> (String, [Int]) {       //750-79
     }
 
     let chars = Array(str)
-    var newStr = String(chars[0])
+    var newStr = String(chars[pStart-1])
     var inBlock = false
     var ignorePrev = false
-    for i in 1..<chars.count {
+    for i in pStart..<chars.count {
         let prevChar = chars[i-1]
         if prevChar == "/" && chars[i] == "*" {         // "/*"
             inBlock = true
@@ -787,6 +795,7 @@ func stripCommentsAndNewlines(_ str: String) -> (String, [Int]) {       //750-79
     let lines = newStr.components(separatedBy: "\n")
     for (num, line) in lines.enumerated() {
         outputStr.append(line)                 // append the line without \n
+        //if num < 5 { print(num, line)}
         if line.count > 0 {
             for _ in 0..<line.count { // Set Line-Number for each Character position.
                 linePtrs.append(num+1)
@@ -889,48 +898,51 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {
             issues.append("External Organization \"\(xcodeProj.organizationName)\"")
         }
     }
-    var totalCodeLineCount     = 0
-    var totalNonCamelCaseCount = 0
-    var totalForceUnwrapCount  = 0
-    var totalVbCompatCallCount = 0
+    var totalCodeLine     = 0
+    var totalNonCamelCase = 0
+    var totalForceUnwrap  = 0
+    var totalVbCompatCall = 0
+    var totalBig          = 0
 
     text += "\n                           ---- \(showCount(count: xcodeProj.swiftURLs.count, name: "Swift file")) ----\n"   // "Swift files"
-    text += "------ FileName ------     CodeLines  NonCamelCase  ForceUnwrap VBcompatability\n"
+    text += "------ FileName ------     CodeLines  NonCamel ForceUnwrap  VB    Big\n"
 
     for swiftSummary in xcodeProj.swiftSummaries {
         let name = swiftSummary.fileName
         let isTest = swiftSummary.url.path.contains("TestSharedCode")
         if isTest || (name != "VBcompatablity.swift" && name != "MyFuncs.swift" && name != "StringExtension.swift") {
             let clCt = swiftSummary.codeLineCount
-            totalCodeLineCount      += clCt
+            totalCodeLine += clCt
             if clCt > IssuePreferences.maxFileCodeLines {
                 issues.append("\"\(name)\" has \(clCt) code-lines (>\(IssuePreferences.maxFileCodeLines)).")
             }
             let ccCt = swiftSummary.nonCamelCases.count
-            totalNonCamelCaseCount  += ccCt
+            totalNonCamelCase += ccCt
             let fuCt = swiftSummary.forceUnwraps.count
-            totalForceUnwrapCount   += fuCt
+            totalForceUnwrap += fuCt
             let vbCt = swiftSummary.vbCompatCalls.count
-            totalVbCompatCallCount  += vbCt
+            totalVbCompatCall += vbCt
+            let bigCt = swiftSummary.massiveFile + swiftSummary.massiveFuncs.count
+            totalBig += bigCt
             //text += "\(swiftSummary.url.lastPathComponent)  -  nonCamel \(swiftSummary.nonCamelCases.count)\n"
-            text += format2(swiftSummary.url.lastPathComponent,clCt,ccCt,fuCt,vbCt)
+            text += format2(swiftSummary.url.lastPathComponent,clCt,ccCt,fuCt,vbCt,bigCt)
         } else {
             text += "(\(swiftSummary.url.lastPathComponent))\n"
         }
     }//next
-    text += "\n\(format2("  -- Totals --",totalCodeLineCount,totalNonCamelCaseCount,totalForceUnwrapCount,totalVbCompatCallCount))\n"
+    text += "\n\(format2("  -- Totals --",totalCodeLine,totalNonCamelCase,totalForceUnwrap,totalVbCompatCall, totalBig))\n"
 
     //------------------------------------------------------------------
     //------------- Issues --------------
-    let totalIssueCount = totalNonCamelCaseCount + totalForceUnwrapCount + totalVbCompatCallCount + issues.count
+    let totalIssueCount = totalNonCamelCase + totalForceUnwrap + totalVbCompatCall + totalBig + issues.count
 
     if totalIssueCount == 0 {
         text += "\n-------- No Issues --------\n"
     } else {
         text += "\n-------- \(totalIssueCount) Possible \("Issue".pluralize(totalIssueCount)) --------\n"
-        if totalNonCamelCaseCount > 0 {text += "\(showCount(count: totalNonCamelCaseCount, name: "NonCamelCase Variable")).\n"}
-        if totalForceUnwrapCount  > 0 {text += "\(showCount(count: totalForceUnwrapCount,  name: "ForceUnwrap")).\n"}
-        if totalVbCompatCallCount > 0 {text += "\(showCount(count: totalVbCompatCallCount, name: "VBcompatability Call")).\n"}
+        if totalNonCamelCase > 0 {text += "\(showCount(count: totalNonCamelCase, name: "NonCamelCase Variable")).\n"}
+        if totalForceUnwrap  > 0 {text += "\(showCount(count: totalForceUnwrap,  name: "ForceUnwrap")).\n"}
+        if totalVbCompatCall > 0 {text += "\(showCount(count: totalVbCompatCall, name: "VBcompatability Call")).\n"}
     }
     for issue in issues {
         text += issue + "\n"
@@ -948,9 +960,9 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {
     return formattedText
 }//end func
 
-private func format2(_ name: String, _ c1: Int, _ c2: Int, _ c3: Int, _ c4: Int) -> String {
-    let txt = name.PadRight(26) + fmtI(c1, wid: 8)  + fmtI(c2, wid: 11) +
-                                  fmtI(c3, wid: 13) + fmtI(c4, wid: 13) + "\n"
+private func format2(_ name: String, _ c1: Int, _ c2: Int, _ c3: Int, _ c4: Int, _ c5: Int) -> String {
+    let txt = name.PadRight(26) + fmtI(c1, wid: 8) + fmtI(c2, wid: 9) + fmtI(c3, wid: 10)
+                                + fmtI(c4, wid: 9) + fmtI(c5, wid: 7) + "\n"
     return txt
 }
 private func fmtI(_ number: Int, wid: Int) -> String {

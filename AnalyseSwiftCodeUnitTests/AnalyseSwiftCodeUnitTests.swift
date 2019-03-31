@@ -156,7 +156,7 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         XCTAssertEqual(subStr, "12")
     }
 
-    private func TestCamelCase(p1: Int, p2 : Int , Param3:String) {
+    private func TestCamelCase(p1: Int, p2: Int , Param3:String) {
         let n, Bad1:   Int
         var i,j_bad2:  Int      //?????
         var k , Bad3 : Int      //?????
