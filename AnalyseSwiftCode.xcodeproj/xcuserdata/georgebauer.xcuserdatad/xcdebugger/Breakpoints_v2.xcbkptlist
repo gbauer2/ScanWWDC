@@ -6,17 +6,17 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "AnalyseSwift/AnalyseSwift.swift"
-            timestampString = "575743094.489386"
+            timestampString = "575857474.2640589"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "550"
             endingLineNumber = "550"
-            landmarkName = "analyseSwiftFile(contentFromFile:selecFileInfo:deBug:)"
-            landmarkType = "9">
+            landmarkName = "unknown"
+            landmarkType = "0">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -26,11 +26,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "AnalyseSwift/AnalyseXcodeproj.swift"
-            timestampString = "575743094.48947"
+            timestampString = "575908631.055995"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "664"
-            endingLineNumber = "664"
+            startingLineNumber = "411"
+            endingLineNumber = "411"
             landmarkName = "pbxToXcodeProj(_:deBug:)"
             landmarkType = "9">
          </BreakpointContent>
@@ -42,11 +42,43 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "AnalyseSwift/AnalyseXcodeproj.swift"
-            timestampString = "575743094.489877"
+            timestampString = "575908631.056396"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "688"
-            endingLineNumber = "688"
+            startingLineNumber = "437"
+            endingLineNumber = "437"
+            landmarkName = "updateDeploymentTarget(buildConfigurationObj:)"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "AnalyseSwift/AnalyseXcodeproj.swift"
+            timestampString = "575908631.056645"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "431"
+            endingLineNumber = "431"
+            landmarkName = "unknown"
+            landmarkType = "0">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "AnalyseSwift/AnalyseXcodeproj.swift"
+            timestampString = "575908631.056886"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "382"
+            endingLineNumber = "382"
             landmarkName = "pbxToXcodeProj(_:deBug:)"
             landmarkType = "9">
          </BreakpointContent>
@@ -58,43 +90,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "AnalyseSwift/AnalyseXcodeproj.swift"
-            timestampString = "575743094.490133"
+            timestampString = "575908631.057119"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "684"
-            endingLineNumber = "684"
-            landmarkName = "pbxToXcodeProj(_:deBug:)"
-            landmarkType = "9">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "AnalyseSwift/AnalyseXcodeproj.swift"
-            timestampString = "575743094.490371"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "635"
-            endingLineNumber = "635"
-            landmarkName = "pbxToXcodeProj(_:deBug:)"
-            landmarkType = "9">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "AnalyseSwift/AnalyseXcodeproj.swift"
-            timestampString = "575743094.490607"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "695"
-            endingLineNumber = "695"
+            startingLineNumber = "444"
+            endingLineNumber = "444"
             landmarkName = "updateDeploymentTarget(buildConfigurationObj:)"
             landmarkType = "9">
          </BreakpointContent>
@@ -106,13 +106,13 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "AnalyseSwift/AnalyseSwift.swift"
-            timestampString = "575743094.490846"
+            timestampString = "575857474.265493"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "687"
             endingLineNumber = "687"
-            landmarkName = "analyseSwiftFile(contentFromFile:selecFileInfo:deBug:)"
-            landmarkType = "9">
+            landmarkName = "unknown"
+            landmarkType = "0">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -122,13 +122,13 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "AnalyseSwift/AnalyseSwift.swift"
-            timestampString = "575743094.4908971"
+            timestampString = "575857474.2655391"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "682"
             endingLineNumber = "682"
-            landmarkName = "analyseSwiftFile(contentFromFile:selecFileInfo:deBug:)"
-            landmarkType = "9">
+            landmarkName = "unknown"
+            landmarkType = "0">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -138,12 +138,28 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "AnalyseSwift/AnalyseSwift.swift"
-            timestampString = "575743094.490944"
+            timestampString = "575857474.265581"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "745"
             endingLineNumber = "745"
-            landmarkName = "analyseSwiftFile(contentFromFile:selecFileInfo:deBug:)"
+            landmarkName = "unknown"
+            landmarkType = "0">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "AnalyseSwift/AnalyseXcodeproj.swift"
+            timestampString = "575908631.0573879"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "516"
+            endingLineNumber = "516"
+            landmarkName = "cleanRawText(_:)"
             landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
@@ -154,28 +170,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "AnalyseSwift/AnalyseXcodeproj.swift"
-            timestampString = "575743094.49099"
+            timestampString = "575908631.057626"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "767"
-            endingLineNumber = "767"
-            landmarkName = "stripCommentsAndNewlines(_:)"
-            landmarkType = "9">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "AnalyseSwift/AnalyseXcodeproj.swift"
-            timestampString = "575743094.491227"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "814"
-            endingLineNumber = "814"
-            landmarkName = "stripCommentsAndNewlines(_:)"
+            startingLineNumber = "566"
+            endingLineNumber = "566"
+            landmarkName = "getVersionNumber(text:)"
             landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
@@ -186,13 +186,13 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "AnalyseSwift/AnalyseSwift.swift"
-            timestampString = "575743094.491459"
+            timestampString = "575857474.266119"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "379"
             endingLineNumber = "379"
-            landmarkName = "analyseSwiftFile(contentFromFile:selecFileInfo:deBug:)"
-            landmarkType = "9">
+            landmarkName = "unknown"
+            landmarkType = "0">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

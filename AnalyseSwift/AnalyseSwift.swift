@@ -374,7 +374,7 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
                         var xword = word
                         if word.contains(".") {
                             let comps = word.components(separatedBy: ".")
-                            xword = "." + comps.last!
+                            xword = "." + (comps.last ?? "")
                         }
                         forceUnwraps.append(LineItem(lineNum: lineNum, name: xword, extra: extra))
                         swiftSummary.forceUnwraps.append(xword)
@@ -598,10 +598,10 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
     let dateFormatter = DateFormatter()
     dateFormatter.dateStyle = .medium
     dateFormatter.timeStyle = .none
-    let dateCreated = dateFormatter.string(from: selecFileInfo.creationDate!)
+    let dateCreated = dateFormatter.string(from: (selecFileInfo.creationDate ?? Date.distantPast))
 
     dateFormatter.timeStyle = .short
-    let dateModified = dateFormatter.string(from: selecFileInfo.modificationDate!)
+    let dateModified = dateFormatter.string(from: (selecFileInfo.modificationDate ?? Date.distantPast))
 
     tx  = NSMutableAttributedString(string: "created: \(dateCreated)     modified: \(dateModified)\n", attributes: attributesSmallFont)
     txt.append(tx)
@@ -687,9 +687,9 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
     let issuesTitle: String
     let totalIssueCount = nonCamelVars.count + forceUnwraps.count + nVBwords + swiftSummary.massiveFile + swiftSummary.massiveFuncs.count
     if totalIssueCount == 0 {
-        issuesTitle = "No Issues"
+        issuesTitle = selecFileInfo.name + " - No Issues"
     } else {
-        issuesTitle = "\(totalIssueCount) Possible Issues"
+        issuesTitle = "\(selecFileInfo.name) - \(totalIssueCount) Possible Issues"
     }
     tx = showDivider(title: issuesTitle)
     txt.append(tx)
@@ -754,7 +754,7 @@ private func getExtraForFoceUnwrap(codeLineClean: String, word: String, p: Int) 
     prefix = prefix.replacingOccurrences(of: "~~~~", with: "~")
     if prefix.contains(" = ") {                             // cut off all before "="
         let comps = prefix.components(separatedBy: " = ")
-        prefix = "...= " + comps.last!
+        prefix = "...= " + (comps.last ?? "")
     }
     if prefix.count > maxPrefixLen {    // still too long
         prefix = "..." + prefix.suffix(maxPrefixLen)

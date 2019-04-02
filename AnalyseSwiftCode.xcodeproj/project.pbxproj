@@ -20,6 +20,7 @@
 		CEA6263A20067DCA000F923D /* SampleCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEA6263920067DCA000F923D /* SampleCode.swift */; };
 		CEA6263D20068AA2000F923D /* AnalyseSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEA6263B20068AA2000F923D /* AnalyseSwift.swift */; };
 		CEBAD4A42194A8E600CBBCBA /* AnalyseXcodeproj.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEBAD4A32194A8E600CBBCBA /* AnalyseXcodeproj.swift */; };
+		CECCE41822539EB800DF2C02 /* PBX.swift in Sources */ = {isa = PBXBuildFile; fileRef = CECCE41722539EB800DF2C02 /* PBX.swift */; };
 		CED9D7F9223E090F009978EF /* VBcompatablity.swift in Sources */ = {isa = PBXBuildFile; fileRef = CED9D7F8223E090F009978EF /* VBcompatablity.swift */; };
 		CEE94E93223EB84E00A6F2FB /* AnalyseWWDC.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEE94E92223EB84E00A6F2FB /* AnalyseWWDC.swift */; };
 /* End PBXBuildFile section */
@@ -52,6 +53,7 @@
 		CEA6263920067DCA000F923D /* SampleCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleCode.swift; sourceTree = "<group>"; };
 		CEA6263B20068AA2000F923D /* AnalyseSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyseSwift.swift; sourceTree = "<group>"; };
 		CEBAD4A32194A8E600CBBCBA /* AnalyseXcodeproj.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyseXcodeproj.swift; sourceTree = "<group>"; };
+		CECCE41722539EB800DF2C02 /* PBX.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PBX.swift; sourceTree = "<group>"; };
 		CED9D7F8223E090F009978EF /* VBcompatablity.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VBcompatablity.swift; sourceTree = "<group>"; };
 		CEE94E92223EB84E00A6F2FB /* AnalyseWWDC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyseWWDC.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -100,6 +102,7 @@
 				CEA6263B20068AA2000F923D /* AnalyseSwift.swift */,
 				CEE94E92223EB84E00A6F2FB /* AnalyseWWDC.swift */,
 				CEBAD4A32194A8E600CBBCBA /* AnalyseXcodeproj.swift */,
+				CECCE41722539EB800DF2C02 /* PBX.swift */,
 				CE4194AD21BD8C22006808B1 /* AttributableStrings.swift */,
 				CE063B8E22160B5B000CACDF /* FindVBCode.swift */,
 				CE9BBFF62235598500DCE317 /* Keywords.swift */,
@@ -237,6 +240,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CECCE41822539EB800DF2C02 /* PBX.swift in Sources */,
 				26ECD33D1E874B5C00380F56 /* ViewController.swift in Sources */,
 				CED9D7F9223E090F009978EF /* VBcompatablity.swift in Sources */,
 				CE063B8F22160B5B000CACDF /* FindVBCode.swift in Sources */,

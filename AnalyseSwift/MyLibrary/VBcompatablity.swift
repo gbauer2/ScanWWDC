@@ -5,8 +5,8 @@
 //  Created by George Bauer on 1/23/18.
 //  Copyright © 2018 GeorgeBauer. All rights reserved.
 //
-//  When next noncompatible ver is made, change sign to Sign
-//  Ver 1.8.6  8/22/2018 Fix CDate "08/09/1995 16:19"
+//  Ver 1.8.7  3/31/2019 Change .IndexOf calls to .firstIndexOf as per StringExtension.swift
+//      1.8.6  8/22/2018 Fix CDate "08/09/1995 16:19"
 //      1.8.5  8/16/2018 Fix CDate "8/09/1995 16:19"
 //      1.8.4  8/14/2018 Fix CDate "7/31/2005 2:58 PM"
 //      1.8.3  8/11/2018 Fix CDate "8/09/1995 16:19:52";  VBcompPrintToLog= false
@@ -14,7 +14,7 @@
 //      1.8.1  7/09/2018 Improvements to CDate(Str), fixed Val & isNumeric for leading spaces,  Implement Format(Int,Str)
 //      1.8.0  6/16/2018 Add MidEquals, Like.  Fix VB.Hour
 //      1.7.3  6/15/2018 Fix GetParentPath, Stub for Like.  Add VB.Hour,VB.Minute
-//      1.7.2  5/23/2018 Add GetParentPath, change sign to SignVer 1.7.2  5/23/2018 Add GetParentPath, change sign to Sign
+//      1.7.2  5/23/2018 Add GetParentPath, change sign to Sign
 //      1.7.1  5/21/2018 simplify getHexVal - Caution: returns 0.0 if it encounters non-hex char (unlike VB)
 //      1.7.0  5/20/2018 Move .IndexOf to StringExtension
 //      1.6.0  5/16/2018 Fix EOF, Fix Instr(start,str,str)
@@ -98,16 +98,16 @@ public func MidEquals(str: String, Start: Int, Len: Int, newStr: String) -> Stri
 }
 
 public func InStr(_ a: String, _ b: String) -> Int {
-    return a.IndexOf(b) + 1
+    return a.firstIntIndexOf(b) + 1
 }
 
 public func InStrRev(_ a: String, _ b: String) -> Int {
-    return a.IndexOfRev(b) + 1
+    return a.lastIntIndexOf(b) + 1
 }
 
 public func InStr(_ start: Int, _ a: String, _ b: String) -> Int {
     let aa = a.mid(begin: start-1)
-    let i = aa.IndexOf(b)
+    let i = aa.firstIntIndexOf(b)
     if i < 0 { return 0 }
     return i + start
 }
@@ -282,9 +282,9 @@ public func CDate(_ month: Int, _ day: Int, _ year: Int) -> Date {
 public func ChangeExtension(_ name: String, _ newExtension: String) -> String {
     var newExt = newExtension
     if newExtension.hasPrefix(".") {newExt = String(newExtension.dropFirst())}
-    let pDot = name.IndexOfRev(".")
+    let pDot = name.lastIntIndexOf(".")
     if pDot < 0 { return name + "." + newExt }
-    let pSlash = name.IndexOfRev("/")
+    let pSlash = name.lastIntIndexOf("/")
     if pDot < pSlash { return name + "." + newExt }
     let name2 = name.dropLast(name.count - pDot - 1)
     return name2 + newExt
@@ -310,7 +310,7 @@ public func GetFileName(_ fullPath: String) -> String {
 }
 
 public func GetParentPath(_ fullPath: String) -> String {
-    let idxSlash = fullPath.IndexOfRev("/")
+    let idxSlash = fullPath.lastIntIndexOf("/")
     if idxSlash < 0 { return "" }
     let path = fullPath.left(idxSlash)
     return path

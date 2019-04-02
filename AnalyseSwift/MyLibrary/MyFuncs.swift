@@ -1,12 +1,12 @@
 //
 //  MyFuncs.swift
-//  Almanac
+//  TestSharedCode
 //
 //  Created by George Bauer on 9/29/17.
-//  Copyright © 2017 GeorgeBauer. All rights reserved.
+//  Copyright © 2017-2019 GeorgeBauer. All rights reserved.
 
 //  Ver 1.6.3   3/08/2019   getFileInfo: Change url param to Optional, Add func getContentsOf(dirURL: URL)
-//  Ver 1.6.2   8/16/2018   Add: getContentsOf(directoryStr), getFileInfo(_ str), getFileInfo(url)
+//      1.6.2   8/16/2018   Add: getContentsOf(directoryStr), getFileInfo(_ str), getFileInfo(url)
 //      1.6.1   7/11/2018   Fix isNumeric for leading/trailing whitespace
 //      1.6.0   6/16/2018   Add matches(for regex: String, in text: String) & isMatch(for regex: String, in text: String)
 //      1.5.3   5/14/2018   Fix replaceInString
@@ -142,19 +142,28 @@ public func showCount(count: Int, name: String, ifZero: String = "0") -> String 
 
 // ---- Test if a String is a valid Integer ---
 /// true if String converts to Int
+
+/// Not really needed, as optional unwrapping is required anyway
 /// - Parameter string: The String to be tested.
+/// - Returns: Bool
 public func isStringAnInt(_ string: String) -> Bool {
     return Int(string) != nil
 }
 
-//TODO: change to unicode Set
+// ---- Test if a Character is a valid Digit ---
+/// true if Character is a digit
+///
+/// Replace with char.isWholeNumber
+/// - Parameter Character: The Character to be tested.
+/// - Returns: Bool
 public func isCharDigit(_ char: Character) -> Bool {
-    return Int(String(char)) != nil
+    return char.isWholeNumber
 }
 
 // ---- Test if a String is a valid Number ---
 /// true if String converts to Double
 /// - Parameter string: The String to be tested.
+/// - Returns: Bool
 public func isNumeric(_ string: String) -> Bool {
     return Double(string.trimmingCharacters(in: .whitespaces)) != nil
 }
@@ -162,8 +171,9 @@ public func isNumeric(_ string: String) -> Bool {
 // ---- replaceCharInString ----
 /// Return a String with a single Character changed
 /// - Parameter string: The original String
-/// - Parameter pos: Position of the Character to be replaced
+/// - Parameter pos: Int index of the Character to be replaced
 /// - Parameter newChar: The replacement Character
+/// - Returns: String
 public func replaceCharInString(string: String, pos: Int, newChar: Character) -> String {
     let newString = String(string.prefix(pos)) + String(newChar) + string.dropFirst(pos + 1)
     return newString
@@ -173,8 +183,9 @@ public func replaceCharInString(string: String, pos: Int, newChar: Character) ->
 /// Return a String with a group of Characters replaced
 /// - Parameter string: The original String
 /// - Parameter strToInsert: The replacement String
-/// - Parameter from: Beginning position of String to be replaced
+/// - Parameter from: Beginning Int index of String to be replaced
 /// - Parameter length:The length of String to be replaced
+/// - Returns: String
 public func replaceInString(string: String, strToInsert: String, from: Int, length: Int) -> String {
     let newStr = String(string.prefix(from)) + strToInsert + string.suffix(string.count - length - from)
     return newStr
@@ -186,6 +197,7 @@ public func replaceInString(string: String, strToInsert: String, from: Int, leng
 /// Returns true if the date portion of 2 Dates is the same
 /// - Parameter date1: The first Date
 /// - Parameter date2: The second Date
+/// - Returns: Bool
 public func isSameDay(_ date1: Date, _ date2: Date) -> Bool {
     let dateC1 = date1.getComponents()
     let dateC2 = date2.getComponents()
@@ -259,6 +271,7 @@ public struct FileAttributes: Equatable {
     var modificationDate: Date?
     var size        = 0
     var isDir       = false
+    
     //------ getFileInfo - returns attributes of fileName (file or folder) as a FileAttributes struct
     ///Get file info for a file path
     /// - Parameter str: file path
@@ -281,7 +294,7 @@ public struct FileAttributes: Equatable {
                 let modificationDate = attributes[FileAttributeKey(rawValue: "NSFileModificationDate")] as? Date
                 let size             = attributes[FileAttributeKey(rawValue: "NSFileSize")]             as? Int ?? 0
                 let fileType         = attributes[FileAttributeKey(rawValue: "NSFileType")] as? String
-                let isDir            = (fileType?.contains("Dir"))!
+                let isDir            = (fileType?.contains("Dir")) ?? false
                 return FileAttributes(url: url, name: name, creationDate: creationDate, modificationDate: modificationDate, size: size, isDir: isDir)
             } catch {
                 return FileAttributes(url: nil, name: "???", creationDate: nil, modificationDate: nil, size: 0, isDir: false)
@@ -441,10 +454,10 @@ public func printDictionaryNS(dictNS: NSDictionary,expandLevels: Int, dashLen: I
             } else if let db = value as? Date {
                 str2 = db.ToString("MM/dd/yyyy hh:mm:ss a zzz")
             } else if value is NSArray {
-                let n = (value as! NSArray).count
+                let n = (value as? NSArray)?.count ?? 0
                 str2 = "(Array) with \(n) " + "item".pluralize(n)
             } else if value is NSDictionary {
-                let n = (value as! NSDictionary).count
+                let n = (value as? NSDictionary)?.count ?? 0
                 str2 = "{Dictionary} with \(n) " + "item".pluralize(n)
             }
             a1 += str1 + getDashes(key: str1, length: length) + "> " + str2
@@ -455,7 +468,7 @@ public func printDictionaryNS(dictNS: NSDictionary,expandLevels: Int, dashLen: I
         if length < 2 { length = 14 }
         for (key, value) in dictNS {
             //print("\(key) --> \(value) ")
-            let sKey = key as! String
+            let sKey = key as? String ?? "???"
             print(sKey + getDashes(key: sKey, length: length) + ">", value)
         }//next
     }
@@ -491,12 +504,13 @@ extension Date {
         return dateComponents
     }
 
+    //???? forced unwrap, timezone?
     ///returns a Date stripped of time (i.e. just after midnight) for the local timezone
     var DateOnly: Date {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
         let dateStr = dateFormatter.string(from: self)
-        let date = dateFormatter.date(from: dateStr)!
+        let date = dateFormatter.date(from: dateStr) ?? self
         return date
     }
 
