@@ -28,13 +28,13 @@
 // Display in NSTable with links to AnalyseSwift & with option for printable.
 // Flag missing Unit-Test
 // Show MainGroup.Children {Framework}
-// User Prefs: Max Codelines, Max funcCodelines; Under_score allowed, min SwiftVer; Alowed Organization; AppName<>productName allowed
+// User Prefs:  Max Codelines, Max funcCodelines; Under_score allowed, AllCapsAllowed,
+//              Min SwiftVer; Allowed Organization; AppName<>productName allowed
 // Bug: "mainSourceKey = childKey", "Most likely child" may pick wrong child.
 // Bug: AnalyseXcodeproj called twice on startup
 // At start of analyseSwiftFile(), "swiftFilename =" should print last 3 path componants
 // Eliminate non-error error messages.
 // Fix Unhandled
-// Check Subdirectories for Swift files
 
 //AnalyseSwift:
 // ?Move "possible issues" to top
@@ -57,6 +57,7 @@
 // remove display code (tx=, txt=, etc.) from analyseSwiftFile()
 
 //Done:
+// **! Check Subdirectories for Swift files
 
 import Cocoa    /* partial-line Block Comment does work.*/
 /* single-line Block Comment does work. */
@@ -99,6 +100,7 @@ class ViewController: NSViewController, NSWindowDelegate {
 
     var analyseFuncLocked = false           // because analyseSwiftFile() is not thread-safe
     var analyseMode = AnalyseMode.none      // .WWDC, .swift, or .xcodeproj
+    var xcodeprojFileCount = 0
 
     // MARK: - Properties with didSet property observer
     var urlMismatch: URL? {
@@ -192,6 +194,8 @@ class ViewController: NSViewController, NSWindowDelegate {
         splitView.setPosition(222.0, ofDividerAt: 0)
         restoreCurrentSelections()
         self.view.window?.delegate = self
+        self.view.window?.setFrame(NSRect(x: 300, y: 70, width: 900, height: 800), display: true)
+        //self.view.window?.setContentSize(NSSize(width: 1000, height: 800))
     }
 
     override func viewDidAppear() {
@@ -238,11 +242,12 @@ class ViewController: NSViewController, NSWindowDelegate {
 
             for url in urls {
                 if url.pathExtension == "xcodeproj" {
+                    xcodeprojFileCount += 1
                     xcodeprojURLs.append((url))
                 } else if url.hasDirectoryPath {
 
                     let truncPath = truncateURL(url: url, maxLength: 80)
-                    let str = "Finding all .xcodeproj files in:\n\(truncPath)"
+                    let str = "\(xcodeprojFileCount) Finding all .xcodeproj files in:\n\(truncPath)"
                     //let textAttributes = setFontSizeAttribute(size: 18)
                     //let formattedText = NSMutableAttributedString(string: tempStr, attributes: textAttributes)
 
@@ -373,6 +378,7 @@ extension ViewController {
 
         DispatchQueue.global(qos: .userInitiated).async {
 
+            self.xcodeprojFileCount = 0
             // Recursive func finds .xcodeproj files & lists them in xcodprojURLs
             self.findAllXcodeprojFiles(baseFolderURL)
 
@@ -407,8 +413,9 @@ extension ViewController {
                     } else {
                         dictVersions[verStr] = 1
                     }
-
-                }//endif No errorCode
+                } else {
+                    //TODO: Add Error logging for batch mode
+                }//endif has errorCode
             }//next url
 
             // List the Swift Versions found in version-order, with counts
@@ -585,7 +592,7 @@ extension ViewController {
                 if errCode.isEmpty {
                     formattedText = showXcodeproj(xcodeProj)
                 } else {
-                    formattedText = NSAttributedString(string: errCode)    // let formattedText = NSAttributedString(string: text, attributes: textAttributes)
+                    formattedText = NSAttributedString(string: errCode)
                 }
                 // --- Load infoTextView with formattedText ---
                 self.infoTextView.textStorage?.setAttributedString(formattedText)

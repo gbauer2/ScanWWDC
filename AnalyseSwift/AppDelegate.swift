@@ -18,4 +18,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // Insert code here to tear down your application
   }
 
+    // MARK: - IBActions - menus
+
+    @IBAction func mnuMyMenu(_ sender: Any) {
+        print("Clicked mnuMyMenu")
+    }
+
+
 }
