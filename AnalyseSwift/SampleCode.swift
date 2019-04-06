@@ -33,7 +33,7 @@ private func testForceUnwrap() {
     print(str, date, int)
 }
 
-private func TestCamelCase(p1: Int, p2: Int , Param3:String) {
+private func DoCamelCase(p1: Int, p2: Int , Param3:String) {
     let n, Bad1:   Int
     var i,j_bad2:  Int      //?????
     var k , Bad3 : Int      //?????
@@ -52,6 +52,11 @@ private func TestCamelCase(p1: Int, p2: Int , Param3:String) {
 private func sampleVBCall() {
     let i = CInt("123")
     print(i)
+    let str = "12345"
+    var a = ""
+    a = Mid(str, 2, 3)
+    a = VB.Left(str, 2)
+    print(a)
 }
 
 //not used

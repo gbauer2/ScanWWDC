@@ -169,11 +169,33 @@ func stripComment(fullLine: String, lineNum: Int) -> (codeLine: String, comment:
 }//end func stripComment
 
 func isCamelCase(_ word: String) -> Bool {
-    let firstLetter = word.prefix(1)
-    if firstLetter != firstLetter.lowercased()  { return false }
-    if word.contains("_") && firstLetter != "_" { return false }    //????? Not Swifty
+
+    //TODO: Change minimum name length to IssuePreference
+    if word.count < 2 { return false }
+
+    //Allow AllCaps
+    if !IssuePreferences.allCapsDisallow {
+        var isAllCaps = true
+        for char in word {
+            if !char.isUppercase {
+                if IssuePreferences.underscoreDisallow ||  char != "_" {
+                    isAllCaps = false
+                    break
+                }
+            }
+        }//next
+        if isAllCaps { return true }
+    }
+
+    // AllCaps not allowed or Not AllCaps
+    if  IssuePreferences.underscoreDisallow && word.contains("_") { return false }
+
+    // AllCaps not allowed and either no underscores or they are allowed
+    let firstLetter = word[0]
+    if !firstLetter.isLowercase && firstLetter != "_"   { return false }
+
     return true
-}
+}//end func
 
 //---- removeQuotedStuff - Replace everything in quotes with tildis
 func removeQuotedStuff(_ str: String) -> String {
@@ -654,10 +676,10 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
 
     // foreach named blockType, show the list of blocks in printOrder
     for i in 0..<blockTypes.count - 1 {
-        let b = blockTypes[printOrder[i]]
-        tx = showNamedBlock(name: b.displayName, blockType: b.blockType, list: codeElements)
+        let blkType = blockTypes[printOrder[i]]
+        tx = showNamedBlock(name: blkType.displayName, blockType: blkType.blockType, list: codeElements)
         if deBug {print(tx.string)}
-        if b.showNone || b.count > 0 {txt.append(tx)}
+        if blkType.showNone || blkType.count > 0 {txt.append(tx)}
     }
 
     if curlyDepth != 0 {                                // Error Check
@@ -666,9 +688,9 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
 
     if deBug { print(codeElements.count, " named blocks") }         // Sanity Check
     for c in codeElements {
-        let i = Int(c.blockType.rawValue)
+        let iBT = Int(c.blockType.rawValue)
         let cType = ("\(c.blockType)" + "        ").left(14)
-        if deBug {print("# \(c.lineNum),\t\(c.codeLineCount) lines, \t\(cType)\t\(c.name)  \(c.extra)  \(i)")}
+        if deBug {print("# \(c.lineNum),\t\(c.codeLineCount) lines, \t\(cType)\t\(c.name)  \(c.extra)  \(iBT)")}
 
         switch c.blockType {
         case .Func:

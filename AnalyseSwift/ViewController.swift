@@ -13,10 +13,12 @@
 // selectively enable View & Analyse buttons or use segmented button.
 // Use Menus: File/Find_All_xcodeproj_Files, Help
 // Help System
-// When opening a folder: If there is a single xcodeproj file, analyse it.
 // Error Handler
 // Single Click for analyse & change dir - no double Click
 // if newly opened folder has a single xcodeproj: analyse it
+// Optionally save new "Rules" as user defaults.
+// Implement Organization Rule
+// Refresh analysis when user changes rules
 
 // showContents - Swift file:
 //  Fix namesColor to include:  classNames, funcNames, InstanceVars, Globals, & library names (MK- for MapKit,  etc.)
@@ -46,18 +48,20 @@
 // computed variables, var observer
 // analysis: show func params
 // analysis: show non-camelCased params
-// analysis: show global vars, singletons (dependency injection?)
-// analysis: show methods vs free functions
-// analysis: show commentLinesCount(dead code?), MarkupLineCount
+// analysis: show commentLinesCount(dead code?), MarkupLineCount (///) (/**)
 // analysis: organize by MARK: or by extension
 // Flag //TODO: //FIXME:
 // allow extensions other than class
-// bug: "// Check for Forced Unwrapping" may fail with multiple "!"s
+// bug: "Check for Forced Unwrapping" may fail with multiple "!"s
 // Display as expandable tree, with option for printable
 // remove display code (tx=, txt=, etc.) from analyseSwiftFile()
 
+//More Issues to Flag:
+// Global vars, singletons (dependency injection?)
+// Free functions vs methods
+// Var name too short or too long
+
 //Done:
-// **! Check Subdirectories for Swift files
 
 import Cocoa    /* partial-line Block Comment does work.*/
 /* single-line Block Comment does work. */

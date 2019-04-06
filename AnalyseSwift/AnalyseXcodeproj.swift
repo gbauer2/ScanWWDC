@@ -15,18 +15,6 @@ private var rootObjectKey  = ""
 
 //MARK:- structs
 
-//TODO: Move to another file. Change to caseless enum
-public struct IssuePreferences {
-    // swift file
-    static var maxFileCodeLines = 500
-    static var maxFuncCodeLines = 130
-    static var underscoreAllowed = false
-    // xcodeproj file
-    static var diffentProductNameAllowed = false
-    static var allowedOrganizations = ["GeorgeBauer","georgebauer"]
-    static var minumumSwiftVersion = 4.0
-}
-
 public struct XcodeProj {
     var filename             = ""   // from URL
     var appName              = ""   // from app target
@@ -154,7 +142,7 @@ func pbxToXcodeProj(_ xcodeprojRaw: String, deBug: Bool = true) {        //116-3
         } else if char == ";" {                             // ------ ";"
             // process the item in this bufr
             let lineNumber = linePtr[ptrChar]
-            gotSemicolon(lineNumber: lineNumber, depth: depth, bufrs: bufrs, deBug: deBug)
+            processTheStack(lineNumber: lineNumber, depth: depth, bufrs: bufrs, deBug: deBug)
             bufrs[depth] = ""   // empty this bufr
 
         } else {                                            // ------ not "{" or "}" or ";"
@@ -358,8 +346,8 @@ private func addSourceURLsFromSubFolder(thisURL: URL, sourceFileObj: PBX, deBug:
     }//next childKey
 }//end func
 
-//---- gotSemicolon - Process the item in this bufr. 362-477 = 115-lines
-private func gotSemicolon(lineNumber: Int, depth: Int, bufrs: [String], deBug: Bool) {
+//---- processTheStack - Process the item in this bufr. 362-477 = 115-lines
+private func processTheStack(lineNumber: Int, depth: Int, bufrs: [String], deBug: Bool) {
     // Modifys xcodeProj, pbxObjects
     var parts = [String]()
     var start = 1
@@ -474,7 +462,7 @@ private func gotSemicolon(lineNumber: Int, depth: Int, bufrs: [String], deBug: B
              */
         }
     }
-}//end func gotSemicolon
+}//end func processTheStack
 
 //---- updateDeploymentTarget - to macOS, iPhoneOS, WatchOS, tvOS
 private func updateDeploymentTarget(buildConfigurationObj: PBX) {
@@ -651,7 +639,7 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
     text += "Application Name         = \(xcodeProj.appName)\n"
     if xcodeProj.appName != xcodeProj.productName {
         text += "Product Name             = \(xcodeProj.productName)\n"
-        if !IssuePreferences.diffentProductNameAllowed {
+        if IssuePreferences.differentProductNameDisallow {
             issues.append("AppName: \"\(xcodeProj.appName)\" != ProductName: \"\(xcodeProj.productName)\"")
         }
     }
@@ -766,8 +754,9 @@ private func fmtI(_ number: Int, wid: Int) -> String {
 func altParser(_ xcodeprojRaw: String) {
     let raw1 = xcodeprojRaw.replacingOccurrences(of: "\n", with: "")
     var raw2 = raw1.replacingOccurrences(of: "\t", with: "")
-    raw2 = raw2.replacingOccurrences(of: "{", with: ";{;")
-    let lines = raw2.components(separatedBy: ";")
+    raw2 = raw2.replacingOccurrences(of: "{", with: "\n{\n")
+    raw2 = raw2.replacingOccurrences(of: ";", with: ";\n")
+    let lines = raw2.components(separatedBy: "\n")
     var depth = 0
     for lineRaw in lines{
         var line = lineRaw.trim
@@ -775,7 +764,7 @@ func altParser(_ xcodeprojRaw: String) {
         if line == "{" {depth += 1}
         let tabs = String(repeating: "\t", count: depth)    // for print
         print("\(tabs)\(line)")                             // for print
-        if line == "}" {depth -= 1}
+        if line.hasPrefix("}") {depth -= 1}
         if line.count > 1 && (line.contains("{") || line.contains("}")) {
             //print()
             print()
