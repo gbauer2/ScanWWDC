@@ -59,8 +59,9 @@
 // remove display code (tx=, txt=, etc.) from analyseSwiftFile()
 
 //MenuRulesVC:
-// Implement Organization Rule
+// Implement Organization Rule Change
 // Refresh analysis when user changes rules
+// Bug: textfield not triggering "Change" when Save button clicked
 // More Issues to Flag:
 //   Global vars, singletons (dependency injection?)
 //   Free functions vs methods
