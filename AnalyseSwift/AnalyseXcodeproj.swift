@@ -639,7 +639,7 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
     text += "Application Name         = \(xcodeProj.appName)\n"
     if xcodeProj.appName != xcodeProj.productName {
         text += "Product Name             = \(xcodeProj.productName)\n"
-        if IssuePreferences.differentProductNameDisallow {
+        if CodeRule.flagProductNameDif {
             issues.append("AppName: \"\(xcodeProj.appName)\" != ProductName: \"\(xcodeProj.productName)\"")
         }
     }
@@ -654,7 +654,7 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
             text += "\(issue)!\n"
             issues.append(issue)
         } else {
-            if xcodeProj.swiftVerMin < IssuePreferences.minumumSwiftVersion {
+            if xcodeProj.swiftVerMin < CodeRule.minumumSwiftVersion {
                 issues.append("Obsolete Swift Version \(xcodeProj.swiftVerMin)")
             }
             text += "Swift Version used       = \(xcodeProj.swiftVerMin)\n"
@@ -670,8 +670,8 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
     text += "SDK Root                 = \(xcodeProj.sdkRoot)\n"
     text += "\(xcodeProj.deploymentTarget)\n"    // deploymentTarget
 
-    if !IssuePreferences.allowedOrganizations.isEmpty {
-        if !IssuePreferences.allowedOrganizations.contains(xcodeProj.organizationName) {
+    if !CodeRule.allowedOrganizations.isEmpty {
+        if !CodeRule.allowedOrganizations.contains(xcodeProj.organizationName) {
             issues.append("External Organization \"\(xcodeProj.organizationName)\"")
         }
     }
@@ -690,8 +690,8 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
         if isTest || (name != "VBcompatablity.swift" && name != "MyFuncs.swift" && name != "StringExtension.swift") {
             let clCt = swiftSummary.codeLineCount
             totalCodeLine += clCt
-            if clCt > IssuePreferences.maxFileCodeLines {
-                issues.append("\"\(name)\" has \(clCt) code-lines (>\(IssuePreferences.maxFileCodeLines)).")
+            if clCt > CodeRule.maxFileCodeLines {
+                issues.append("\"\(name)\" has \(clCt) code-lines (>\(CodeRule.maxFileCodeLines)).")
             }
             let ccCt = swiftSummary.nonCamelCases.count
             totalNonCamelCase += ccCt
@@ -701,7 +701,7 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
             totalVbCompatCall += vbCt
             let bigCt = swiftSummary.massiveFile + swiftSummary.massiveFuncs.count
             for afunc in swiftSummary.massiveFuncs {
-                issues.append("\"\(name)\" has a func \"\(afunc.name)\" with \(afunc.codeLineCount) code-lines (>\(IssuePreferences.maxFuncCodeLines)).")
+                issues.append("\"\(name)\" has a func \"\(afunc.name)\" with \(afunc.codeLineCount) code-lines (>\(CodeRule.maxFuncCodeLines)).")
             }
             totalBig += bigCt
             //text += "\(swiftSummary.url.lastPathComponent)  -  nonCamel \(swiftSummary.nonCamelCases.count)\n"

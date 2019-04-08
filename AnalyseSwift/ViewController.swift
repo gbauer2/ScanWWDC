@@ -16,9 +16,6 @@
 // Error Handler
 // Single Click for analyse & change dir - no double Click
 // if newly opened folder has a single xcodeproj: analyse it
-// Optionally save new "Rules" as user defaults.
-// Implement Organization Rule
-// Refresh analysis when user changes rules
 
 // showContents - Swift file:
 //  Fix namesColor to include:  classNames, funcNames, InstanceVars, Globals, & library names (MK- for MapKit,  etc.)
@@ -34,6 +31,7 @@
 //              Min SwiftVer; Allowed Organization; AppName<>productName allowed
 // Bug: "mainSourceKey = childKey", "Most likely child" may pick wrong child.
 // Bug: AnalyseXcodeproj called twice on startup
+
 // At start of analyseSwiftFile(), "swiftFilename =" should print last 3 path componants
 // Eliminate non-error error messages.
 // Fix Unhandled
@@ -47,19 +45,26 @@
 // dependency
 // computed variables, var observer
 // analysis: show func params
-// analysis: show non-camelCased params
+// bug: fails to flag non-camelCased params
 // analysis: show commentLinesCount(dead code?), MarkupLineCount (///) (/**)
 // analysis: organize by MARK: or by extension
 // Flag //TODO: //FIXME:
+// Flag multiple declarations on a line
 // allow extensions other than class
 // bug: "Check for Forced Unwrapping" may fail with multiple "!"s
+// bug: ForceUnwrap: AlmanacCommon.swift: 127:
+//          "let contentAsString = String(data: content!, encoding: String.Encoding.utf8)"
+// Bug: Fails to recognize var declarations in a list.
 // Display as expandable tree, with option for printable
 // remove display code (tx=, txt=, etc.) from analyseSwiftFile()
 
-//More Issues to Flag:
-// Global vars, singletons (dependency injection?)
-// Free functions vs methods
-// Var name too short or too long
+//MenuRulesVC:
+// Implement Organization Rule
+// Refresh analysis when user changes rules
+// More Issues to Flag:
+//   Global vars, singletons (dependency injection?)
+//   Free functions vs methods
+//   Var name too short or too long
 
 //Done:
 
@@ -109,9 +114,9 @@ class ViewController: NSViewController, NSWindowDelegate {
     // MARK: - Properties with didSet property observer
     var urlMismatch: URL? {
         didSet {
-            let t = selectedItemUrl
+            let url = selectedItemUrl
             selectedItemUrl = nil           // Force a "didSet" for selectedItemUrl
-            selectedItemUrl = t
+            selectedItemUrl = url
         }
     }
     var selectedFolderUrl: URL? {
@@ -191,6 +196,8 @@ class ViewController: NSViewController, NSWindowDelegate {
         popupBaseDir.removeAllItems()
         popupBaseDir.addItems(withTitles: ["Desktop","Downloads","Documents","All"])
         popupBaseDir.selectItem(at: 0)
+
+        CodeRule.getUserDefaults()
     }
 
     override func viewWillAppear() {
@@ -200,6 +207,10 @@ class ViewController: NSViewController, NSWindowDelegate {
         self.view.window?.delegate = self
         self.view.window?.setFrame(NSRect(x: 300, y: 70, width: 900, height: 800), display: true)
         //self.view.window?.setContentSize(NSSize(width: 1000, height: 800))
+
+        //myStr = UserDefaults.standard.object(forKey: “MyKey”) as? String ?? ""
+        //UserDefaults.standard.set(myStr, forKey: “MyKey”)
+
     }
 
     override func viewDidAppear() {
@@ -266,7 +277,7 @@ class ViewController: NSViewController, NSWindowDelegate {
             }
         }
         catch {
-            print("⛔️\(error) Error listing contents of \(folder)")
+            print("⛔️ #\(#line):\(error) Error listing contents of \(folder)")
         }
     }
 
@@ -587,7 +598,7 @@ extension ViewController {
                 }//end try do
 
                 catch let error as NSError {
-                    print("😡analyseContentsButtonClicked error: \(error)")
+                    print("😡 #\(#line): analyseContentsButtonClicked error: \(error)")
                 }//end try catch
 
             } else if analyseMode == .xcodeproj {
@@ -660,7 +671,10 @@ extension ViewController {
 
     // called from viewWillAppear - ???? Change to UserDefaults?
     func restoreCurrentSelections() {
-        guard let dataFileUrl = urlForDataStorage() else {print("😡No dataFileUrl!"); return }
+        guard let dataFileUrl = urlForDataStorage() else {
+            print("😡 #\(#line): No dataFileUrl!")
+            return
+        }
 
         do {
             let storedData = try String(contentsOf: dataFileUrl)
@@ -675,7 +689,7 @@ extension ViewController {
                 }
             }
         } catch {
-            print("😡restoreCurrentSelections error: \(error)")
+            print("😡 #\(#line): restoreCurrentSelections error: \(error)")
         }
     }//end func
 
@@ -701,7 +715,7 @@ extension ViewController {
         // It is unlikely to return more than one URL, but you only want to take the first one.
         // You can use this method with different parameters to locate many different folders.
         guard let folder = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else { return nil }
-        print("✅ dataFileUrl = \(folder)")
+        print("✅ #\(#line): dataFileUrl = \(folder)")
         // append a path component to create an app-specific folder URL and check to see if it exists.
         let appFolder = folder.appendingPathComponent("AnalyseSwiftCode")
         var isDirectory: ObjCBool = false
@@ -758,13 +772,16 @@ extension ViewController {
 
             } else {
                 // Show raw text as read
-                formattedText = formatWithHeader(contentFromFile) as! NSMutableAttributedString
+                guard let formattedText = formatWithHeader(contentFromFile) as? NSMutableAttributedString else {
+                    print(" #\(#line): Could not format read text")
+                    return
+                }
                 // --- Load infoTextView with formattedText ---
                 infoTextView.textStorage?.setAttributedString(formattedText)
             }
         }//end do
         catch let error as NSError {
-            let err = "😡showFileContents error: \(error.localizedDescription)"
+            let err = "😡 #\(#line): showFileContents error: \(error.localizedDescription)"
             print(err)
             let str = "\(selecFileInfo.name)\n\n'View' only works in text-based files."
             let formattedText = formatWithHeader(str)

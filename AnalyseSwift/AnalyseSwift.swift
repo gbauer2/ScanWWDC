@@ -171,14 +171,15 @@ func stripComment(fullLine: String, lineNum: Int) -> (codeLine: String, comment:
 func isCamelCase(_ word: String) -> Bool {
 
     //TODO: Change minimum name length to IssuePreference
+    if word == "_" { return true }
     if word.count < 2 { return false }
 
     //Allow AllCaps
-    if !IssuePreferences.allCapsDisallow {
+    if CodeRule.allowAllCaps {
         var isAllCaps = true
         for char in word {
             if !char.isUppercase {
-                if IssuePreferences.underscoreDisallow ||  char != "_" {
+                if !CodeRule.allowUnderscore ||  char != "_" {
                     isAllCaps = false
                     break
                 }
@@ -188,7 +189,7 @@ func isCamelCase(_ word: String) -> Bool {
     }
 
     // AllCaps not allowed or Not AllCaps
-    if  IssuePreferences.underscoreDisallow && word.contains("_") { return false }
+    if  !CodeRule.allowUnderscore && word.contains("_") { return false }
 
     // AllCaps not allowed and either no underscores or they are allowed
     let firstLetter = word[0]
@@ -648,7 +649,7 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
     tx  = NSMutableAttributedString(string: "\(nBlankLine) blank lines.\n", attributes: attributesSmallFont)
     txt.append(tx)
     swiftSummary.codeLineCount = nCodeLine
-    if nCodeLine > IssuePreferences.maxFileCodeLines { swiftSummary.massiveFile = 1 }
+    if nCodeLine > CodeRule.maxFileCodeLines { swiftSummary.massiveFile = 1 }
     tx  = NSMutableAttributedString(string: "\(nCodeLine) lines of code.  ", attributes: attributesMediumFont)
     txt.append(tx)
     tx  = NSMutableAttributedString(string: "\(nTrailing) with trailing comments.\n", attributes: attributesSmallFont)
@@ -695,7 +696,7 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
         switch c.blockType {
         case .Func:
             swiftSummary.funcs.append(FuncInfo(name: c.name, codeLineCount: c.codeLineCount))
-            if c.codeLineCount > IssuePreferences.maxFuncCodeLines {
+            if c.codeLineCount > CodeRule.maxFuncCodeLines {
                 swiftSummary.massiveFuncs.append(FuncInfo(name: c.name, codeLineCount: c.codeLineCount))
             }
         case .IBActionFunc: swiftSummary.ibActionFuncs.append(FuncInfo(name: c.name, codeLineCount: c.codeLineCount))
@@ -717,12 +718,12 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
     txt.append(tx)
 
     if swiftSummary.massiveFile > 0 {
-        tx = showIssue("\(swiftSummary.fileName) at \(swiftSummary.codeLineCount) code lines, is too big. (>\(IssuePreferences.maxFileCodeLines))")
+        tx = showIssue("\(swiftSummary.fileName) at \(swiftSummary.codeLineCount) code lines, is too big. (>\(CodeRule.maxFileCodeLines))")
         txt.append(tx)
     }
 
     for massiveFunc in swiftSummary.massiveFuncs {
-            tx = showIssue("func \"\(massiveFunc.name)()\" at \(massiveFunc.codeLineCount) code lines, is too big. (>\(IssuePreferences.maxFuncCodeLines))")
+            tx = showIssue("func \"\(massiveFunc.name)()\" at \(massiveFunc.codeLineCount) code lines, is too big. (>\(CodeRule.maxFuncCodeLines))")
             txt.append(tx)
     }
     // print non-camelCased variables

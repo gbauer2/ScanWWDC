@@ -244,13 +244,13 @@
             <objects>
                 <viewController id="RT9-oM-Bp7" customClass="MenuRulesVC" customModule="AnalyseSwiftCode" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" id="R5r-W0-WQ4">
-                        <rect key="frame" x="0.0" y="0.0" width="320" height="400"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="409"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="jFO-Zc-K9l">
-                                <rect key="frame" x="18" y="304" width="128" height="18"/>
+                                <rect key="frame" x="18" y="299" width="111" height="18"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="check" title="Disallow All-Caps" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="djA-cc-ecG">
+                                <buttonCell key="cell" type="check" title="Allow All-Caps" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="djA-cc-ecG">
                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
@@ -259,7 +259,7 @@
                                 </connections>
                             </button>
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="kfI-2i-pCp">
-                                <rect key="frame" x="18" y="364" width="272" height="18"/>
+                                <rect key="frame" x="18" y="355" width="272" height="18"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <buttonCell key="cell" type="check" title="Flag AppName differs from ProductName" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="RvT-B8-LB6">
                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
@@ -270,7 +270,7 @@
                                 </connections>
                             </button>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="nJa-9P-aJ8">
-                                <rect key="frame" x="37" y="328" width="79" height="17"/>
+                                <rect key="frame" x="37" y="323" width="79" height="17"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <textFieldCell key="cell" lineBreakMode="clipping" title="CamelCode" id="UGP-XO-1WO">
                                     <font key="font" metaFont="systemBold"/>
@@ -279,9 +279,9 @@
                                 </textFieldCell>
                             </textField>
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ioh-hF-Lwe">
-                                <rect key="frame" x="18" y="284" width="155" height="18"/>
+                                <rect key="frame" x="18" y="279" width="137" height="18"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="check" title="Disallow UnderScores" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="UPd-WJ-yen">
+                                <buttonCell key="cell" type="check" title="Allow UnderScores" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="UPd-WJ-yen">
                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
@@ -361,29 +361,8 @@
                                     <action selector="txtRuleMinSwiftVerChange:" target="RT9-oM-Bp7" id="JyZ-A4-wB1"/>
                                 </connections>
                             </textField>
-                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Ifb-yg-GUL">
-                                <rect key="frame" x="31" y="71" width="150" height="17"/>
-                                <autoresizingMask key="autoresizingMask"/>
-                                <textFieldCell key="cell" lineBreakMode="clipping" title="Allowed Organizations" id="4Jl-d2-UyL">
-                                    <font key="font" metaFont="systemBold"/>
-                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
-                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                </textFieldCell>
-                            </textField>
-                            <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Pha-KU-wTK">
-                                <rect key="frame" x="20" y="41" width="280" height="22"/>
-                                <autoresizingMask key="autoresizingMask"/>
-                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" id="g9A-Ca-lYN">
-                                    <font key="font" metaFont="system"/>
-                                    <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
-                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                </textFieldCell>
-                                <connections>
-                                    <action selector="txtRuleOrganizationChange:" target="RT9-oM-Bp7" id="Xya-jF-4fP"/>
-                                </connections>
-                            </textField>
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="vzP-kx-aso">
-                                <rect key="frame" x="230" y="4" width="70" height="32"/>
+                                <rect key="frame" x="230" y="13" width="70" height="32"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <buttonCell key="cell" type="push" title="Save" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="k9l-p3-Z30">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -397,18 +376,51 @@ DQ
                                 </connections>
                             </button>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="031-nL-Hgl">
-                                <rect key="frame" x="19" y="11" width="207" height="17"/>
+                                <rect key="frame" x="18" y="386" width="272" height="17"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <textFieldCell key="cell" lineBreakMode="clipping" id="FwW-Xv-CmB">
+                                    <font key="font" metaFont="systemBold"/>
+                                    <color key="textColor" name="systemRedColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ogD-rj-DgL">
+                                <rect key="frame" x="37" y="18" width="116" height="18"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <buttonCell key="cell" type="check" title="Save as Default" bezelStyle="regularSquare" imagePosition="left" lineBreakMode="truncatingTail" inset="2" id="QgJ-X2-qYL">
+                                    <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                     <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="chkDefaultClicked:" target="RT9-oM-Bp7" id="UsR-Vj-8EP"/>
+                                </connections>
+                            </button>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Ifb-yg-GUL">
+                                <rect key="frame" x="31" y="82" width="150" height="17"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                                <textFieldCell key="cell" lineBreakMode="clipping" title="Allowed Organizations" id="4Jl-d2-UyL">
+                                    <font key="font" metaFont="systemBold"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
+                            </textField>
+                            <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Pha-KU-wTK">
+                                <rect key="frame" x="20" y="52" width="280" height="22"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" id="g9A-Ca-lYN">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                                <connections>
+                                    <action selector="txtRuleOrganizationChange:" target="RT9-oM-Bp7" id="Xya-jF-4fP"/>
+                                </connections>
                             </textField>
                         </subviews>
                     </view>
                     <connections>
                         <outlet property="btnOk" destination="vzP-kx-aso" id="fIT-O4-YXk"/>
+                        <outlet property="chkDefault" destination="ogD-rj-DgL" id="zAo-Yc-FcL"/>
                         <outlet property="chkRuleAllCaps" destination="jFO-Zc-K9l" id="q7D-cv-ih1"/>
                         <outlet property="chkRuleAppVsProduct" destination="kfI-2i-pCp" id="ASI-oi-YJ1"/>
                         <outlet property="chkRuleUnderscore" destination="ioh-hF-Lwe" id="lXJ-Uv-Z1F"/>
@@ -421,7 +433,7 @@ DQ
                 </viewController>
                 <customObject id="c6T-bi-k9C" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="878" y="760"/>
+            <point key="canvasLocation" x="878" y="764.5"/>
         </scene>
         <!--View Controller-->
         <scene sceneID="hIz-AP-VOD">
