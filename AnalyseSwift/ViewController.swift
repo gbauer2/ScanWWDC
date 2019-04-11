@@ -27,34 +27,24 @@
 // Display in NSTable with links to AnalyseSwift & with option for printable.
 // Flag missing Unit-Test
 // Show MainGroup.Children {Framework}
-// User Prefs:  Max Codelines, Max funcCodelines; Under_score allowed, AllCapsAllowed,
-//              Min SwiftVer; Allowed Organization; AppName<>productName allowed
 // Bug: "mainSourceKey = childKey", "Most likely child" may pick wrong child.
 // Bug: AnalyseXcodeproj called twice on startup
 
-// At start of analyseSwiftFile(), "swiftFilename =" should print last 3 path componants
 // Eliminate non-error error messages.
 // Fix Unhandled
 
 //AnalyseSwift:
-// ?Move "possible issues" to top
 // Make handling quotes more robust - (codeLineClean)
 // Handle Raw Strings" #"literal"#
 // Handle multi-line Strings:  inTripleQuote """
-// bug: in GetKeyWords/ViewController.swift -> finds error inside triple-quote
+// Bug: in GetKeyWords/ViewController.swift -> finds error inside triple-quote
 // dependency
 // computed variables, var observer
 // analysis: show func params
-// bug: fails to flag non-camelCased params
-// analysis: show commentLinesCount(dead code?), MarkupLineCount (///) (/**)
+// analysis: show commentLinesCount(dead code?) vs MarkupLineCount (///) (/**)
 // analysis: organize by MARK: or by extension
-// Flag //TODO: //FIXME:
-// Flag multiple declarations on a line
 // allow extensions other than class
-// bug: "Check for Forced Unwrapping" may fail with multiple "!"s
-// bug: ForceUnwrap: AlmanacCommon.swift: 127:
-//          "let contentAsString = String(data: content!, encoding: String.Encoding.utf8)"
-// Bug: Fails to recognize var declarations in a list.
+// Bug: "Check for Forced Unwrapping" may fail with multiple "!"s
 // Display as expandable tree, with option for printable
 // remove display code (tx=, txt=, etc.) from analyseSwiftFile()
 
@@ -62,10 +52,13 @@
 // Implement Organization Rule Change
 // Refresh analysis when user changes rules
 // Bug: textfield not triggering "Change" when Save button clicked
-// More Issues to Flag:
+// More Issues to flag:
 //   Global vars, singletons (dependency injection?)
 //   Free functions vs methods
 //   Var name too short or too long
+//   //TODO: //FIXME:
+//   Multiple declarations on a line
+//   CodeLine too long
 
 //Done:
 

@@ -35,6 +35,8 @@ public struct XcodeProj {
     var swiftURLs            = [URL]()
     var swiftSummaries       = [SwiftSummary]()
     var targets              = PBXNativeTarget()
+    var hasUnitTest          = false
+    var hasUITest            = false
     var url = FileManager.default.homeDirectoryForCurrentUser   // from URL
 }
 
@@ -287,7 +289,12 @@ func pbxToXcodeProj(_ xcodeprojRaw: String, deBug: Bool = true) {        //116-3
         guard let targetObj = pbxObjects[targetKey] else { continue }   // make non-optional targetObj
         let productType = targetObj.productType
         //if deBug {print(targetKey, targetObj)}
-        if !productType.contains(".application") { continue }           // only pay attention to application target
+        if !productType.contains(".application") {
+            print(productType)
+            if productType.contains("unit-test ") { xcodeProj.hasUnitTest = true }
+            if productType.contains("ui-test ")   { xcodeProj.hasUITest   = true }
+            continue
+        }           // only pay attention to application target
         xcodeProj.appName = targetObj.name
         xcodeProj.productName = targetObj.productName
         xcodeProj.createdOnToolsVersion = targetObj.CreatedOnToolsVersion

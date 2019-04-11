@@ -13,11 +13,15 @@ import Cocoa    /* ????? partial-line Block Comment does not work.*/
  #warning("This code is incomplete.")
  */
 
-private func testForceUnwrap() {
+private func DoForceUnwrap() {
     var dict = [String: String]()
     dict["as!"] = "as!"
     let val = dict["as!"]!
     print(val)
+
+    let content = FileManager.default.contents(atPath: "")
+    let contentAsString = String(data: content!, encoding: String.Encoding.utf8)
+    print(contentAsString!)
 
     let attributes = try! FileManager.default.attributesOfItem(atPath: "123")
 

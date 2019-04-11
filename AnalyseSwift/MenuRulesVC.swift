@@ -3,7 +3,7 @@
 //  AnalyseSwiftCode
 //
 //  Created by George Bauer on 4/4/19.
-//  Copyright © 2019 Ray Wenderlich. All rights reserved.
+//  Copyright © 2019 George Bauer. All rights reserved.
 //
 
 import Cocoa
@@ -17,7 +17,7 @@ public struct CodeRule {
     static var maxFileCodeLines     = 500                   //4
     static var maxFuncCodeLines     = 130                   //5
     static var minumumSwiftVersion  = 4.0                   //6
-    static var allowedOrganizations = ["GeorgeBauer","GB"]  //7
+    static var allowedOrganizations = "GeorgeBauer,GB"      //7
 
     // --- keys for UserDefaults ---                            //keys
     static var keyProductName       = "RuleProductName"             //1
@@ -57,9 +57,12 @@ public struct CodeRule {
 
             let ver = defaults.double(forKey: keyMinSwiftVersion)
             if ver > 0 { minumumSwiftVersion = ver }                        //6
-            //                                                          //7 ??
+
+            if let str = defaults.string(forKey: keyOrganizations) {        //7
+                allowedOrganizations = str
+            }
         }
-    }
+    }//end func
 
 }//end struct CodeRules
 
@@ -71,7 +74,7 @@ class MenuRulesVC: NSViewController {
     var maxFileCode = 0
     var maxFuncCode = 0
     var minSwiftVer = 0.0
-    var organizations = [String]()
+    var organizations = ""
 
     //MARK:- Lifecycle funcs
 
@@ -88,13 +91,8 @@ class MenuRulesVC: NSViewController {
         txtRuleFuncCodelines.stringValue = "\(maxFuncCode)"                     //5
         minSwiftVer = CodeRule.minumumSwiftVersion
         txtRuleMinSwiftVer.stringValue   = String(format:"%.1f", minSwiftVer)   //6
-
-        var orgStr = ""
-        for org in CodeRule.allowedOrganizations {
-            orgStr.append(org + ",")
-        }
-        if orgStr.hasSuffix(",") { orgStr.removeLast() }
-        txtRuleOrganization.stringValue = orgStr                                //7
+        organizations = CodeRule.allowedOrganizations.trim
+        txtRuleOrganization.stringValue = organizations                         //7
 
         btnOk.isEnabled = false
     }//end func
@@ -141,6 +139,10 @@ class MenuRulesVC: NSViewController {
             }
         } else {
             lblError.stringValue = "MinSwiftVer not valid"
+            return
+        }
+        if organizations != txtRuleOrganization.stringValue {             //7
+            lblError.stringValue = "Allowed Organizations not \"entered\""
             return
         }
         //                                                          //Save Changes
@@ -225,9 +227,12 @@ class MenuRulesVC: NSViewController {
 
     @IBAction func txtRuleOrganizationChange(_ sender: Any) {       //7
         lblError.stringValue = ""
-        organizations = parseOrgs(from: txtRuleOrganization.stringValue)
+        organizations = txtRuleOrganization.stringValue
         let isChange = organizations != CodeRule.allowedOrganizations
         setOkButton(isChange: isChange, bitVal: 0x40)
+        organizations = txtRuleOrganization.stringValue.trim
+        txtRuleOrganization.stringValue = organizations
+        print(organizations, txtRuleOrganization.stringValue)
     }
 
     //MARK:- Helper funcs
@@ -266,13 +271,5 @@ class MenuRulesVC: NSViewController {
         }
         return newStr
     }//end func
-
-    func parseOrgs(from str: String) -> [String] {
-        var orgs = [String]()
-        if str.trim.isEmpty { return orgs }
-        let orgStrings = str.components(separatedBy: ",")
-        orgs = orgStrings.map {$0.trim}
-        return orgs
-    }
 
 }//end class MenuRulesVC

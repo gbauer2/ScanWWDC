@@ -54,7 +54,7 @@ extension ViewController {
         paragraphStyle.tabStops = [ NSTextTab(type: .rightTabStopType, location: 26),  NSTextTab(type: .leftTabStopType, location: 32) ]
         
         let lineNumAttributes: [NSAttributedString.Key: Any] = [
-            NSAttributedString.Key.font: NSFont(name: "Menlo", size: 10)!,
+            NSAttributedString.Key.font: NSFont(name: "Menlo", size: 10) ?? NSFont.systemFont(ofSize: 10),
             NSAttributedString.Key.foregroundColor: NSColor.gray,
             NSAttributedString.Key.paragraphStyle: paragraphStyle
         ]
@@ -85,7 +85,7 @@ extension ViewController {
 //    }//end func
 
     func formatCodeLine(codeLine: String, inTripleQuote: inout Bool, inBlockComment: inout Bool) -> NSAttributedString {
-        let textAttributes: [NSAttributedString.Key: Any] = [NSAttributedString.Key.font: NSFont(name: "PT Mono", size: 12)!]
+        let textAttributes: [NSAttributedString.Key: Any] = [NSAttributedString.Key.font: NSFont(name: "PT Mono", size: 12) ?? NSFont.systemFont(ofSize: 12)]
         var formattedText = NSMutableAttributedString(string: "\(codeLine)\n", attributes: textAttributes)
 
         let marks = markCodeLine(codeLine: codeLine, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment)

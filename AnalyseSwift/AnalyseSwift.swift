@@ -109,7 +109,7 @@ private func gotCloseCurly(lineNum: Int, nCodeLine: Int, deBug: Bool = false) {
     }
 }//end func
 
-// Check that there is no "}" and no more the 1 "{" and only AFTER class,extension,func,struc,enum declaration
+//---- checkCurlys - Check that there is no "}" and no more the 1 "{" and only AFTER class,extension,func,struc,enum declaration
 private func checkCurlys(codeName: String, itemName: String,posItem: Int, pOpenCurlyF: Int, pOpenCurlyR: Int, pCloseCurlyF: Int, pCloseCurlyR: Int) {
     if pOpenCurlyF > 0 && pOpenCurlyF < posItem {
         print("⛔️ open curly before \(codeName) \(itemName)")
@@ -168,6 +168,7 @@ func stripComment(fullLine: String, lineNum: Int) -> (codeLine: String, comment:
     return (fullLine, "")
 }//end func stripComment
 
+//---- isCamelCase
 func isCamelCase(_ word: String) -> Bool {
 
     //TODO: Change minimum name length to IssuePreference
@@ -374,7 +375,7 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
             }
 
             // Create a CharacterSet of delimiters.
-            let separators = CharacterSet(charactersIn: "\t ([{:}])")    //tab, space, openParen, colon
+            let separators = CharacterSet(charactersIn: "\t ([{:}]),;")    //tab, space, openParen, colon
 
             // Split based on characters.
             let wordsWithEmpty = codeLineClean.components(separatedBy: separators)
@@ -384,7 +385,6 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
             // Find Forced Unwraps
             let firstWord = words.first ?? ""
             for word in words {
-                // Check for Forced Unwrapping
                 if word.hasSuffix("!") && !codeLineClean.hasPrefix("@IBOutlet") {
                     let p = codeLineClean.IndexOf(word)                             // p is pointer to word
                     let isOK = word.count > 1 || p == 0 || codeLineClean[p-1] != " "    // must not have whitespace before "!"
@@ -403,6 +403,8 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
                         swiftSummary.forceUnwraps.append(xword)
                     }
                 }
+
+                // Check for VBCompatability calls
                 if let count = gDictVBwords[word] {
                     nVBwords += 1
                     if count == 0 {
