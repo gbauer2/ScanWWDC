@@ -545,7 +545,7 @@ func getPropertyAndVals(from text: String) -> (propName: String, vals: [String])
 func cleanRawText(_ rawText: String) -> (String, [Int]) {       //550-606 = 56-lines
     var pStart = 1
     if rawText.hasPrefix("//") {
-        pStart = rawText.IndexOf("\n") + 1
+        pStart = rawText.firstIntIndexOf("\n") + 1
     }
     if rawText.contains("//") {
         //print("⛔️⛔️⛔️  #\(#line) Contains \" // \"")
@@ -740,7 +740,7 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
     //        txvMain.font = NSFont(name: "Courier", size: 12)
 
     let textAttributes: [NSAttributedString.Key: Any] = [
-        NSAttributedString.Key.font: NSFont(name: "Courier", size: 14)!,        //systemFont(ofSize: 18),
+        NSAttributedString.Key.font: NSFont(name: "Courier", size: 14) ?? NSFont.systemFont(ofSize: 14),
         NSAttributedString.Key.paragraphStyle: NSParagraphStyle.default
     ]
     let formattedText = NSMutableAttributedString(string: text, attributes: textAttributes)
@@ -778,8 +778,7 @@ func altParser(_ xcodeprojRaw: String) {
         }
     }
     print()
-
-}
+}//end func
 
 // used by altParser
 private func stripComments(_ lineIn: String) -> String {

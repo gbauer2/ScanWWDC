@@ -5,8 +5,8 @@
 //  Created by George Bauer on 1/23/18.
 //  Copyright © 2018 GeorgeBauer. All rights reserved.
 //
-//  Ver 1.8.7  3/31/2019 Change .IndexOf calls to .firstIndexOf as per StringExtension.swift
-//      1.8.6  8/22/2018 Fix CDate "08/09/1995 16:19"
+//  When next noncompatible ver is made, change sign to Sign
+//  Ver 1.8.6  8/22/2018 Fix CDate "08/09/1995 16:19"
 //      1.8.5  8/16/2018 Fix CDate "8/09/1995 16:19"
 //      1.8.4  8/14/2018 Fix CDate "7/31/2005 2:58 PM"
 //      1.8.3  8/11/2018 Fix CDate "8/09/1995 16:19:52";  VBcompPrintToLog= false
@@ -14,7 +14,7 @@
 //      1.8.1  7/09/2018 Improvements to CDate(Str), fixed Val & isNumeric for leading spaces,  Implement Format(Int,Str)
 //      1.8.0  6/16/2018 Add MidEquals, Like.  Fix VB.Hour
 //      1.7.3  6/15/2018 Fix GetParentPath, Stub for Like.  Add VB.Hour,VB.Minute
-//      1.7.2  5/23/2018 Add GetParentPath, change sign to Sign
+//      1.7.2  5/23/2018 Add GetParentPath, change sign to SignVer 1.7.2  5/23/2018 Add GetParentPath, change sign to Sign
 //      1.7.1  5/21/2018 simplify getHexVal - Caution: returns 0.0 if it encounters non-hex char (unlike VB)
 //      1.7.0  5/20/2018 Move .IndexOf to StringExtension
 //      1.6.0  5/16/2018 Fix EOF, Fix Instr(start,str,str)
@@ -66,26 +66,32 @@ let vbLf = "\n"
 public var VBcompPrintToLog = false
 public var knownProblems = 0
 
+@available(*, deprecated, message: "Use 'str.uppercased(n)' instead")
 public func UCase(_ a: String) -> String {
     return a.uppercased()
 }
 
+@available(*, deprecated, message: "Use 'str.lowercased(n)' instead")
 public func LCase(_ a: String) -> String {
     return a.lowercased()
 }
 
-public func Left(_ a: String, _ i: Int) -> String {
-    return a.left(i)
+@available(*, deprecated, message: "Use 'str.prefix(int)' instead")
+public func Left(_ str: String, _ int: Int) -> String {
+    return str.left(int)
 }
 
-public func Right(_ a: String, _ i: Int) -> String {
-    return a.right(i)
+@available(*, deprecated, message: "Use 'str.suffix(n)' instead")
+public func Right(_ str: String, _ int: Int) -> String {
+    return str.right(int)
 }
 
+/// Emulates VB Mid func (start at 1)
 public func Mid(_ a: String, _ i: Int) -> String {
     return a.mid(begin: i - 1)
 }
 
+/// Emulates VB Mid func (start at 1)
 public func Mid(_ a: String, _ i: Int, _ len: Int) -> String {
     return a.mid(begin: i - 1, length: len)
 }
@@ -97,14 +103,17 @@ public func MidEquals(str: String, Start: Int, Len: Int, newStr: String) -> Stri
     return str.replacingCharacters(in: startIdx..<endIdx, with: newStr)
 }
 
+/// Emulates VB InStr func (start at 1)
 public func InStr(_ a: String, _ b: String) -> Int {
     return a.firstIntIndexOf(b) + 1
 }
 
+/// Emulates VB InStrRev func (start at 1)
 public func InStrRev(_ a: String, _ b: String) -> Int {
     return a.lastIntIndexOf(b) + 1
 }
 
+/// Emulates VB InStr func (start at 1)
 public func InStr(_ start: Int, _ a: String, _ b: String) -> Int {
     let aa = a.mid(begin: start-1)
     let i = aa.firstIntIndexOf(b)
@@ -113,57 +122,77 @@ public func InStr(_ start: Int, _ a: String, _ b: String) -> Int {
 }
 
 //---- Trim - Removes whitespace AND NewLines from both ends
+@available(*, deprecated, message: "Use 'str.trim' instead")
 public func Trim(_ str: String) -> String {
     return str.trimmingCharacters(in: .whitespacesAndNewlines)
 }
 
-//---- LTrim & RTrim - Remove ONLY whitespace from Left or Right
+/// Remove ONLY whitespace from Left
 public func LTrim(_ str: String) -> String {
     let trimmed = str.replacingOccurrences(of: "^\\s+", with: "", options: .regularExpression)
     return trimmed
 }
+/// Remove ONLY whitespace from Right
 public func RTrim(_ str: String) -> String {
     let trimmed = str.replacingOccurrences(of: "\\s+$", with: "", options: .regularExpression)
     return trimmed
 }
 
-public func IsNumeric(_ a: String) -> Bool {
-    return Double(a.trimmingCharacters(in: .whitespaces)) != nil
+/// true if trimmed String converts to Double
+public func IsNumeric(_ str: String) -> Bool {
+    return Double(str.trimmingCharacters(in: .whitespaces)) != nil
 }
 
+@available(*, deprecated, message: "Use 'str.count' instead")
 public func Len(_ str: String) -> Int {
     return str.count
 }
 
+@available(*, deprecated, message: "Use 'String(repeating: \" \", count: n)' instead")
 public func Space(_ i: Int) -> String {
     return String(repeating: " ", count: i)
 }
 
-public func CInt(_ a: String) -> Int {
-    let d = Double(a.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0.0
-    return Int(d.rounded())
+///Use 'Int(Double(str.rounded() )' instead
+public func CInt(_ str: String) -> Int {
+    let dbl = Double(str.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0.0
+    return Int(dbl.rounded())
 }
 
+///Use 'Int(dbl.rounded() )' instead
 public func CInt(_ a: Double) -> Int {
     return Int(a.rounded())
 }
 
-public func CDbl(_ a: String) -> Double {
-    return Double(a.trim) ?? 0.0
+/// Use 'Double(str.trim) ?? 0' instead
+public func CDbl(_ str: String) -> Double {
+    return Double(str.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0.0
 }
 
-public func CDbl(_ n: Int) -> Double {
-    return Double(n)
+@available(*, deprecated, message: "Use 'Double(int)' instead")
+public func CDbl(_ int: Int) -> Double {
+    return Double(int)
 }
 
+@available(*, deprecated, message: "Use 'Float(n) ?? 0' instead")
 public func CSng(_ a: String) -> Float {
     return Float(a) ?? 0.0
 }
 
+@available(*, deprecated, message: "Use Float(n) instead")
 public func CSng(_ n: Int) -> Float {
     return Float(n)
 }
 
+/// Convert String to Double.
+///
+/// Reads String up to 1st non-numeric Character.
+///
+/// Returns 0 if String is not numeric.
+///
+/// Hex values start with '&H' or '0X'.
+/// - Parameter string: String to be converted
+/// - Returns: Double
 public func Val(_ string: String) -> Double {
     let trimmed = string.trimmingCharacters(in: .whitespaces)
     let first2 = trimmed.prefix(2).uppercased()
@@ -187,10 +216,17 @@ private func getHexVal(_ string: String) -> Double {
     return Double(ret)
 }
 
+@available(*, deprecated, message: "Use 'n.signum()' instead")
 public func Sign(_ i: Int) -> Int {
     return i.signum()
 }
 
+/// Round a Double to a fixed number of places.
+///
+/// - Parameters:
+///   - val: Double to be rounded
+///   - places: Number of decimal places in returned value
+/// - Returns: Double
 public func Round(_ val: Double, _ places: Int) -> Double {
     let numberOfPlaces: Double = Double(places)
     let multiplier = pow(10.0, numberOfPlaces)
@@ -203,19 +239,25 @@ public enum StringSplitOptions{
     case none
     case RemoveEmptyEntries
 }
+/// Split a String at a given Character
+///
+/// - Parameters:
+///   - str: String to be split
+///   - separator: Character at which to split String
+/// - Returns: String array
+@available(*, deprecated, message: "Use 'str.components(separatedBy: sep)' instead")
 public func Split(_ str: String, _ separator: Character) -> [String] {
     let sep = String(separator)
     return str.components(separatedBy: sep)
 }
 
-// Returns a Weekday Number (1=Sun)
+/// Returns a Weekday Number (1=Sun)
 public func Weekday(_ date: Date) -> Int {
-    //let unitFlags:Set<Calendar.Component> = [ .year, .month, .day, .hour, .minute, .second, .calendar, .timeZone, .weekday ]
     let dateComponents = Calendar.current.dateComponents([.weekday], from: date)
-    return dateComponents.weekday!
+    return dateComponents.weekday ?? -1
 }
 
-// Return format String of today's date
+/// Return formatted String of today's date
 public func DateString() -> String {
     let dateFormatter = DateFormatter()
     dateFormatter.dateFormat = "MM/dd/yyyy"
@@ -223,7 +265,12 @@ public func DateString() -> String {
     return dateStr
 }
 
-// converts "MM/dd/yyyy" or "MM/dd/yyyy hh:mm:ss a" to Date (Caution: returns 11/11/1111 if nil)
+/// Converts "MM/dd/yyyy" or "MM/dd/yyyy hh:mm:ss a" to Date
+///
+/// Caution: returns 11/11/1111 if nil
+///
+/// - Parameter string: String to be converted
+/// - Returns: Date
 public func CDate(_ string: String) -> Date {
     let dateStr = string.trim
     let len = dateStr.count
@@ -270,7 +317,13 @@ public func CDate(_ string: String) -> Date {
     return nilDate
 }
 
-// converts MM,dd,yyyy to Date
+/// Converts MM,dd,yyyy to Date
+///
+/// - Parameters:
+///   - month: month Int
+///   - day: day Int
+///   - year: 4-digit year Int
+/// - Returns: Date
 public func CDate(_ month: Int, _ day: Int, _ year: Int) -> Date {
     let dateFormatter = DateFormatter()
     dateFormatter.dateFormat = "MM/dd/yyyy"
@@ -279,6 +332,12 @@ public func CDate(_ month: Int, _ day: Int, _ year: Int) -> Date {
     return date
 }
 
+/// Replace one file extension with another
+///
+/// - Parameters:
+///   - name: old filename
+///   - newExtension: new file extension
+/// - Returns: new filename
 public func ChangeExtension(_ name: String, _ newExtension: String) -> String {
     var newExt = newExtension
     if newExtension.hasPrefix(".") {newExt = String(newExtension.dropFirst())}
@@ -290,25 +349,33 @@ public func ChangeExtension(_ name: String, _ newExtension: String) -> String {
     return name2 + newExt
 }
 
+/// Combine 2 String so they are joind by a single '/'
 public func PathCombine(_ base: String, _ addon: String) -> String {
     var base2 = base
     var addon2 = addon
-    if base.hasSuffix("/") { base2 =  String(base.dropLast()) }
+    if base.hasSuffix("/")  { base2  = String(base.dropLast()) }
     if addon.hasPrefix("/") { addon2 = String(addon.dropFirst()) }
     return base2 + "/" + addon2
 }
 
+/// Extract a filename from a path, removing the file extension
 public func GetFileNameWithoutExtension(_ fullPath: String) -> String {
     var url = URL(fileURLWithPath: fullPath)
     url.deletePathExtension()
     return url.lastPathComponent
 }
 
+/// Extract a filename from a path
 public func GetFileName(_ fullPath: String) -> String {
     let url = URL(fileURLWithPath: fullPath)
     return url.lastPathComponent
 }
 
+/// Remove last element from a filepath
+///
+/// If fullPath ends with a '/', only the trailing '/' will be removed.
+///
+/// If fullPath does not contain '/', returns an empty String
 public func GetParentPath(_ fullPath: String) -> String {
     let idxSlash = fullPath.lastIntIndexOf("/")
     if idxSlash < 0 { return "" }
@@ -317,29 +384,38 @@ public func GetParentPath(_ fullPath: String) -> String {
 }
 
 
+@available(*, deprecated, message: "Use ' \"\\(d)\" ' instead")
 public func Format(_ d: Double) -> String {
     return "\(d)"
 }
 
+@available(*, deprecated, message: "Use ' \"\\(d)\" ' instead")
 public func Format(_ d: Int) -> String {
     return "\(d)"
 }
 
+
+/// Format a Date using a format String.
+///
+/// - Parameters:
+///   - date: Date to be formatted
+///   - format: e.g. \"E MM/dd/yyyy hh:mm:ss a\"
+/// - Returns: String
 public func Format(_ date: Date, _ format: String) -> String {
     let dateFormatter = DateFormatter()
     dateFormatter.dateFormat = format
     let dateStr = dateFormatter.string(from: date)
-    return "\(dateStr)"
+    return dateStr
 }
-
-//---- Format - Integer format "00", "###000"
-public func Format(_ d: Int, _ format: String) -> String {
+//????????????????
+/// Integer format "00", "###000"
+public func Format(_ int: Int, _ format: String) -> String {
     let fieldLen = format.count
     var zeros = 0
     for char in format {
         if char == "0" { zeros += 1 }
     }
-    var a = "\(d)"
+    var a = "\(int)"
     if a.count < zeros {
         a = String(repeating: "0", count: zeros - a.count) + a
     }
@@ -349,6 +425,7 @@ public func Format(_ d: Int, _ format: String) -> String {
     return a
 }
 
+@available(*, deprecated, message: "Use ' \"\\(d)\" ' instead")
 public func Str(_ d: Any) -> String {
     return "\(d)"
 }
@@ -412,7 +489,7 @@ public func Like(_ str: String, _ template: String) -> Bool {
 //    return regex.match(str)
 }
 
-//MARK:- MsgBox //301
+//MARK:- MsgBox 485
 
 public enum MsgBoxStyle {
     case Information
@@ -526,7 +603,7 @@ func InputBox(_ msg: String) -> String {
   */
 
 //------------------------------------------------------------------------------
-//MARK:- Dummy Routines //420
+//MARK:- Dummy Routines //599
 
 //------ IsDate - Only checks str in form of "MM/dd/yyyy"
 public func IsDate(_ dateStr: String) -> Bool {
@@ -555,7 +632,7 @@ public func Seek(_ chan: Int, _ ptr: Int) {
 
 //---------------------------------- end Dummies --------------------------------------
 
-//MARK:- File Handling //453
+//MARK:- File Handling 628
 
 public struct FileSim: Equatable {     //------------------------------ Simulate VB behind-the-scenes file-handling
     public var openMode  = OpenMode.Closed   //Input,Output, (Random,Binary,Append not implemented)
@@ -717,7 +794,7 @@ public func FreeFile() -> Int {
     return -1
 }
 
-//MARK:- Input (from VBdataArray) - Obsolete //602
+//MARK:- Input (from VBdataArray) - Obsolete 790
 
 //public func Input(_ index: inout Int, _ val: inout String) {
 //    val = VBdataArray[index]
@@ -743,7 +820,7 @@ public func FreeFile() -> Int {
 //if a Like "## ## ##"
 //var ReadText: String = File.ReadAllText(...
 
-//MARK:- VB Class VB.xxx //628
+//MARK:- VB Class VB.xxx 816
 
 //---- VB.Left -
 public class VB {
@@ -792,6 +869,7 @@ public class VB {
     }
 
     //---- VB.DeleteFile -
+    @available(*, deprecated, message: "Use FileManager.default.removeItem(atPath: atPath) instead")
     static func DeleteFile(_ atPath: String) -> Bool {
         let iReturn: Bool
         let fileManager = FileManager.default
@@ -806,6 +884,7 @@ public class VB {
     }
 
     //---- VB.Rename -
+    @available(*, deprecated, message: "Use FileManager.default.moveItem(atPath: atPath, toPath: to) instead")
     static func Rename(_ atPath: String, _ to: String) -> Bool {
         do {
             try FileManager.default.moveItem(atPath: atPath, toPath: to)
@@ -954,7 +1033,7 @@ public class VB {
 //    print("Current path = \(currentPath)")
 //}//end func dirStuff - Not used - just for reference
 
-//MARK:- ListBox Class simulators //814
+//MARK:- ListBox Class simulators 1029
 class ListBox {
     var SelectedIndex = 0
     var Text = ""
@@ -980,7 +1059,7 @@ class ListBox {
 //    }
 //}
 
-//MARK:- RichTextBox Class //840
+//MARK:- RichTextBox Class 1055
 class RichTextBox {
     var Text = ""
     var TextLength: Int { return Text.count }
@@ -989,7 +1068,7 @@ class RichTextBox {
     }
 }
 
-// MARK:- String Extensions //849
+// MARK:- String Extensions 1064
 extension String {
 
     func Substring(_ begin: Int, _ length: Int) -> String {

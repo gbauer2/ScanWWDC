@@ -221,7 +221,7 @@ class MenuRulesVC: NSViewController {
             minSwiftVer = val
         } else {
             txtRuleFuncCodelines.stringValue = "\(CodeRule.maxFuncCodeLines)"
-            lblError.stringValue = "Min. Swift Ver. 3.0 or higher"
+            lblError.stringValue = "Min. Swift Ver. 3.0 to 9.0"
         }
     }//end func
 

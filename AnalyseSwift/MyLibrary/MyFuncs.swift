@@ -5,6 +5,7 @@
 //  Created by George Bauer on 9/29/17.
 //  Copyright © 2017-2019 GeorgeBauer. All rights reserved.
 
+//  Ver 1.6.4   4/12/2019   Remove forced-unwraps. Add documentation.
 //  Ver 1.6.3   3/08/2019   getFileInfo: Change url param to Optional, Add func getContentsOf(dirURL: URL)
 //      1.6.2   8/16/2018   Add: getContentsOf(directoryStr), getFileInfo(_ str), getFileInfo(url)
 //      1.6.1   7/11/2018   Fix isNumeric for leading/trailing whitespace
@@ -21,6 +22,9 @@
 
 //TODO:- Testing: 100%
 // printDictionary Dictionary not NSDictionary, Array not NSArray
+// Improve test for FileAttributes.getFileInfo
+// Rename matches & isMatch.
+// Eliminate force-unwrap in matches
 
 import Foundation
 
@@ -44,13 +48,13 @@ public func formatDbl(_ number: Double, _ places: Int) -> String {
 ///     - places:   (Int) - number of fractional digits
 /// - Returns: Right-justified truncated String
 public func formatDbl(number: Double, fieldLen: Int = 0, places: Int) -> String {
-    let s: String
-    if fieldLen == 0 {
-        s = String(format:"%.\(places)f", number)                            //String(format:%.2f",number)
+    let str: String
+    if fieldLen <= 0 {
+        str = String(format:"%.\(places)f", number)                            //String(format:%.2f",number)
     } else {
-        s = String(format:"%\(fieldLen).\(places)f", number).left(fieldLen)  //String(format:%6.2f",number)
+        str = String(format:"%\(fieldLen).\(places)f", number).left(fieldLen)  //String(format:%6.2f",number)
     }
-    return s
+    return str
 }
 
 //---- Format Int using fieldLen ----
@@ -296,10 +300,10 @@ public struct FileAttributes: Equatable {
                 let fileType         = attributes[FileAttributeKey(rawValue: "NSFileType")] as? String
                 let isDir            = (fileType?.contains("Dir")) ?? false
                 return FileAttributes(url: url, name: name, creationDate: creationDate, modificationDate: modificationDate, size: size, isDir: isDir)
-            } catch {
+            } catch {   // FileManager error
                 return FileAttributes(url: nil, name: "???", creationDate: nil, modificationDate: nil, size: 0, isDir: false)
             }
-        } else {
+        } else {   // url = nil
             return FileAttributes(url: nil, name: "???", creationDate: nil, modificationDate: nil, size: 0, isDir: false)
         }
     }
@@ -347,9 +351,9 @@ func isMatch(for regex: String, in text: String) -> Bool {
 public func formatDictionaryAny(title: String, obj: AnyObject, decimalPlace: Int = 1, titleLen: Int = 10, fillStr: String = ".") -> String {
     var str = "???"
     if obj is String {
-        str = obj as! String
+        str = obj as? String ?? "???"
     } else if obj is Double {
-        let num = obj as! Double
+        let num = obj as? Double ?? 0.0
         str = String(num)
     }
     return formatDictionaryStr(title: title, str: str, titleLen: titleLen, fillStr: fillStr)
@@ -441,12 +445,11 @@ public func printDictionaryNS(dictNS: NSDictionary,expandLevels: Int, dashLen: I
             let str1 = String(describing: key)
             if var str0 = value as? String {
                 str0 = str0.replacingOccurrences(of: "\n", with: " ")
-                var s: NSString = str0 as NSString
-                if s.length > 60 {
-                    s = s.substring(to: 59) as NSString
-                    s = s.appending("...") as NSString
+                var str3 = str0
+                if str3.count > 60 {
+                    str3 = str3.prefix(59).appending("...")
                 }
-                str2 = "\"" + (s as String) + "\""
+                str2 = "\"" + (str3 as String) + "\""
                 //} else if let db = value as? Int {
                 //    str2 = String(db)
             } else if let db = value as? Double {
@@ -454,11 +457,11 @@ public func printDictionaryNS(dictNS: NSDictionary,expandLevels: Int, dashLen: I
             } else if let db = value as? Date {
                 str2 = db.ToString("MM/dd/yyyy hh:mm:ss a zzz")
             } else if value is NSArray {
-                let n = (value as? NSArray)?.count ?? 0
-                str2 = "(Array) with \(n) " + "item".pluralize(n)
+                let itemCount = (value as? NSArray)?.count ?? 0
+                str2 = "(Array) with \(itemCount) " + "item".pluralize(itemCount)
             } else if value is NSDictionary {
-                let n = (value as? NSDictionary)?.count ?? 0
-                str2 = "{Dictionary} with \(n) " + "item".pluralize(n)
+                let itemCount = (value as? NSDictionary)?.count ?? 0
+                str2 = "{Dictionary} with \(itemCount) " + "item".pluralize(itemCount)
             }
             a1 += str1 + getDashes(key: str1, length: length) + "> " + str2
         }// next
@@ -478,8 +481,8 @@ public func printDictionaryNS(dictNS: NSDictionary,expandLevels: Int, dashLen: I
 
 // Helper for printDictionaryNS
 func getDashes(key: String, length: Int) -> String {
-    let i = max(1, length - key.count - 1)
-    let dashes = String(repeatElement("-", count: i))
+    let dashCount = max(1, length - key.count - 1)
+    let dashes = String(repeatElement("-", count: dashCount))
     return " " + dashes
 }
 

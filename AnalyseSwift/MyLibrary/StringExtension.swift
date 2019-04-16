@@ -70,12 +70,12 @@ extension StringProtocol {
     }
 
     //---- left - get 1st n chars ----
-    /// Same as .prefix(), but protected from negative numbers
+    /// Same as String(.prefix()), but protected from negative numbers
     func left(_ length: Int) -> String {
         return String(self.prefix( Swift.max(length, 0)))
     }
     //---- right - get last n chars ----
-    /// Same as .suffix(), but protected from negative numbers
+    /// Same as String(.suffix()), but protected from negative numbers
     func right(_ length: Int) -> String {
         return String(self.suffix(Swift.max(length, 0)))
     }
@@ -137,6 +137,7 @@ extension StringProtocol {
     /// IndexOf (with capital I) find Int index of 1st String found.
     /// - Parameter searchforStr: String to be searched for
     /// - Returns: Int index (if found) or -1 (if not found)
+    @available(*, deprecated, renamed: "firstIntIndexOf")
     func IndexOf( _ searchforStr: String) -> Int {
         if self.contains(searchforStr) {
             let lenOrig = self.count
@@ -158,6 +159,7 @@ extension StringProtocol {
     /// - Parameter searchforStr: String to be searched for
     /// - Parameter startPoint: Int: index to start searching
     /// - Returns: Int index (if found) or -1 (if not found)
+    @available(*, deprecated, renamed: "firstIntIndexOf")
     func IndexOf(searchforStr: String, startPoint: Int = 0) -> Int {
         if !self.contains(searchforStr) { return -1 }
         let lenOrig = self.count
@@ -227,6 +229,7 @@ extension StringProtocol {
     /// Find last Int index of searchforStr.
     /// - Parameter searchforStr: String to be searched for
     /// - Returns: Int index (if found) or -1 (if not found)
+    @available(*, deprecated, renamed: "lastIntIndexOf")
     func IndexOfRev(_ searchforStr: String) -> Int {
         if self.contains(searchforStr) {
             let lenOrig = self.count
@@ -263,7 +266,7 @@ extension StringProtocol {
     func pluralize(_ count: Int) -> String {
         var s: String
         if count == 1 || self.count < 2 {
-            s = self as! String
+            s = self as? String ?? String(self)
         } else {
             let last2Chars =  self.right(2)
             let lastChar = last2Chars.right(1)
@@ -275,10 +278,10 @@ extension StringProtocol {
                 suffix = "ies"
             } else if (lastChar.lowercased() == "s" || (lastChar.lowercased() == "o")
                 && consonants.filter({x in x == secondToLastChar}).count > 0) {
-                prefix = self as! String
+                prefix = self as? String ?? String(self)
                 suffix = "es"
             } else {
-                prefix = self as! String
+                prefix = self as? String ?? String(self)
                 suffix = "s"
             }
             s = prefix + (lastChar != lastChar.uppercased() ? suffix : suffix.uppercased())

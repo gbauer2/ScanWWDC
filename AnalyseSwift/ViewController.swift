@@ -25,7 +25,6 @@
 //AnalyseXcodeproj:
 // View source
 // Display in NSTable with links to AnalyseSwift & with option for printable.
-// Flag missing Unit-Test
 // Show MainGroup.Children {Framework}
 // Bug: "mainSourceKey = childKey", "Most likely child" may pick wrong child.
 // Bug: AnalyseXcodeproj called twice on startup
@@ -52,13 +51,15 @@
 // Implement Organization Rule Change
 // Refresh analysis when user changes rules
 // Bug: textfield not triggering "Change" when Save button clicked
-// More Issues to flag:
+// More Issues to Flag:
 //   Global vars, singletons (dependency injection?)
 //   Free functions vs methods
 //   Var name too short or too long
 //   //TODO: //FIXME:
 //   Multiple declarations on a line
 //   CodeLine too long
+//   Missing Unit-Test
+//   Type names Start with uppercase
 
 //Done:
 
@@ -396,7 +397,7 @@ extension ViewController {
                 self.infoTextView.string = str
             }
             let xcodeprojCount = self.xcodeprojURLs.count
-            var tempStr = "\(xcodeprojCount) xcodeproj files found under \(baseFolderName)\n\n"
+            var tempStr = "\(xcodeprojCount) xcodeproj files found under \(baseFolderName) \(Date().ToString("MM/dd/yyyy HH:mm"))\n\n"
             print(tempStr)
 
             var dictVersions   = [String:Int]()
@@ -454,7 +455,7 @@ extension ViewController {
 
     }//end func btnFindAllXcodeprojClicked
 
-    //user clicked on SelectFolder button (brings up FileOpenDialog)
+    //---- selectFolderClicked - User clicked on "Select Folder" button (brings up FileOpenDialog)
     @IBAction func selectFolderClicked(_ sender: Any) {
         guard let window = view.window else { return }
 
@@ -471,6 +472,7 @@ extension ViewController {
         }
     }//end func
 
+    //---- truncateURL - make a String showing URL, but fitting within maxLength
     func truncateURL(url: URL, maxLength: Int) -> String {
         let fileName = url.lastPathComponent
         let barePath = url.path     // url.deletingPathExtension().path
@@ -508,7 +510,7 @@ extension ViewController {
         if selectedItem.hasDirectoryPath {
             selectedFolderUrl = selectedItem
         } else {
-            showFileContents(url: selectedItem)
+            //showFileContents(url: selectedItem)
         }
     }//end func
 
@@ -746,7 +748,7 @@ extension ViewController {
             showLineNumbers = true
         }
         do {
-            var formattedText = NSMutableAttributedString()
+            let formattedText = NSMutableAttributedString()
             // Read file content & populate "lines"
             let contentFromFile = try String(contentsOf: url, encoding: String.Encoding.utf8)
             let lines = contentFromFile.components(separatedBy: "\n")

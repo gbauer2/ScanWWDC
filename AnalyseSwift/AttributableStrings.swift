@@ -37,7 +37,7 @@ extension ViewController {
         ]
         
         let formattedText = NSMutableAttributedString(string: text, attributes: textAttributes)
-        var lengthLine1 = text.IndexOf("\n")
+        var lengthLine1 = text.firstIntIndexOf("\n")
         if lengthLine1 < 0 { lengthLine1 = 0 }
         formattedText.addAttribute(NSAttributedString.Key.font,
                                    value: NSFont.systemFont(ofSize: 20),

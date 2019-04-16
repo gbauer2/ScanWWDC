@@ -129,12 +129,12 @@ private func checkCurlys(codeName: String, itemName: String,posItem: Int, pOpenC
 func stripComment(fullLine: String, lineNum: Int) -> (codeLine: String, comment: String) {
     if !fullLine.contains("//") { return (fullLine, "") }               // No comment here ????? Not Swifty
 
-    var pCommentF   = fullLine.IndexOf("//")                            // Leftmost  "//"
-    var pCommentR   = fullLine.IndexOfRev("//")                         // Rightmost "//"
-    let pQuoteFirst     = fullLine.IndexOf("\"")
+    var pCommentF   = fullLine.firstIntIndexOf("//")                    // Leftmost  "//"
+    var pCommentR   = fullLine.lastIntIndexOf("//")                     // Rightmost "//"
+    let pQuoteFirst = fullLine.firstIntIndexOf("\"")
     //let pQuoteLast   = fullLine.IndexOfRev("\"")
 
-    if pQuoteFirst >= 0 {                                                   // we have a Quote
+    if pQuoteFirst >= 0 {                                               // we have a Quote
         var inQuote = false
         var isEscaped = false
         for p in 0..<fullLine.count {
@@ -142,7 +142,7 @@ func stripComment(fullLine: String, lineNum: Int) -> (codeLine: String, comment:
             if char == "\"" && !isEscaped { inQuote = !inQuote }        // if Quote not escaped,
             if inQuote {
                 if p == pCommentF {
-                    pCommentF = fullLine.IndexOf(searchforStr: "//", startPoint: p+1)
+                    pCommentF = fullLine.firstIntIndexOf("//",startingAt: p+1)
                 }
                 if p == pCommentR { pCommentR = -1 }
                 isEscaped = (!isEscaped && (char == "\\"))
@@ -201,8 +201,8 @@ func isCamelCase(_ word: String) -> Bool {
 
 //---- removeQuotedStuff - Replace everything in quotes with tildis
 func removeQuotedStuff(_ str: String) -> String {
-    let pQuoteFirst = str.IndexOf("\"")
-    let pQuoteLast  = str.IndexOfRev("\"")
+    let pQuoteFirst = str.firstIntIndexOf("\"")
+    let pQuoteLast  = str.lastIntIndexOf("\"")
     if pQuoteFirst < 0 { return str }               // No quote
     if pQuoteLast - pQuoteFirst <= 1 { return str } // Only 1 quote
     var array = Array(str)
@@ -330,13 +330,13 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
             let (codeLine, comment) = stripComment(fullLine: aa, lineNum: lineNum)
             if !comment.isEmpty { nTrailing += 1 }
 
-            let pQuoteFirst = codeLine.IndexOf("\"")
-            let pQuoteLast = codeLine.IndexOfRev("\"")
+            let pQuoteFirst  = codeLine.firstIntIndexOf("\"")
+            let pQuoteLast   = codeLine.lastIntIndexOf("\"")
 
-            var pOpenCurlyF = codeLine.IndexOf("{")
-            var pOpenCurlyR = codeLine.IndexOfRev("{")
-            var pCloseCurlyF = codeLine.IndexOf("}")
-            var pCloseCurlyR = codeLine.IndexOfRev("}")
+            var pOpenCurlyF  = codeLine.firstIntIndexOf("{")
+            var pOpenCurlyR  = codeLine.lastIntIndexOf("{")
+            var pCloseCurlyF = codeLine.firstIntIndexOf("}")
+            var pCloseCurlyR = codeLine.lastIntIndexOf("}")
 
             inQuote = false
             var isEscaped = false
@@ -386,7 +386,7 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
             let firstWord = words.first ?? ""
             for word in words {
                 if word.hasSuffix("!") && !codeLineClean.hasPrefix("@IBOutlet") {
-                    let p = codeLineClean.IndexOf(word)                             // p is pointer to word
+                    let p = codeLineClean.firstIntIndexOf(word)                         // p is pointer to word
                     let isOK = word.count > 1 || p == 0 || codeLineClean[p-1] != " "    // must not have whitespace before "!"
                     if isOK {
                         let extra = getExtraForFoceUnwrap(codeLineClean: codeLineClean, word: word, p: p)
