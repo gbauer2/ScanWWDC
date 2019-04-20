@@ -14,7 +14,7 @@
 //      1.8.1  7/09/2018 Improvements to CDate(Str), fixed Val & isNumeric for leading spaces,  Implement Format(Int,Str)
 //      1.8.0  6/16/2018 Add MidEquals, Like.  Fix VB.Hour
 //      1.7.3  6/15/2018 Fix GetParentPath, Stub for Like.  Add VB.Hour,VB.Minute
-//      1.7.2  5/23/2018 Add GetParentPath, change sign to SignVer 1.7.2  5/23/2018 Add GetParentPath, change sign to Sign
+//      1.7.2  5/23/2018 Add GetParentPath, change sign to Sign
 //      1.7.1  5/21/2018 simplify getHexVal - Caution: returns 0.0 if it encounters non-hex char (unlike VB)
 //      1.7.0  5/20/2018 Move .IndexOf to StringExtension
 //      1.6.0  5/16/2018 Fix EOF, Fix Instr(start,str,str)
@@ -153,7 +153,7 @@ public func Space(_ i: Int) -> String {
     return String(repeating: " ", count: i)
 }
 
-///Use 'Int(Double(str.rounded() )' instead
+///Use 'Int(Double(str.trim)?.rounded() ?? 0)' instead
 public func CInt(_ str: String) -> Int {
     let dbl = Double(str.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0.0
     return Int(dbl.rounded())

@@ -754,7 +754,7 @@ private func format2(_ name: String, _ c1: Int, _ c2: Int, _ c3: Int, _ c4: Int,
 }
 private func fmtI(_ number: Int, wid: Int) -> String {
     if number == 0 { return "-".PadLeft(wid) }
-    return formatInt(number: number, fieldLen: wid)
+    return formatInt(number, wid: wid)
 }
 
 // not used - Alternative parser

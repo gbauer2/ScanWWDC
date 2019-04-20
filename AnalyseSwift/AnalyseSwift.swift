@@ -820,7 +820,7 @@ private func showLineItems(name: String, items: [LineItem]) -> NSMutableAttribut
     for item in items {
         var tx = ""
         if item.lineNum != 0 {
-            tx = "         @ line #\t\(formatInt(number: item.lineNum, fieldLen: 8))    \t\(item.name)"
+            tx = "         @ line #\t\(formatInt(item.lineNum, wid: 8))    \t\(item.name)"
         } else {
             tx = "                 \t        \t\(item.name)"
         }
@@ -853,7 +853,7 @@ private func showNamedBlock(name: String, blockType: BlockType, list: [BlockInfo
     let txt = "\n" + showCount(count: items.count, name: name, ifZero: "No") + ":\n"
     let nsAttTxt = NSMutableAttributedString(string: txt, attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 18), NSAttributedString.Key.paragraphStyle: paragraphStyleA1])
     for item in items {
-        var tx = "\t\(formatInt(number: item.codeLineCount, fieldLen: 5))\t lines @\t\(item.lineNum) \t\(item.name)"
+        var tx = "\t\(formatInt(item.codeLineCount, wid: 5))\t lines @\t\(item.lineNum) \t\(item.name)"
         if !item.extra.isEmpty {tx += "  (\(item.extra) )"}
         tx += "\n"
         let nsAttTx = NSAttributedString(string: tx, attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 14), NSAttributedString.Key.paragraphStyle: paragraphStyleA2])

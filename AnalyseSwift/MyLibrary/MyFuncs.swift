@@ -63,9 +63,21 @@ public func formatDbl(number: Double, fieldLen: Int = 0, places: Int) -> String 
 ///     - number:   (Int) - number to be formatted
 ///     - fieldLen: (Int) - length in characters to be filled
 /// - Returns: Right-justified truncated String
+@available(*, deprecated, message: "Use formatInt(_,wid) instead")
 public func formatInt(number: Int, fieldLen: Int) -> String {
     let str =  String(number)
     return str.rightJust(fieldLen)
+}
+
+//---- Format Int using fieldLen ----
+///Format Int for a fixed field length (Monospaced font)
+/// - Parameters:
+///     - number: (Int) - number to be formatted
+///     - wid:    (Int) - length in characters to be filled
+/// - Returns:    Right-justified truncated String
+public func formatInt(_ number: Int, wid: Int) -> String {
+    let str = String(number)
+    return str.rightJust(wid)
 }
 
 //---- Format a String number "%#.#f" using fieldLen & places. fieldLen=0 to remove leading spaces ----
@@ -322,7 +334,7 @@ func matches(for regex: String, in text: String) -> [String] {
         let regex = try NSRegularExpression(pattern: regex)
         let results = regex.matches(in: text, range: NSRange(text.startIndex..., in: text))
         let finalResult = results.map {
-            String(text[Range($0.range, in: text)!])
+            String(text[Range($0.range, in: text) ?? text.startIndex..<text.endIndex])
         }
         return finalResult
     } catch let error {

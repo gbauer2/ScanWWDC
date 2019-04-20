@@ -39,7 +39,8 @@
 // Bug: in GetKeyWords/ViewController.swift -> finds error inside triple-quote
 // dependency
 // computed variables, var observer
-// analysis: show func params
+// Bug: analysis: func params not checked for camelCase, forceUnwraap
+// Bug: analysis: "if let", "guard let" not checked
 // analysis: show commentLinesCount(dead code?) vs MarkupLineCount (///) (/**)
 // analysis: organize by MARK: or by extension
 // allow extensions other than class
@@ -48,8 +49,8 @@
 // remove display code (tx=, txt=, etc.) from analyseSwiftFile()
 
 //MenuRulesVC:
-// Implement Organization Rule Change
 // Refresh analysis when user changes rules
+// Change MenuRulesVC to use a TableView
 // Bug: textfield not triggering "Change" when Save button clicked
 // More Issues to Flag:
 //   Global vars, singletons (dependency injection?)

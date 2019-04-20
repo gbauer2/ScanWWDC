@@ -323,7 +323,7 @@ DQ
                                                         <action selector="chkRuleUnderscoreClick:" target="RT9-oM-Bp7" id="ckq-ly-TBj"/>
                                                     </connections>
                                                 </button>
-                                                <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="mD2-b1-0rI">
+                                                <textField verticalHuggingPriority="750" fixedFrame="YES" tag="201" translatesAutoresizingMaskIntoConstraints="NO" id="mD2-b1-0rI">
                                                     <rect key="frame" x="20" y="81" width="40" height="22"/>
                                                     <autoresizingMask key="autoresizingMask"/>
                                                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" id="9n6-24-NAx">
@@ -344,7 +344,7 @@ DQ
                                                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                                     </textFieldCell>
                                                 </textField>
-                                                <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Pha-KU-wTK">
+                                                <textField verticalHuggingPriority="750" fixedFrame="YES" tag="301" translatesAutoresizingMaskIntoConstraints="NO" id="Pha-KU-wTK">
                                                     <rect key="frame" x="20" y="20" width="280" height="22"/>
                                                     <autoresizingMask key="autoresizingMask"/>
                                                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" id="g9A-Ca-lYN">
@@ -356,7 +356,7 @@ DQ
                                                         <action selector="txtRuleOrganizationChange:" target="RT9-oM-Bp7" id="Xya-jF-4fP"/>
                                                     </connections>
                                                 </textField>
-                                                <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bj1-87-Bxz">
+                                                <textField verticalHuggingPriority="750" fixedFrame="YES" tag="102" translatesAutoresizingMaskIntoConstraints="NO" id="bj1-87-Bxz">
                                                     <rect key="frame" x="20" y="137" width="40" height="22"/>
                                                     <autoresizingMask key="autoresizingMask"/>
                                                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" id="Usp-1Q-4ow">
@@ -377,7 +377,7 @@ DQ
                                                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                                     </textFieldCell>
                                                 </textField>
-                                                <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="KJ0-Bp-R1G">
+                                                <textField verticalHuggingPriority="750" fixedFrame="YES" tag="101" translatesAutoresizingMaskIntoConstraints="NO" id="KJ0-Bp-R1G">
                                                     <rect key="frame" x="20" y="167" width="40" height="22"/>
                                                     <autoresizingMask key="autoresizingMask"/>
                                                     <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" id="kaa-Nc-MVX">

@@ -5,7 +5,7 @@
 //  Created by George Bauer on 10/11/17.
 //  Copyright © 2017-2019 GeorgeBauer. All rights reserved.
 //  Ver 1.7.0   3/31/2019 Change extension to StringProtocol. Added firstIntIndexOf, lastIntIndexOf, allIntIndexesOf
-//  Ver 1.6.1   3/09/2019 Subscripting for Int now only returns Character (avoids "Abiguous" error when compiler can't tell if String or Character)
+//      1.6.1   3/09/2019 Subscripting for Int now only returns Character (avoids "Abiguous" error when compiler can't tell if String or Character)
 //      1.6.0   6/13/2018 Add Subscripting for CountablePartialRangeFrom<Int>, PartialRangeThrough<Int>, PartialRangeUpTo<Int>.  Also Documentation
 //      1.5.2   5/30/2018 Fix Error in .mid where .mid(begin: i, length: 0) would return same as .mid(begin: i)
 //      1.5.1   5/23/2018 Add trimStart, trimEnd
@@ -182,7 +182,7 @@ extension StringProtocol {
     func firstIntIndexOf(_ searchforStr: String, startingAt: Int = 0) -> Int {
 //        guard let index = range(of: searchforStr)?.lowerBound else { return -1 }
 //        return distance(from: startIndex, to: index)
-        if startingAt > 0 && startingAt >= self.count { return -1 }     // beyond end
+        if startingAt >= self.count { return -1 }                       // beyond end
         let startInt = Swift.max(startingAt, 0)                         // min startingAt = 0
         let myStartIndex = self.index(self.startIndex, offsetBy: startInt)
         let searchRange = myStartIndex..<self.endIndex
@@ -264,9 +264,9 @@ extension StringProtocol {
     /// - Parameter count: Triggers pluralization if > 0
     /// - Returns: Pluralized word
     func pluralize(_ count: Int) -> String {
-        var s: String
+        var str: String
         if count == 1 || self.count < 2 {
-            s = self as? String ?? String(self)
+            str = self as? String ?? String(self)
         } else {
             let last2Chars =  self.right(2)
             let lastChar = last2Chars.right(1)
@@ -284,9 +284,9 @@ extension StringProtocol {
                 prefix = self as? String ?? String(self)
                 suffix = "s"
             }
-            s = prefix + (lastChar != lastChar.uppercased() ? suffix : suffix.uppercased())
+            str = prefix + (lastChar != lastChar.uppercased() ? suffix : suffix.uppercased())
         }
-        return s
+        return str
     }
     private var vowels: [String] {
         get {
@@ -298,6 +298,7 @@ extension StringProtocol {
             return ["b", "c", "d", "f", "g", "h", "j", "k", "l", "m", "n", "p", "q", "r", "s", "t", "v", "w", "x", "z"]
         }
     }
+
 }//end extension String
 
 

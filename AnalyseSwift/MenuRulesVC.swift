@@ -8,6 +8,60 @@
 
 import Cocoa
 
+//TODO:- TextView Properties (Dictonary? & Default Val):
+
+//MARK: - CR struct - Not yet used
+public struct CR {
+    var controlTag = -1     // (Change to TableView Section/Row?)   101
+    var name        = ""    // Display Name                         "Max CodeLines in File"
+    var bitVal      = 0     // Change-Bit to activate "Save"        0x8
+    var keyUsrDefault = ""  // User Defaults Key (Change to array?) "keyMaxFileCodeline"
+    var msgHelp     = ""    // msg displayed when editing           "Max CodeLines allowed in func (200-1000)"
+    var msgError    = ""    // msg displayed in not valid           "Enter Number beween 200 and 1000"
+    var isIntVal    = false // (Change to ValType .Int,.text,.bool?)
+    var minVal      = 0     // Minimum Value if numerical           200
+    var maxVal      = 0     // Maximum Value if numerical           1000
+    var intVal      = 0     // Value if Int
+    var textVal     = ""    // Value if Text
+    var decimalPos  = 0     // Decimal point position if numerical
+    var defaultStr  = ""
+    // boolVal
+    // Continuous Validation func
+    // Final Validation func
+
+    static func saveUserDefaults(rules: [CR]){
+        let defaults = UserDefaults.standard
+        for rule in rules {
+            var valStr: String
+            if rule.isIntVal {
+                valStr = "\(rule.intVal)"
+                let dp = rule.decimalPos
+                if dp > 0 && dp < valStr.count {
+                    valStr.insert(".", at: valStr.index(valStr.endIndex, offsetBy: -dp))
+                }
+            } else {
+                valStr = rule.textVal
+            }
+            defaults.set(valStr,  forKey: rule.keyUsrDefault)
+        }//next rule
+    }//end func
+
+    static func getUserDefaults(rules: inout [CR]) {
+        let defaults = UserDefaults.standard
+        for (i, rule) in rules.enumerated() {
+            if let str = defaults.string(forKey: rule.keyUsrDefault) {        //7
+                rules[i].textVal = str
+                if rule.isIntVal {
+                    let intStr = str.replacingOccurrences(of: ".", with: "")
+                    rules[i].intVal = CInt(intStr)
+                }
+            }
+        }//next rule
+    }//end func
+
+}//end struct CR
+
+
 // MARK: - CodeRule struct
 public struct CodeRule {
     // --- Rules ---                                    //Rules
@@ -85,6 +139,7 @@ class MenuRulesVC: NSViewController {
         chkRuleAllCaps.state      = CodeRule.allowAllCaps       ? .on : .off    //2
         chkRuleUnderscore.state   = CodeRule.allowUnderscore    ? .on : .off    //3
 
+        // Fill in Current TextField Values
         maxFileCode = CodeRule.maxFileCodeLines
         txtRuleFileCodelines.stringValue = "\(maxFileCode)"                     //4
         maxFuncCode = CodeRule.maxFuncCodeLines
@@ -94,7 +149,14 @@ class MenuRulesVC: NSViewController {
         organizations = CodeRule.allowedOrganizations.trim
         txtRuleOrganization.stringValue = organizations                         //7
 
+        // Set TextField delegates
+        txtRuleFileCodelines.delegate = self    // 101
+        txtRuleFuncCodelines.delegate = self    // 102
+        txtRuleMinSwiftVer.delegate   = self    // 201
+        txtRuleOrganization.delegate  = self    // 301 as NSTextFieldDelegate
+
         btnOk.isEnabled = false
+
     }//end func
 
     //MARK:- @IBOutlets
@@ -105,10 +167,10 @@ class MenuRulesVC: NSViewController {
     @IBOutlet weak var chkRuleAllCaps:      NSButton!       //2
     @IBOutlet weak var chkRuleUnderscore:   NSButton!       //3
 
-    @IBOutlet weak var txtRuleFileCodelines: NSTextField!   //4
-    @IBOutlet weak var txtRuleFuncCodelines: NSTextField!   //5
-    @IBOutlet weak var txtRuleMinSwiftVer:   NSTextField!   //6
-    @IBOutlet weak var txtRuleOrganization:  NSTextField!   //7
+    @IBOutlet weak var txtRuleFileCodelines: NSTextField!   //4 101
+    @IBOutlet weak var txtRuleFuncCodelines: NSTextField!   //5 102
+    @IBOutlet weak var txtRuleMinSwiftVer:   NSTextField!   //6 201
+    @IBOutlet weak var txtRuleOrganization:  NSTextField!   //7 301
 
     @IBOutlet weak var chkDefault:          NSButton!
     @IBOutlet weak var btnOk:               NSButton!
@@ -183,7 +245,8 @@ class MenuRulesVC: NSViewController {
         setOkButton(isChange: isChange, bitVal: 0x4)
     }
 
-    @IBAction func txtRuleCodeLinesInFileChange(_ sender: Any) {    //4
+    //MARK: textField IBActions
+    @IBAction func txtRuleCodeLinesInFileChange(_ sender: Any) {    //4 101
         lblError.stringValue = ""
         let txt = removeNonDigits(txtRuleFileCodelines.stringValue)
         if let val = Int(txt), val >= 200, val <= 1000 {
@@ -197,7 +260,7 @@ class MenuRulesVC: NSViewController {
         }
     }//end func
 
-    @IBAction func txtRuleCodeLinesInFuncChange(_ sender: Any) {    //5
+    @IBAction func txtRuleCodeLinesInFuncChange(_ sender: Any) {    //5 102
         lblError.stringValue = ""
         let txt = removeNonDigits(txtRuleFuncCodelines.stringValue)
         if let val = Int(txt), val >= 60, val <= 500 {
@@ -211,7 +274,7 @@ class MenuRulesVC: NSViewController {
         }
     }//end func
 
-    @IBAction func txtRuleMinSwiftVerChange(_ sender: Any) {        //6
+    @IBAction func txtRuleMinSwiftVerChange(_ sender: Any) {        //6 201
         lblError.stringValue = ""
         let txt = processVer(from: txtRuleMinSwiftVer.stringValue)
         if let val = Double(txt), val >= 3.0, val <= 9.0 {
@@ -225,7 +288,7 @@ class MenuRulesVC: NSViewController {
         }
     }//end func
 
-    @IBAction func txtRuleOrganizationChange(_ sender: Any) {       //7
+    @IBAction func txtRuleOrganizationChange(_ sender: Any) {       //7 301
         lblError.stringValue = ""
         organizations = txtRuleOrganization.stringValue
         let isChange = organizations != CodeRule.allowedOrganizations
@@ -267,9 +330,51 @@ class MenuRulesVC: NSViewController {
                 gotDot = true
                 newStr.append(char)
             }
-
-        }
+        }//next char
         return newStr
     }//end func
 
 }//end class MenuRulesVC
+
+//MARK:- extension MenuRulesVC: NSTextFieldDelegate
+extension MenuRulesVC: NSTextFieldDelegate {
+    func controlTextDidChange(_ obj: Notification) {
+        if let txtFld = obj.object as? NSTextField {
+            print("🔷 \(txtFld.tag) \(txtFld.stringValue)")
+            switch txtFld.tag {
+            case 101:
+                //self.txtRuleOrganization.stringValue = txtFld.stringValue
+                break
+            case 102:
+                //self.txtRuleFileCodelines.stringValue = txtFld.stringValue
+                break
+            case 201:
+                break
+            case 301:
+                break
+            default:
+                break
+            }
+        }
+    }//end func
+
+    func control(_ control: NSControl, textShouldEndEditing fieldEditor: NSText) -> Bool {
+        return true
+    }
+
+/*
+     func controlTextDidBeginEditing(_ obj: Notification)
+     func controlTextDidEndEditing(_ obj: Notification)
+     func controlTextDidChange(_ obj: Notification)
+
+     func control(_ control: NSControl, textShouldBeginEditing fieldEditor: NSText) -> Bool
+     func control(_ control: NSControl, textShouldEndEditing fieldEditor: NSText) -> Bool
+     func control(_ control: NSControl, didFailToFormatString string: String, errorDescription error: String?) -> Bool
+     func control(_ control: NSControl, didFailToValidatePartialString string: String, errorDescription error: String?)
+     func control(_ control: NSControl, isValidObject obj: Any?) -> Bool
+
+     func control(_ control: NSControl, textView: NSTextView, doCommandBy commandSelector: Selector) -> Bool
+     func control(_ control: NSControl, textView: NSTextView, completions words: [String], forPartialWordRange charRange: NSRange, indexOfSelectedItem index: UnsafeMutablePointer<Int>) -> [String]
+ */
+
+}//end extension

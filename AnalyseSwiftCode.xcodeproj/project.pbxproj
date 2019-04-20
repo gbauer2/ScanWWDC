@@ -41,13 +41,13 @@
 		26ECD33A1E874B5C00380F56 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		26ECD33C1E874B5C00380F56 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		26ECD33E1E874B5C00380F56 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		26ECD3411E874B5C00380F56 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		26ECD3431E874B5C00380F56 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		CE063B8E22160B5B000CACDF /* FindVBCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FindVBCode.swift; sourceTree = "<group>"; };
 		CE1D751121BDA90B00286967 /* AnalyseSwiftCodeUnitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AnalyseSwiftCodeUnitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE1D751321BDA90B00286967 /* AnalyseSwiftCodeUnitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyseSwiftCodeUnitTests.swift; sourceTree = "<group>"; };
 		CE1D751521BDA90B00286967 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		CE4194AD21BD8C22006808B1 /* AttributableStrings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttributableStrings.swift; sourceTree = "<group>"; };
+		CE50C10E226B979000329E6B /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/Main.storyboard; sourceTree = "<group>"; };
 		CE510E2E2256F34700B53541 /* MenuRulesVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuRulesVC.swift; sourceTree = "<group>"; };
 		CE67A6A31FFA066B00BD57BD /* StringExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StringExtension.swift; sourceTree = "<group>"; };
 		CE83F8BA1FFD329C00C39EC8 /* MyFuncs.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MyFuncs.swift; sourceTree = "<group>"; };
@@ -282,7 +282,7 @@
 		26ECD3401E874B5C00380F56 /* Main.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
-				26ECD3411E874B5C00380F56 /* Base */,
+				CE50C10E226B979000329E6B /* en */,
 			);
 			name = Main.storyboard;
 			sourceTree = "<group>";
