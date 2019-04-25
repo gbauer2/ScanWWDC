@@ -26,16 +26,18 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         super.tearDown()
     }
 
-    func testTruncateURL() {
+    //481 ViewController
+    func testTruncateURLforDisplay() {
         let str = "/Users/georgebauer/Desktop/Misc/Note.txt"
         let url = URL(fileURLWithPath: str)
         var pathName = ""
-        pathName = vcTest.truncateURL(url: url, maxLength: 21)
+        pathName = vcTest.truncateURLforDisplay(url: url, maxLength: 21)
         XCTAssertEqual(pathName, "Desktop/Misc/Note.txt")
-        pathName = vcTest.truncateURL(url: url, maxLength: 20)
+        pathName = vcTest.truncateURLforDisplay(url: url, maxLength: 20)
         XCTAssertEqual(pathName, "Desktop/.../Note.txt")
     }
 
+    //203 ViewController
     func testremoveQuotedStuff() {
         var str = ""
         var result = ""
@@ -53,6 +55,7 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         XCTAssertEqual(result, "abc\"~~~~~\"123")
     }
 
+    //107 AttributableStrings
     func testMarkCodeLine() {
         let codeColor     = NSColor.black
         let commentColor  = NSColor(calibratedRed: 0, green: 0.6, blue: 0.15, alpha: 1)  //Green
@@ -150,10 +153,56 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         XCTAssertEqual(newLine, "<black>01<red>\"/*\"<black>")
     }
 
-    func testgetSubStr() {
-        let line = "0123456"
-        let subStr = vcTest.getSubStr(line: line, start: 1, end: 3)
-        XCTAssertEqual(subStr, "12")
+    func testStripCommentAndQuote() {
+        var line = ""
+        var codeLine = ""
+        var hasTrailing = false
+        var hasEmbedded = false
+        var inBlockComment = false
+
+        line = "myVar = false"
+        (codeLine, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: 0, inBlockComment: &inBlockComment)
+        XCTAssertEqual(codeLine, line.trim)
+        XCTAssertFalse(hasTrailing)
+        XCTAssertFalse(hasEmbedded)
+
+        line = "myVar = false    // Comment"
+        (codeLine, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: 0, inBlockComment: &inBlockComment)
+        XCTAssertEqual(codeLine, "myVar = false")
+        XCTAssertTrue(hasTrailing)
+        XCTAssertFalse(hasEmbedded)
+
+        line = "myVar = \"test\""
+        (codeLine, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: 0, inBlockComment: &inBlockComment)
+        XCTAssertEqual(codeLine, "myVar = \"~~~~\"")
+        XCTAssertFalse(hasTrailing)
+        XCTAssertFalse(hasEmbedded)
+
+        line = "myVar = /*embed*/ test"
+        (codeLine, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: 0, inBlockComment: &inBlockComment)
+        XCTAssertEqual(codeLine, "myVar =  test")
+        XCTAssertFalse(hasTrailing)
+        XCTAssertTrue(hasEmbedded)
+
+        line = "#\"You can use \" and \"\\\" in a raw string. Interpolating as \\#(var).\"#"
+        line = "#\"123\"#"
+        (codeLine, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: 0, inBlockComment: &inBlockComment)
+        XCTAssertEqual(codeLine, "#\"~~~\"#")
+
+        inBlockComment = true
+        line = "myVar = false    // Comment"
+        (codeLine, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: 0, inBlockComment: &inBlockComment)
+        XCTAssertEqual(codeLine, "")
+        XCTAssertFalse(hasTrailing)
+        XCTAssertFalse(hasEmbedded)
+        XCTAssertTrue(inBlockComment)
+
+        line = "comment*/myVar = false    // Comment"
+        (codeLine, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: 0, inBlockComment: &inBlockComment)
+        XCTAssertEqual(codeLine, "myVar = false")
+        XCTAssertTrue(hasTrailing)
+        XCTAssertFalse(hasEmbedded)
+        XCTAssertFalse(inBlockComment)
     }
 
     func testAnalyseSwiftFile() {
@@ -174,10 +223,59 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         XCTAssertEqual(sw.vbCompatCalls.count,  3, "")
         print(sw.codeLineCount)
         //SampleCode.swift                89       13        15        3      -
-
     }
 
-    private func TestCamelCase(p1: Int, p2: Int , Param3:String) {
+    func testisKeyword() {
+        var result = false
+        result = isKeyword(word: "let")
+        XCTAssertTrue(result)
+        result = isKeyword(word: "super")
+        XCTAssertTrue(result)
+
+        result = isKeyword(word: "Let")
+        XCTAssertFalse(result)
+        result = isKeyword(word: "gwb")
+        XCTAssertFalse(result)
+    }
+
+    func testCR() {
+        //Int
+        var cr = CR(tag: 1, idx: 64, name: "Sample # 1 Int", key: "", helpMsg: "This is a test", dfault: "12.33", int: 1234, minV: 1232, maxV: 1235, dp: 2)
+        XCTAssertEqual(cr.bitVal,       1)
+        XCTAssertEqual(cr.name,         "Sample # 1 Int")
+        XCTAssertEqual(cr.type,         .int)
+        XCTAssertEqual(cr.keyUsrDefault, "RuleSample1Int")
+        XCTAssertEqual(cr.msgError,     "Must be a value beween 12.32 and 12.35")
+        XCTAssertEqual(cr.intVal,       1234)
+        XCTAssertEqual(cr.textVal,      "12.34")
+
+        //Text
+        var cs = CR(tag: 2, idx: 10, name: "Samp # 2", key: "SampNo2", helpMsg: "Test 2", errMsg: "MyBad", dfault: "default", txt: "Samp2Data")
+        XCTAssertEqual(cs.bitVal,       1024)
+        XCTAssertEqual(cs.name,         "Samp # 2")
+        XCTAssertEqual(cs.type,         .text)
+        XCTAssertEqual(cs.keyUsrDefault, "RuleSampNo2")
+        XCTAssertEqual(cs.msgError,     "MyBad")
+        XCTAssertEqual(cs.textVal,      "Samp2Data")
+
+        //bool
+        var cb = CR(tag: 3, idx: 63, name: "Samp$ # 3", key: "", helpMsg: "Test 3", dfault: "true", bool: true)
+        XCTAssertEqual(cb.bitVal, 9_223_372_036_854_775_808)
+        XCTAssertEqual(cb.name,         "Samp$ # 3")
+        XCTAssertEqual(cb.type,         .bool)
+        XCTAssertEqual(cb.keyUsrDefault, "RuleSamp3")
+        XCTAssertEqual(cb.msgError,     "")
+        XCTAssertEqual(cb.boolVal,      true)
+        XCTAssertEqual(cb.textVal,      "true")
+
+        cr.intVal = 4321
+        cb.boolVal = false
+        cs.textVal = "New Text"
+    }
+
+    // MARK: - Sample Data
+
+    private func camelCase(p1: Int, p2: Int , Param3:String) {
         let n, Bad1:   Int
         var i,j_bad2:  Int      //?????
         var k , Bad3 : Int      //?????
@@ -209,20 +307,6 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
     iOS
     ARKit provides a cutting-edge platform for developing augmented reality (AR) apps for iPhone and...
     """
-
-    private func testisKeywords() {
-        var result = false
-        result = isKeyword(word: "let")
-        XCTAssertTrue(result)
-        result = isKeyword(word: "super")
-        XCTAssertTrue(result)
-
-        result = isKeyword(word: "Let")
-        XCTAssertFalse(result)
-        result = isKeyword(word: "gwb")
-        XCTAssertFalse(result)
-
-    }
 
     let sampleCode = """
 //

@@ -4,7 +4,8 @@
 //
 //  Created by George Bauer on 10/11/17.
 //  Copyright © 2017-2019 GeorgeBauer. All rights reserved.
-//  Ver 1.7.0   3/31/2019 Change extension to StringProtocol. Added firstIntIndexOf, lastIntIndexOf, allIntIndexesOf
+//  Ver 1.7.1   4/23/2019 Depricate mid(). Add substring(begin,end) & substring(begin,length)
+//      1.7.0   3/31/2019 Change extension to StringProtocol. Added firstIntIndexOf, lastIntIndexOf, allIntIndexesOf
 //      1.6.1   3/09/2019 Subscripting for Int now only returns Character (avoids "Abiguous" error when compiler can't tell if String or Character)
 //      1.6.0   6/13/2018 Add Subscripting for CountablePartialRangeFrom<Int>, PartialRangeThrough<Int>, PartialRangeUpTo<Int>.  Also Documentation
 //      1.5.2   5/30/2018 Fix Error in .mid where .mid(begin: i, length: 0) would return same as .mid(begin: i)
@@ -86,19 +87,60 @@ extension StringProtocol {
     ///   - begin: Int Starting point for extracted String
     ///   - length: Int Length of extracted String
     /// - Returns: Extracted String
-    func mid(begin: Int, length: Int = 99999) -> String {
+    @available(*, deprecated, renamed: "substring")
+    func mid(begin: Int, length: Int = Int.max) -> String {
         if length == 0 { return "" }
         let lenOrig = self.count                        // length of subject str
         if begin > lenOrig || begin < 0 || length < 0 { return "" }
 
         var lenNew = Swift.max(length, 0)                     // length of extracted string
-        if lenNew == 0 ||  begin + lenNew > lenOrig {
+        if lenNew == 0 ||  begin > lenOrig - lenNew {
             lenNew = lenOrig - begin
         }
 
         let startIndexNew = index(startIndex, offsetBy: begin)
         let endIndex = index(startIndex, offsetBy: begin + lenNew)
         return String(self[startIndexNew..<endIndex])
+    }
+
+    //---- substring - extract a string starting at 'begin', of length (zero-based Int) ----
+    /// Extract a string starting at 'begin', of length (zero-based Ints)
+    /// - Parameters:
+    ///   - begin: Int Starting point for extracted String
+    ///   - length: Int Length of extracted String
+    /// - Returns: Extracted String
+    func substring(begin: Int, length: Int = Int.max) -> String {
+        if length == 0 { return "" }
+        let lenOrig = self.count                        // length of subject str
+        if begin > lenOrig || begin < 0 || length < 0 { return "" }
+
+        var lenNew = Swift.max(length, 0)                     // length of extracted string
+        if lenNew == 0 ||  begin > lenOrig - lenNew {
+            lenNew = lenOrig - begin
+        }
+
+        let startIndexNew = index(startIndex, offsetBy: begin)
+        let endIndex = index(startIndex, offsetBy: begin + lenNew)
+        return String(self[startIndexNew..<endIndex])
+    }
+
+    //---- substring - extract a string starting at 'begin', of length (zero-based Int) ----
+    /// Extract a string starting at 'begin', through 'end'
+    /// - Parameters:
+    ///   - begin: Int Starting point for extracted String
+    ///   - end:   pointer to last Character of extracted String
+    /// - Returns: Extracted String
+    func substring(begin: Int, end: Int) -> String {
+        if end < begin || begin < 0 { return "" }
+        let endPt: Int
+        if end >= self.count {
+            endPt = self.count
+        } else {
+            endPt = end + 1
+        }
+        let startIndexNew = index(startIndex, offsetBy: begin)
+        let endIndexNew   = index(startIndex, offsetBy: endPt)
+        return String(self[startIndexNew..<endIndexNew])
     }
 
     //---- rightJust - format right justify a String in a field ------

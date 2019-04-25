@@ -33,6 +33,9 @@
 // Fix Unhandled
 
 //AnalyseSwift:
+// Bug: Handle ";"                  fromPrevLine
+// Bug: Handle Line continuations   skipLineCount
+// Bug: Handle "var ee: Int=0, ff = 0, gg: Int" vs "var hh = kk.substring(start: 1, length:2)"
 // Make handling quotes more robust - (codeLineClean)
 // Handle Raw Strings" #"literal"#
 // Handle multi-line Strings:  inTripleQuote """
@@ -106,6 +109,9 @@ class ViewController: NSViewController, NSWindowDelegate {
     var analyseFuncLocked = false           // because analyseSwiftFile() is not thread-safe
     var analyseMode = AnalyseMode.none      // .WWDC, .swift, or .xcodeproj
     var xcodeprojFileCount = 0
+
+    var xcodeprojURLs = [URL]()
+    let baseURL = URL(fileURLWithPath: "~")
 
     // MARK: - Properties with didSet property observer
     var urlMismatch: URL? {
@@ -181,8 +187,8 @@ class ViewController: NSViewController, NSWindowDelegate {
                     // --- Load infoTextView with formattedText ---
                     infoTextView.textStorage?.setAttributedString(formattedText)
                     saveInfoButton.isEnabled = true
-                }//endif
-            }//endif
+                }
+            }
         }//end didSet
     }//var selectedItemUrl
 
@@ -231,6 +237,7 @@ class ViewController: NSViewController, NSWindowDelegate {
 
     // MARK: - Methods
 
+    //TODO: Enhance showErrorDialogIn; use for all ⛔️
     func showErrorDialogIn(window: NSWindow, title: String, message: String) {
         let alert = NSAlert()
         alert.messageText       = title
@@ -238,10 +245,6 @@ class ViewController: NSViewController, NSWindowDelegate {
         alert.alertStyle        = .critical
         alert.beginSheetModal(for: window, completionHandler: nil)
     }
-
-    var xcodeprojURLs = [URL]()
-
-    let baseURL = URL(fileURLWithPath: "~")
 
     // Recursive func to find .xcodeproj files & list them in Global var xcodprojURLs
     public func findAllXcodeprojFiles(_ folder: URL) {
@@ -257,7 +260,7 @@ class ViewController: NSViewController, NSWindowDelegate {
                     xcodeprojURLs.append((url))
                 } else if url.hasDirectoryPath {
 
-                    let truncPath = truncateURL(url: url, maxLength: 80)
+                    let truncPath = truncateURLforDisplay(url: url, maxLength: 80)
                     let str = "\(xcodeprojFileCount) Finding all .xcodeproj files in:\n\(truncPath)"
                     //let textAttributes = setFontSizeAttribute(size: 18)
                     //let formattedText = NSMutableAttributedString(string: tempStr, attributes: textAttributes)
@@ -273,6 +276,7 @@ class ViewController: NSViewController, NSWindowDelegate {
             }
         }
         catch {
+            //TODO: ⛔️ Handle Error
             print("⛔️ #\(#line):\(error) Error listing contents of \(folder)")
         }
     }
@@ -348,7 +352,7 @@ extension ViewController {
             return report.joined(separator: "\n")
 
         } catch {
-            return "⛔️No information available on \(url.path)"
+            return "No information available on \(url.path)"
         }
     }
 
@@ -473,8 +477,8 @@ extension ViewController {
         }
     }//end func
 
-    //---- truncateURL - make a String showing URL, but fitting within maxLength
-    func truncateURL(url: URL, maxLength: Int) -> String {
+    //---- truncateURLforDisplay - make a String showing URL, but fitting within maxLength - Tested
+    func truncateURLforDisplay(url: URL, maxLength: Int) -> String {
         let fileName = url.lastPathComponent
         let barePath = url.path     // url.deletingPathExtension().path
         var comps = barePath.components(separatedBy: "/")
@@ -692,7 +696,7 @@ extension ViewController {
 
     // Helper for restoreCurrentSelections
     private func selectUrlInTable(_ url: URL?) {
-        guard let url = url else { tableView.deselectAll(nil); return }
+        guard let url = url else { tableView.deselectAll(nil);return }
 
         if let rowNumber = filesList.firstIndex(of: url) {
             let indexSet = IndexSet(integer: rowNumber)

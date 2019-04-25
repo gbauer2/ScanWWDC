@@ -103,7 +103,7 @@ extension ViewController {
     //      if has "//" strip off trailing comment      -> ??//green
 
     // inBlockComment, inTripleQuote --- inQuote, inComment, inColoredWord, inInterpolation, inCode
-    //  NoQuotes, inBlockComment && No"/*", !inBlockComment && No"*/"
+    //  NoQuotes, inBlockComment && No"/*", !inBlockComment && No"*/" - tested
     func markCodeLine(codeLine: String, inTripleQuote: inout Bool, inBlockComment: inout Bool) -> [ColorMark] {
         let trimmedLine   = codeLine.trim
         var colorMarks    = [ColorMark(index: 0, color: codeColor)]         // 1st char is code (default)
@@ -269,8 +269,9 @@ extension ViewController {
         for i in 0..<marks.count {
             let start = marks[i].index
             var end = codeLine.count
-            if i < marks.count-1 { end = marks[i+1].index }
-            let subStr = getSubStr(line: codeLine, start: start, end: end)
+            if i < marks.count-1 { end = marks[i+1].index - 1 }
+            let subStr = codeLine.substring(begin: start, end: end)
+
             var color = "<green>"
             if marks[i].color == NSColor.red { color = "<red>" }
             if marks[i].color == NSColor.black { color = "<black>" }
@@ -286,7 +287,7 @@ extension ViewController {
             let start = marks[i].index
             var end = codeLine.count
             if i < marks.count-1 { end = marks[i+1].index }
-            let subStr = getSubStr(line: codeLine, start: start, end: end)
+            let subStr = codeLine.substring(begin: start, end: end) // getSubStr(line: codeLine, start: start, end: end)
             lineAttributes[NSAttributedString.Key.foregroundColor] = marks[i].color
             let formattedText = NSMutableAttributedString(string: "\(subStr)", attributes: lineAttributes)
             newLine.append(formattedText)

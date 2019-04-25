@@ -88,12 +88,12 @@ public func Right(_ str: String, _ int: Int) -> String {
 
 /// Emulates VB Mid func (start at 1)
 public func Mid(_ a: String, _ i: Int) -> String {
-    return a.mid(begin: i - 1)
+    return a.substring(begin: i - 1)
 }
 
 /// Emulates VB Mid func (start at 1)
 public func Mid(_ a: String, _ i: Int, _ len: Int) -> String {
-    return a.mid(begin: i - 1, length: len)
+    return a.substring(begin: i - 1, length: len)
 }
 
 //Mid(w, 1, 3) = "FEW"
@@ -115,7 +115,7 @@ public func InStrRev(_ a: String, _ b: String) -> Int {
 
 /// Emulates VB InStr func (start at 1)
 public func InStr(_ start: Int, _ a: String, _ b: String) -> Int {
-    let aa = a.mid(begin: start-1)
+    let aa = a.substring(begin: start-1)
     let i = aa.firstIntIndexOf(b)
     if i < 0 { return 0 }
     return i + start
@@ -1071,8 +1071,9 @@ class RichTextBox {
 // MARK:- String Extensions 1064
 extension String {
 
+    @available(*, deprecated, message: "Use 'substring(begin:, length:)' instead")
     func Substring(_ begin: Int, _ length: Int) -> String {
-        return mid(begin: begin, length: length)
+        return substring(begin: begin, length: length)
     }
 
     func Split(_ sep: String, _ splitOpts: StringSplitOptions = .none) -> [String] {

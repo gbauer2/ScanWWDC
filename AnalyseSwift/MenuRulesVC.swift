@@ -10,35 +10,128 @@ import Cocoa
 
 //TODO:- TextView Properties (Dictonary? & Default Val):
 
+public enum ValType {
+    case bool, int, text
+}
+
 //MARK: - CR struct - Not yet used
 public struct CR {
-    var controlTag = -1     // (Change to TableView Section/Row?)   101
-    var name        = ""    // Display Name                         "Max CodeLines in File"
-    var bitVal      = 0     // Change-Bit to activate "Save"        0x8
-    var keyUsrDefault = ""  // User Defaults Key (Change to array?) "keyMaxFileCodeline"
-    var msgHelp     = ""    // msg displayed when editing           "Max CodeLines allowed in func (200-1000)"
-    var msgError    = ""    // msg displayed in not valid           "Enter Number beween 200 and 1000"
-    var isIntVal    = false // (Change to ValType .Int,.text,.bool?)
-    var minVal      = 0     // Minimum Value if numerical           200
-    var maxVal      = 0     // Maximum Value if numerical           1000
-    var intVal      = 0     // Value if Int
-    var textVal     = ""    // Value if Text
-    var decimalPos  = 0     // Decimal point position if numerical
-    var defaultStr  = ""
-    // boolVal
-    // Continuous Validation func
-    // Final Validation func
+    var controlTag    = -1      // 1 (Change to TableView Section/Row?)   101
+    var name          = ""      // 2 Display Name                         "Max CodeLines in File"
+    var bitVal: UInt64 = 0      // 3 Change-Bit to activate "Save"        0x8
+    var keyUsrDefault = ""      // 4 User Defaults Key (Change to array?) "RuleMaxFileCodeline"
+    var msgHelp       = ""      // 5 msg displayed when editing           "Max CodeLines allowed in func (200-1000)"
+    var msgError      = ""      // 6 msg displayed in not valid           "Enter Number beween 200 and 1000"
+    var type:ValType  = .text   // 7 .text, .int, .bool                   .int
+    var defaultStr    = ""      // 8 textVal before any user changes      1000
+    var textVal       = ""  {    // 9 Value as Text                        "1000"
+        didSet {
+            print("🍎 didSet textVal = \(textVal)")
+            print()
+        }
+    }
+    var boolVal       = false {  //10 Value if bool
+        didSet {
+            print("🍎 didSet boolVal = \(boolVal)")
+            print()
+    }
+}
+    var intVal        = 0 {      //11 Value if Int                         1000
+        didSet {
+            print("🍎 didSet intVal = \(intVal)")
+            print()
+    }
+}
+    var minVal        = 0       //12 Minimum Value if numerical           200
+    var maxVal        = 0       //13 Maximum Value if numerical           1000
+    var decimalPos    = 0       //14 Decimal point position if numerical  0
+
+    //MARK: initializers
+    // FIXME: - Section/Row instead of tag.
+    // also make dictionary where key = Section/Row for TableView
+
+    // init String
+    public init(tag: Int, idx: Int, name: String, key: String, helpMsg: String, errMsg: String, dfault: String, txt: String) {
+        initHelper(tag: tag, idx: idx, name: name, key: key, helpMsg: helpMsg, dfault: dfault)
+        if errMsg.isEmpty { msgError = helpMsg }        // 6
+                     else { msgError = errMsg }
+        type        = .text                             // 7
+        textVal     = txt                               // 9 final
+    }
+
+    // init Bool
+    public init(tag: Int, idx: Int, name: String, key: String, helpMsg: String, dfault: String, bool: Bool) {
+        initHelper(tag: tag, idx: idx, name: name, key: key, helpMsg: helpMsg, dfault: dfault)
+        //msgError    = ""                              // 6
+        type        = .bool                             // 7
+        textVal     = bool ? "true" : "false"           // 9
+        boolVal     = bool                              //10 final
+    }
+
+    // init Int
+    public init(tag: Int, idx: Int, name: String, key: String, helpMsg: String, dfault: String, int: Int, minV: Int, maxV: Int, dp: Int) {
+        initHelper(tag: tag, idx: idx, name: name, key: key, helpMsg: helpMsg, dfault: dfault)
+        msgError = makeErrMsg(minV: minV, maxV: maxV, dp: dp)   // 6
+        type            = .int                                  // 7
+        textVal         = formatFauxInt(int, dp: dp)            // 9
+        //boolVal       = false                                 //10
+        intVal          = int                                   //11
+        minVal          = minV                                  //12
+        maxVal          = maxV                                  //13
+        decimalPos      = dp                                    //14 final
+    }
+
+    //MARK: Helper funcs
+
+    mutating func initHelper(tag: Int, idx: Int, name: String, key: String, helpMsg: String, dfault: String) {
+        controlTag  = tag                               // 1 =
+        self.name   = name                              // 2 =
+        let i = idx % 64
+        bitVal      = UInt64(pow(2.0, Double(i))+0.5)   // 3 =
+        keyUsrDefault = makeKey(name: name, key: key)   // 4 =
+        msgHelp     = helpMsg                           // 5 =*
+        defaultStr  = dfault                            // 8 =
+    }
+
+    internal func makeKey(name: String, key: String) -> String {
+        if !key.isEmpty {
+            if key.hasPrefix("Rule") { return key }
+            return "Rule" + key
+        }
+//        let pattern = "[^A-Za-z0-9]+"
+//        let cleanNameRE = name.replacingOccurrences(of: pattern, with: "", options: [.regularExpression])
+        let cleanName = name.components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
+        return "Rule" + cleanName
+    }//end func
+
+    internal func makeErrMsg(minV: Int, maxV: Int, dp: Int) -> String {
+        let minStr = formatFauxInt(minV, dp: dp)
+        let maxStr = formatFauxInt(maxV, dp: dp)
+        return "Must be a value beween \(minStr) and \(maxStr)"
+    }
+
+    func formatFauxInt(_ int: Int, dp: Int) -> String {
+        var str = "\(int)"
+        if dp <= 0 { return str }
+        if str.count <= dp {
+            str = String(("0000" + str).suffix(dp+1))
+        }
+        str = String(str.prefix(str.count-dp) + "." + str.suffix(dp))
+        return str
+    }
 
     static func saveUserDefaults(rules: [CR]){
         let defaults = UserDefaults.standard
         for rule in rules {
             var valStr: String
-            if rule.isIntVal {
+            if rule.type == .int {
                 valStr = "\(rule.intVal)"
                 let dp = rule.decimalPos
                 if dp > 0 && dp < valStr.count {
                     valStr.insert(".", at: valStr.index(valStr.endIndex, offsetBy: -dp))
                 }
+            } else if rule.type == .bool {
+                valStr = rule.boolVal ? "true" : "false"
             } else {
                 valStr = rule.textVal
             }
@@ -51,9 +144,16 @@ public struct CR {
         for (i, rule) in rules.enumerated() {
             if let str = defaults.string(forKey: rule.keyUsrDefault) {        //7
                 rules[i].textVal = str
-                if rule.isIntVal {
+                if rule.type == .int {
                     let intStr = str.replacingOccurrences(of: ".", with: "")
-                    rules[i].intVal = CInt(intStr)
+                    rules[i].intVal = Int(intStr) ?? 0
+                } else if rule.type == .bool {
+                    let strB = str.trim.lowercased()
+                    if strB == "yes" || str == "true" {
+                        rules[i].boolVal = true
+                    } else {
+                        rules[i].boolVal = false
+                    }
                 }
             }
         }//next rule
@@ -61,6 +161,21 @@ public struct CR {
 
 }//end struct CR
 
+enum ruleType {
+    static let none                 = 0     //0
+    static let flagProductNameDif   = 1     //1
+    static let allowAllCaps         = 2     //2
+    static let allowUnderscore      = 3     //3
+    static let maxFileCodeLines     = 4     //4
+    static let maxFuncCodeLines     = 5     //5
+    static let minumumSwiftVersion  = 6     //6
+    static let allowedOrganizations = 7     //7
+}
+
+/*
+ eNum RuleType {case flagProductNameDif = 0, allowAllCaps=1, etc
+ Instead of "if CodeRule.allowAllCaps...", use "if rule[ruleType.allowAllCaps].boolVal..."
+ */
 
 // MARK: - CodeRule struct
 public struct CodeRule {

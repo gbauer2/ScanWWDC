@@ -5,8 +5,9 @@
 //  Created by George Bauer on 9/29/17.
 //  Copyright © 2017-2019 GeorgeBauer. All rights reserved.
 
-//  Ver 1.6.4   4/12/2019   Remove forced-unwraps. Add documentation.
-//  Ver 1.6.3   3/08/2019   getFileInfo: Change url param to Optional, Add func getContentsOf(dirURL: URL)
+//  Ver 1.6.5   4/23/2019   Replace formatInt(number:, fieldLen:) with formatInt(_:, wid:)
+//      1.6.4   4/12/2019   Remove forced-unwraps. Add documentation.
+//      1.6.3   3/08/2019   getFileInfo: Change url param to Optional, Add func getContentsOf(dirURL: URL)
 //      1.6.2   8/16/2018   Add: getContentsOf(directoryStr), getFileInfo(_ str), getFileInfo(url)
 //      1.6.1   7/11/2018   Fix isNumeric for leading/trailing whitespace
 //      1.6.0   6/16/2018   Add matches(for regex: String, in text: String) & isMatch(for regex: String, in text: String)
@@ -69,7 +70,7 @@ public func formatInt(number: Int, fieldLen: Int) -> String {
     return str.rightJust(fieldLen)
 }
 
-//---- Format Int using fieldLen ----
+//---- Format Int using field length ----
 ///Format Int for a fixed field length (Monospaced font)
 /// - Parameters:
 ///     - number: (Int) - number to be formatted

@@ -127,12 +127,15 @@ private func checkCurlys(codeName: String, itemName: String,posItem: Int, pOpenC
 
 // Strip comment from line, returning code portion and comment-including-leading-spaces
 func stripComment(fullLine: String, lineNum: Int) -> (codeLine: String, comment: String) {
-    if !fullLine.contains("//") { return (fullLine, "") }               // No comment here ????? Not Swifty
+    if !fullLine.contains("//") && !fullLine.contains("\"") && !fullLine.contains(";") {
+        return (fullLine, "")  // No comment or quote or ";"                                ?????
+    }
 
     var pCommentF   = fullLine.firstIntIndexOf("//")                    // Leftmost  "//"
     var pCommentR   = fullLine.lastIntIndexOf("//")                     // Rightmost "//"
     let pQuoteFirst = fullLine.firstIntIndexOf("\"")
     //let pQuoteLast   = fullLine.IndexOfRev("\"")
+    var pSemiColon  = fullLine.firstIntIndexOf(";")
 
     if pQuoteFirst >= 0 {                                               // we have a Quote
         var inQuote = false
@@ -162,11 +165,119 @@ func stripComment(fullLine: String, lineNum: Int) -> (codeLine: String, comment:
         let nSpaces  = codeLinePlus.count - codeLineP.count
         let codeLine = String(codeLineP.dropFirst())
         let spaces: String = String(repeating: " ", count: nSpaces)
-        let comment  = spaces + fullLine.mid(begin: pCommentF)
+        let comment  = spaces + fullLine.substring(begin: pCommentF)
         return (codeLine, comment)
     }
     return (fullLine, "")
 }//end func stripComment
+
+// Strip comment & neuter quotes from line, returning code portion,
+func stripCommentAndQuote(fullLine: String, lineNum: Int, inBlockComment: inout Bool) -> (codeLine: String, hasTrailing: Bool, hasEmbedded: Bool) {
+    if inBlockComment && !fullLine.contains("*/") {
+        return ("", false, false)                       // Whole line is in BlockComment
+    }
+    if !fullLine.contains("//") && !fullLine.contains("\"") && !fullLine.contains("/*")  && !fullLine.contains("*/") {
+        return (fullLine, false, false)                 // No comment or quote
+    }
+
+    let blockCommentStr  = "🔹"
+    let blockCommentChar = Character(blockCommentStr)
+    var hasTrailing = false
+    var hasEmbedded = false
+    // Block comment ignores all but "\" and "*/"
+    // Raw String ignores all but \# and "#
+    //#”You can use “ and “\” in a raw string. Interpolating as \#(var).”#
+    //  #"  "#    //    /*  */    \    \#
+    var pComment    = -1
+    var blockPrev   = false
+    var preserveQuote = false
+    var inQuote     = false     // in String literal OR Raw String
+    var inRawQuote  = false     // in Raw String
+    var isEscaped   = false
+    var prevChar    = Character(" ")
+    var chars = Array(fullLine)
+    for (p,char) in chars.enumerated() {
+        if !isEscaped && !inBlockComment {
+            // Quote "
+            if char == "\"" {
+                if inQuote {
+                    if !inRawQuote {
+                        inQuote = false
+                    }
+                } else {
+                    inQuote = true              // in Quotes
+                    preserveQuote = true
+                    if prevChar == "#" {        // #" as in #"xxx"#
+                        inRawQuote = true
+                    }
+                }
+
+                // Hashtag "#"
+            } else if char == "#" {
+                if prevChar == "\"" {           // "# as in #"xxx"#
+                    if inRawQuote {
+                        chars[p-1] = prevChar
+                        inQuote = false
+                        inRawQuote = false
+                    }
+                }
+
+                // Astorisk "*"
+            } else if char == "*" {
+                if !inQuote && prevChar == "/" {           // "/*"
+                    blockPrev = true
+                    hasEmbedded = true
+                    inBlockComment = true
+                }
+
+                // BackSlash "\"
+            } else if inQuote {
+                isEscaped = !isEscaped && !inRawQuote && char == "\\"
+
+                // Slash "/"
+            } else if char == "/" {
+                if !inQuote && prevChar == "/" {
+                    pComment = p
+                    hasTrailing = true
+                    break
+                }
+            }
+        }//endif Not escaped and Not blockComment
+
+        if inBlockComment {
+            if char == "/" && prevChar == "*" {         // "*/"
+                inBlockComment = false
+                chars[p] = blockCommentChar
+            }
+        }
+
+        if inBlockComment {
+            chars[p] = blockCommentChar
+            if blockPrev {
+                chars[p-1] = blockCommentChar
+                blockPrev = false
+            }
+        }
+
+        if inQuote {
+            if preserveQuote {
+                preserveQuote = false
+            } else {
+                chars[p] = "~"
+            }
+        }
+
+        prevChar = char
+    }//next p
+    let codeLine: String
+    if pComment >= 0 {
+        let sliceChars = chars.prefix(pComment - 2)
+        codeLine = String(sliceChars).trim.replacingOccurrences(of: blockCommentStr, with: "")
+    } else {
+        codeLine = String(chars).trim.replacingOccurrences(of: blockCommentStr, with: "")
+    }
+    return (codeLine, hasTrailing, hasEmbedded)
+}//end func stripCommentAndQuote
 
 //---- isCamelCase
 func isCamelCase(_ word: String) -> Bool {
@@ -199,7 +310,7 @@ func isCamelCase(_ word: String) -> Bool {
     return true
 }//end func
 
-//---- removeQuotedStuff - Replace everything in quotes with tildis
+//---- removeQuotedStuff - Replace everything in quotes with tildi's - Tested
 func removeQuotedStuff(_ str: String) -> String {
     let pQuoteFirst = str.firstIntIndexOf("\"")
     let pQuoteLast  = str.lastIntIndexOf("\"")
@@ -222,8 +333,31 @@ func removeQuotedStuff(_ str: String) -> String {
     return strNew
 }
 
-// MARK: - the main event 544-lines
-// called from analyseContentsButtonClicked         //203-746 = 544-lines
+func checkParams(line: String) {
+    let open = line.firstIntIndexOf("(")
+    if open < 0 {
+        print("⛔️ Probable line-continuation ('func' with no '(')")
+        return
+    }
+    let close = line.firstIntIndexOf(")")
+    if close < open+1 {
+        print("⛔️ Probable line-continuation ('func' with no ')')")
+        return
+    }
+    let paramStr = line.substring(begin: open+1, end: close-1)
+    print("🔹 paramStr for \(line) = \"\(paramStr)\"")
+    let paramsWithTypes = paramStr.components(separatedBy: ",").filter { !$0.isEmpty }.map { $0.trim }
+    if paramsWithTypes.isEmpty { return }
+
+    print(paramsWithTypes)
+
+    for paramWithType in paramsWithTypes {
+        let paramPair = paramWithType.components(separatedBy: ":")[0].trim
+    }
+}
+
+// MARK: - the main event 580-lines
+// called from analyseContentsButtonClicked         //249-829 = 580-lines
 func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, deBug: Bool = true) -> (SwiftSummary, NSAttributedString) {
     let lines = contentFromFile.components(separatedBy: "\n")
 
@@ -285,28 +419,43 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
 
     //infoTextView.string = "Analysing..."
 
-    // MARK: Main Loop 265-556 = 291-lines
-    for line in lines {
-//        // Multitasking Check
-//        if selecFileInfo.url != ViewController.latestUrl {
-//            if let latestUrl = ViewController.latestUrl {
-//                //print("😎Working on \(selecFileInfo.url!),\n but \(latestUrl) is now current😎")
-//                //let tx  = NSMutableAttributedString(string: "Abort!")
-//                //return (swiftSummary, tx)
-//            }
-//        }
-        lineNum += 1
-        var netCurlys = 0
-        let aa = line.trim
+    var fromPrevLine = ""       // if prev line had ";"s, this is the excess after 1st ";"
+    var skipLineCount = 0       // Number of lines to skipdue to line continuation
+    var iLine = 0
 
-        if aa.hasPrefix("/*") {                             // "/*"
+    // MARK: Main Loop 315-639 = 324-lines
+    while iLine < lines.count {
+        //        // Multitasking Check
+        //        if selecFileInfo.url != ViewController.latestUrl {
+        //            if let latestUrl = ViewController.latestUrl {
+        //                //print("😎Working on \(selecFileInfo.url!),\n but \(latestUrl) is now current😎")
+        //                //let tx  = NSMutableAttributedString(string: "Abort!")
+        //                //return (swiftSummary, tx)
+        //            }
+        //        }
+        if skipLineCount > 0 {          // Skip this line, it was already used as a line continuation
+            skipLineCount -= 1
+            continue
+        }
+        let line: String
+        if fromPrevLine.isEmpty {       // Read a new line from source
+            line = lines[iLine].trim
+            iLine += 1
+            lineNum += 1
+        } else {                        // Still working in a compound line
+            line = fromPrevLine.trim
+            fromPrevLine = ""
+        }
+        var netCurlys = 0
+
+        if line.hasPrefix("/*") {                             // "/*"
             inMultiLineComment = true
-        } else if aa.hasPrefix("*/") {                      // "*/"
+        } else if line.hasPrefix("*/") {                      // "*/"
             inMultiLineComment = false
         }
-        if inMultiLineComment && aa.contains("*/") { inMultiLineComment = false }
+        if inMultiLineComment && line.contains("*/") { inMultiLineComment = false }
 
-        if aa.hasPrefix("//") || inMultiLineComment {   // "//"
+        if line.hasPrefix("//") || inMultiLineComment {   // "//"
             nCommentLine += 1
             if nCodeLine == 0 {
                 if line.contains("Copyright") {
@@ -317,267 +466,288 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
                     version = line
                 }
             }
-        } else if aa.isEmpty {
+            continue
+        } else if line.isEmpty {
             nBlankLine += 1
-        } else if aa.count == 1 {
+            continue
+        } else if line.count == 1 {
             nBlankLine += 1
-            if aa == "{" { gotOpenCurly(lineNum: lineNum) }                                 // single "{" on line
-            if aa == "}" { gotCloseCurly(lineNum: lineNum, nCodeLine: nCodeLine) }          // single "}" on line
-        } else {                                        // code! 302 - 555 = 253-lines
-            // MARK: Code!
-            nCodeLine += 1
+            if line == "{" { gotOpenCurly(lineNum: lineNum) }                                 // single "{" on line
+            if line == "}" { gotCloseCurly(lineNum: lineNum, nCodeLine: nCodeLine) }          // single "}" on line
+            continue
+        }
 
-            let (codeLine, comment) = stripComment(fullLine: aa, lineNum: lineNum)
-            if !comment.isEmpty { nTrailing += 1 }
+        // MARK: Code!  368-639 = 271-lines
+        nCodeLine += 1
 
-            let pQuoteFirst  = codeLine.firstIntIndexOf("\"")
-            let pQuoteLast   = codeLine.lastIntIndexOf("\"")
+        let (codeLine, comment) = stripComment(fullLine: line, lineNum: lineNum)
+        if !comment.isEmpty { nTrailing += 1 }
 
-            var pOpenCurlyF  = codeLine.firstIntIndexOf("{")
-            var pOpenCurlyR  = codeLine.lastIntIndexOf("{")
-            var pCloseCurlyF = codeLine.firstIntIndexOf("}")
-            var pCloseCurlyR = codeLine.lastIntIndexOf("}")
+        let pQuoteFirst  = codeLine.firstIntIndexOf("\"")
+        let pQuoteLast   = codeLine.lastIntIndexOf("\"")
 
-            inQuote = false
-            var isEscaped = false
-            for p in 0..<codeLine.count {
-                let char = codeLine.mid(begin: p, length: 1)
-                if char == "\"" && !isEscaped { inQuote = !inQuote }
-                if inQuote {
-                    if p == pOpenCurlyF  { pOpenCurlyF  = -1 }
-                    if p == pOpenCurlyR  { pOpenCurlyR  = -1 }
-                    if p == pCloseCurlyF { pCloseCurlyF = -1 }
-                    if p == pCloseCurlyR { pCloseCurlyR = -1 }
-                    isEscaped = (!isEscaped && (char == "\\"))
-                } else {
-                    if char == "{" { netCurlys += 1 }
-                    if char == "}" { netCurlys -= 1 }
-                }
-            }//next p
+        var pOpenCurlyF  = codeLine.firstIntIndexOf("{")
+        var pOpenCurlyR  = codeLine.lastIntIndexOf("{")
+        var pCloseCurlyF = codeLine.firstIntIndexOf("}")
+        var pCloseCurlyR = codeLine.lastIntIndexOf("}")
 
+        inQuote = false
+        var isEscaped = false
+        for p in 0..<codeLine.count {                        // Read line char by char
+            let char = codeLine.substring(begin: p, length: 1)
+            if char == "\"" && !isEscaped { inQuote = !inQuote }
             if inQuote {
-                print("⚠️\(lineNum) Odd number of Quotes - \(aa)")
+                if p == pOpenCurlyF  { pOpenCurlyF  = -1 }
+                if p == pOpenCurlyR  { pOpenCurlyR  = -1 }
+                if p == pCloseCurlyF { pCloseCurlyF = -1 }
+                if p == pCloseCurlyR { pCloseCurlyR = -1 }
+                isEscaped = (!isEscaped && (char == "\\"))
+            } else {
+                if char == "{" { netCurlys += 1 }
+                if char == "}" { netCurlys -= 1 }
             }
-            if (pQuoteFirst == pQuoteLast) && (pQuoteFirst >= 0) {
-                print("⚠️\(lineNum) Unmatched Quote - \(aa)")
-            }
-            if pOpenCurlyF >= 0 && (pOpenCurlyF != pOpenCurlyR) {
-                print("⚠️\(lineNum) multiple open curlys.   \"\(aa)\"")
-            }
-            if pCloseCurlyF >= 0 && (pCloseCurlyF != pCloseCurlyR) {
-                print("⚠️\(lineNum) multiple close curlys.  \"\(aa)\"")
-            }
+        }//next p
 
-            var codeLineClean = codeLine
-            if pQuoteFirst >= 0 && pQuoteLast > pQuoteFirst+1 {
-                codeLineClean  = removeQuotedStuff(codeLine)
-                //if deBug {print(lineNum,codeLine," --> ",codeLineClean)}
-            }
+        if inQuote {
+            print("⚠️\(lineNum) Odd number of Quotes - \(line)")
+        }
+        if (pQuoteFirst == pQuoteLast) && (pQuoteFirst >= 0) {
+            print("⚠️\(lineNum) Unmatched Quote - \(line)")
+        }
+        if pOpenCurlyF >= 0 && (pOpenCurlyF != pOpenCurlyR) {
+            print("⚠️\(lineNum) multiple open curlys.   \"\(line)\"")
+        }
+        if pCloseCurlyF >= 0 && (pCloseCurlyF != pCloseCurlyR) {
+            print("⚠️\(lineNum) multiple close curlys.  \"\(line)\"")
+        }
 
-            // Create a CharacterSet of delimiters.
-            let separators = CharacterSet(charactersIn: "\t ([{:}]),;")    //tab, space, openParen, colon
+        let codeLineClean1: String
+        if pQuoteFirst >= 0 && pQuoteLast > pQuoteFirst+1 {
+            codeLineClean1  = removeQuotedStuff(codeLine)
+            //if deBug {print(lineNum,codeLine," --> ",codeLineClean)}
+        } else {
+            codeLineClean1 = codeLine
+        }
 
-            // Split based on characters.
-            let wordsWithEmpty = codeLineClean.components(separatedBy: separators)
-            // Use filter to eliminate empty strings.
-            let words = wordsWithEmpty.filter { !$0.isEmpty }
+        //FIXME: Split compound line - remove "false &&"
+        let codeLineClean: String
+        if  false && codeLineClean1.contains(";") {
+            print("Compound line \"\(codeLineClean1)\"")
+            let ptr = codeLineClean1.firstIntIndexOf(";")
+            fromPrevLine = codeLineClean1.substring(begin: ptr+1).trim
+            codeLineClean = codeLineClean1.left(ptr)
+        } else {
+            codeLineClean = codeLineClean1
+        }
 
+
+
+        // Create a CharacterSet of delimiters.
+        let separators = CharacterSet(charactersIn: "\t ([{:}]),;")             //tab, space, open*, colon, close*, comma, semi
+        let wordsWithEmpty = codeLineClean.components(separatedBy: separators)  // Split based on characters.
+        let words = wordsWithEmpty.filter { !$0.isEmpty }                       // Use filter to eliminate empty strings.
+        let firstWord = words.first ?? ""
+
+        for word in words {
             // Find Forced Unwraps
-            let firstWord = words.first ?? ""
-            for word in words {
-                if word.hasSuffix("!") && !codeLineClean.hasPrefix("@IBOutlet") {
-                    let p = codeLineClean.firstIntIndexOf(word)                         // p is pointer to word
-                    let isOK = word.count > 1 || p == 0 || codeLineClean[p-1] != " "    // must not have whitespace before "!"
-                    if isOK {
-                        let extra = getExtraForFoceUnwrap(codeLineClean: codeLineClean, word: word, p: p)
-                        if deBug {
-                            print("line \(lineNum): \(word)")
-                            print(codeLineClean)
-                        }
-                        var xword = word
-                        if word.contains(".") {
-                            let comps = word.components(separatedBy: ".")
-                            xword = "." + (comps.last ?? "")
-                        }
-                        forceUnwraps.append(LineItem(lineNum: lineNum, name: xword, extra: extra))
-                        swiftSummary.forceUnwraps.append(xword)
+            if word.hasSuffix("!") && firstWord != "@IBOutlet" {
+                let p = codeLineClean.firstIntIndexOf(word)                         // p is pointer to word
+                let isOK = word.count > 1 || p == 0 || codeLineClean[p-1] != " "    // must not have whitespace before "!"
+                if isOK {
+                    let extra = getExtraForFoceUnwrap(codeLineClean: codeLineClean, word: word, p: p)
+                    if deBug {
+                        print("line \(lineNum): \(word)")
+                        print(codeLineClean)
                     }
-                }
-
-                // Check for VBCompatability calls
-                if let count = gDictVBwords[word] {
-                    nVBwords += 1
-                    if count == 0 {
-                        nUniqueVBWords += 1
-                        swiftSummary.vbCompatCalls.append(word)
+                    var xword = word
+                    if word.contains(".") {
+                        let comps = word.components(separatedBy: ".")
+                        xword = "." + (comps.last ?? "")
                     }
-                    gDictVBwords[word] = count + 1
+                    forceUnwraps.append(LineItem(lineNum: lineNum, name: xword, extra: extra))
+                    swiftSummary.forceUnwraps.append(xword)
                 }
             }
 
-            var codeName = "import"
-            if firstWord == codeName {
-                let itemName: String
-                if words.count > 1 { itemName = words[1] } else { itemName = "?" }
-                let lineItem = LineItem(lineNum: lineNum, name: itemName, extra: "")
-                imports.append(lineItem)
-                if itemName == "Cocoa" {
-                    projectType = ProjectType.OSX
-                } else if itemName == "UIKit"  {
-                    projectType = ProjectType.iOS
-                } else {
-
+            // Find VBCompatability calls
+            if let count = gDictVBwords[word] {
+                nVBwords += 1
+                if count == 0 {
+                    nUniqueVBWords += 1
+                    swiftSummary.vbCompatCalls.append(word)
                 }
-                //if deBug {print("\(lineNum) \(codeName) = \(itemName)")}
-                continue                                        // isImport
+                gDictVBwords[word] = count + 1
+            }
+        }//next word
+
+        var codeName = "import"
+        if firstWord == codeName {
+            let itemName: String
+            if words.count > 1 { itemName = words[1] } else { itemName = "?" }
+            let lineItem = LineItem(lineNum: lineNum, name: itemName, extra: "")
+            imports.append(lineItem)
+            if itemName == "Cocoa" {
+                projectType = ProjectType.OSX
+            } else if itemName == "UIKit"  {
+                projectType = ProjectType.iOS
+            } else {
+
+            }
+            //if deBug {print("\(lineNum) \(codeName) = \(itemName)")}
+            continue                                        // isImport
+        }
+
+        //MARK: Blocks -> func, struc, enum, class, extension
+        var foundNamedBlock = false
+
+        //---------------------------------------------------------------   // func
+        codeName = "func"
+        if let posFunc = words.firstIndex(of: codeName) {
+            //codeType = BlockType.isFunc
+            var funcName = "????"
+            if posFunc < words.count {
+                funcName = words[posFunc + 1]   // get the word that follows "func"
+                if !isCamelCase(funcName) {
+                    let lineItem = LineItem(lineNum: lineNum, name: funcName, extra: "")
+                    if deBug {print("➡️ \(lineItem.lineNum) Non-CamelCased \(lineItem.name)")}
+                    nonCamelVars.append(lineItem)
+                    swiftSummary.nonCamelCases.append(lineItem.name)
+                }
+                checkParams(line: codeLineClean)
+            } else {
+                print("⛔️ Probable line-continuation (end with 'func')")
             }
 
-            //MARK: Blocks -> func, struc, enum, class, extension
-            var foundNamedBlock = false
+            checkCurlys(codeName: codeName, itemName: funcName, posItem: posFunc, pOpenCurlyF: pOpenCurlyF, pOpenCurlyR: pOpenCurlyR, pCloseCurlyF: pCloseCurlyF, pCloseCurlyR: pCloseCurlyR)
+            blockOnDeck = BlockInfo(blockType: .Func, lineNum: lineNum, codeLinesAtStart: nCodeLine, name: funcName, extra: "", codeLineCount: 0)
+            if posFunc > 0 {
+                if firstWord == "override" {
+                    index = BlockType.OverrideFunc.rawValue                                // OverrideFunc
+                    blockOnDeck.blockType = .OverrideFunc
+                    blockTypes[index].count += 1
+                } else if firstWord == "@IBAction" {
+                    index = BlockType.IBActionFunc.rawValue                                // IBActionFunc
+                    blockOnDeck.blockType = .IBActionFunc
+                    blockTypes[index].count += 1
+                } else {                            //private, internal, fileprivate, public
+                    index = BlockType.Func.rawValue                                         // Func
+                    containerName = ""
+                    if blockStack.count > 0 {
+                        containerName = (blockStack.last!.name)
+                        blockOnDeck.name = "\(containerName).\(blockOnDeck.name)"
+                    }
+                    blockTypes[index].count += 1
+                }
+            }
+            foundNamedBlock = true
+        }//endif func
 
-            //---------------------------------------------------------------   // func
-            codeName = "func"
-            if !foundNamedBlock && codeLineClean.contains(codeName) {
-                //if deBug {print("\(codeLine)")}
-                var posItem = -1
-                for i in 0..<words.count {
-                    if words[i] == codeName {
-                        posItem = i
-                        break
+        for index in 4...8 {        // containers: 4)Struct, 5)Enum, 6)Extension, 7)Class, 8)isProtocol
+            if foundNamedBlock { break }
+            codeName = blockTypes[index].codeName
+            if let posItem = words.firstIndex(of: codeName) {
+                let itemName = words[posItem + 1]
+                var extra = ""
+                for i in (posItem + 2)..<words.count {
+                    if words[i].count > 1 {
+                        extra += " " + words[i]
                     }
                 }
-                if posItem >= 0 {
-                    //codeType = BlockType.isFunc
-                    var itemName = "????"
-                    if posItem < words.count {
-                        itemName = words[posItem + 1]   // get the word that follows "func"
-                        if !isCamelCase(itemName) {
-                            let lineItem = LineItem(lineNum: lineNum, name: itemName, extra: "")
-                            if deBug {print("➡️ \(lineItem.lineNum) Non-CamelCased \(lineItem.name)")}
-                            nonCamelVars.append(lineItem)
-                            swiftSummary.nonCamelCases.append(lineItem.name)
-                        }
-                    }
+                if codeName == "class" && words.count >= 3 && words[2].contains("ViewController") {
+                    whatViewController = words[2]
+                }
+                checkCurlys(codeName: codeName, itemName: itemName, posItem: posItem, pOpenCurlyF: pOpenCurlyF, pOpenCurlyR: pOpenCurlyR, pCloseCurlyF: pCloseCurlyF, pCloseCurlyR: pCloseCurlyR)
+                blockOnDeck = BlockInfo(blockType: blockTypes[index].blockType, lineNum: lineNum, codeLinesAtStart: nCodeLine, name: itemName, extra: extra, codeLineCount: 0)
 
-                    checkCurlys(codeName: codeName, itemName: itemName, posItem: posItem, pOpenCurlyF: pOpenCurlyF, pOpenCurlyR: pOpenCurlyR, pCloseCurlyF: pCloseCurlyF, pCloseCurlyR: pCloseCurlyR)
-                    blockOnDeck = BlockInfo(blockType: .Func, lineNum: lineNum, codeLinesAtStart: nCodeLine, name: itemName, extra: "", codeLineCount: 0)
-                    //inFuncName = itemName
-                    if firstWord == "override" {
-                        index = BlockType.OverrideFunc.rawValue                                // OverrideFunc
-                        blockOnDeck.blockType = .OverrideFunc
-                        blockTypes[index].count += 1
-                    } else if firstWord == "@IBAction" {
-                        index = BlockType.IBActionFunc.rawValue                                // IBActionFunc
-                        blockOnDeck.blockType = .IBActionFunc
-                        blockTypes[index].count += 1
-                    } else {                            //private, internal, fileprivate, public
-                        index = BlockType.Func.rawValue                                         // Func
-                        containerName = ""
-                        if blockStack.count > 0 {
-                            containerName = (blockStack.last!.name)
-                            blockOnDeck.name = "\(containerName).\(blockOnDeck.name)"
-                        }
-                        blockTypes[index].count += 1
-                    }
-                    foundNamedBlock = true
-                }//endif posFunc
-            }//end contains "func"
+                switch index {
+                case 4 :  swiftSummary.structNames.append(itemName)
+                case 5 :  swiftSummary.enumNames.append(itemName)
+                case 6 :  swiftSummary.extensionNames.append(itemName)
+                case 7 :  swiftSummary.classNames.append(itemName)
+                case 8 :  swiftSummary.protocolNames.append(itemName)
+                default: break
+                }
 
-            for index in 4...8 {        // containers: 4)Struct, 5)Enum, 6)Extension, 7)Class, 8)isProtocol
-                if foundNamedBlock { break }
-                codeName = blockTypes[index].codeName
-                if codeLineClean.contains(codeName) {
-                    var posItem = -1
-                    for i in 0...1 {
-                        if words[i] == codeName {
-                            posItem = i                 // position of Struct, Extension, Class, ...
-                            break
-                        }
-                    }//next i
+                inBlockName[index] = itemName                               // isStruct
 
-                    if posItem >= 0 {
-                        let itemName = words[posItem + 1]
-                        var extra = ""
-                        for i in (posItem + 2)..<words.count {
-                            if words[i].count > 1 {
-                                extra += " " + words[i]
-                            }
-                        }
-                        if codeName == "class" && words.count >= 3 && words[2].contains("ViewController") {
-                            whatViewController = words[2]
-                        }
-                        checkCurlys(codeName: codeName, itemName: itemName, posItem: posItem, pOpenCurlyF: pOpenCurlyF, pOpenCurlyR: pOpenCurlyR, pCloseCurlyF: pCloseCurlyF, pCloseCurlyR: pCloseCurlyR)
-                        blockOnDeck = BlockInfo(blockType: blockTypes[index].blockType, lineNum: lineNum, codeLinesAtStart: nCodeLine, name: itemName, extra: extra, codeLineCount: 0)
+                blockTypes[index].count += 1
+                foundNamedBlock = true
+            }//endif codeLine.contains
+        }//next index
 
-                        switch index {
-                        case 4 :  swiftSummary.structNames.append(itemName)
-                        case 5 :  swiftSummary.enumNames.append(itemName)
-                        case 6 :  swiftSummary.extensionNames.append(itemName)
-                        case 7 :  swiftSummary.classNames.append(itemName)
-                        case 8 :  swiftSummary.protocolNames.append(itemName)
-                        default: break
-                        }
+        //---------------------------------------------------------------   //end Named Blocks
 
-                        inBlockName[index] = itemName                               // isStruct
+        if pOpenCurlyF >= 0 && (pCloseCurlyF < 0 || pCloseCurlyF > pOpenCurlyF) {       // starts with {
+            gotOpenCurly(lineNum: lineNum)
+            pOpenCurlyF = -1
+            netCurlys -= 1
+        }
+        if pCloseCurlyF >= 0 && (pOpenCurlyF < 0 || pCloseCurlyF < pOpenCurlyF) {       // starts with }
+            gotCloseCurly(lineNum: lineNum, nCodeLine: nCodeLine)
+            netCurlys += 1
+        }
 
-                        blockTypes[index].count += 1
-                        foundNamedBlock = true
-                    }
-                }//endif codeLine.contains
-            }
-
-            //---------------------------------------------------------------   //end Named Blocks
-
-            if pOpenCurlyF >= 0 && (pCloseCurlyF < 0 || pCloseCurlyF > pOpenCurlyF) {       // starts with {
+        while netCurlys != 0 {
+            if netCurlys > 0 {
                 gotOpenCurly(lineNum: lineNum)
-                pOpenCurlyF = -1
                 netCurlys -= 1
-            }
-            if pCloseCurlyF >= 0 && (pOpenCurlyF < 0 || pCloseCurlyF < pOpenCurlyF) {       // starts with }
+            } else if netCurlys < 0 {
                 gotCloseCurly(lineNum: lineNum, nCodeLine: nCodeLine)
                 netCurlys += 1
             }
+        }
 
-            while netCurlys != 0 {
-                if netCurlys > 0 {
-                    gotOpenCurly(lineNum: lineNum)
-                    netCurlys -= 1
-                } else if netCurlys < 0 {
-                    gotCloseCurly(lineNum: lineNum, nCodeLine: nCodeLine)
-                    netCurlys += 1
+        //if deBug {print("➡️ \(codeLineClean)")}
+
+        // problems
+        // let ee,ff:Int
+        // var ee:Int=0,ff = 0,gg:Int
+
+        if codeLineClean.hasPrefix("let ") || codeLineClean.hasPrefix("var ") {
+            let codeLineTrunc = String(codeLineClean.dropFirst(4))
+            let comps1 = codeLineTrunc.components(separatedBy: "=")
+            var assigneeList = comps1[0]                                // Strip off right side of "="
+            let comps2 = assigneeList.components(separatedBy: ":")
+            assigneeList = comps2[0]                                    // Strip off right side of ":"
+            let assignees = assigneeList.components(separatedBy: ",")
+            //assignees = assignees.map { $0.trim }
+            //if deBug {print(codeLineTrunc, assignees)}
+            for assignee in assignees {
+                var name = assignee.trim
+                if name.hasPrefix("(") {
+                    name = String(name.dropFirst()).trim
                 }
+                if name.hasSuffix(")") {
+                    name = String(name.dropLast()).trim
+                }
+                if !isCamelCase(name) {
+                    let lineItem = LineItem(lineNum: lineNum, name: name, extra: "")
+                    if deBug {print("➡️ \(lineItem.lineNum) Non-CamelCased \(lineItem.name)")}
+                    nonCamelVars.append(lineItem)
+                    swiftSummary.nonCamelCases.append(lineItem.name)
+                    if nonCamelVars.count != swiftSummary.nonCamelCases.count {
+                        print("⛔️ analyseSwift #\(#line) \(nonCamelVars.count) != \(swiftSummary.nonCamelCases.count)")
+                    }
+                }
+            }//next assignee
+        } else { // "let " or "var " not at beginning if line ?????
+            if codeLineClean.contains(" let ") || codeLineClean.contains(" var ") {
+                print(codeLineClean)
+                // @IBOutlet weak var tableView:    NSTableView!
+                // if let selectedFolderUrl = selectedFolderUrl {
+                // static var latestUrl: URL?
+                // guard let selectedUrl = selectedItemUrl else { return }
+                // catch let error as NSError {
+                // } catch let error as NSError {
+                // } catch let error {
+                // } else if let db = value as? Double {
+                // private var pbxObjects = [String: PBX]()
+                // public var debugDescription: String {
+                // static let flagProductNameDif   = 1
+                // private var vowels: [String] {
+                print()
             }
-
-            //if deBug {print("➡️ \(codeLineClean)")}
-            if codeLineClean.hasPrefix("let ") || codeLineClean.hasPrefix("var ") {
-                codeLineClean = String(codeLineClean.dropFirst(4))
-                let comps1 = codeLineClean.components(separatedBy: "=")
-                var assigneeList = comps1[0]                                // Strip off right side of "="
-                let comps2 = assigneeList.components(separatedBy: ":")
-                assigneeList = comps2[0]                                    // Strip off right side of ":"
-                let assignees = assigneeList.components(separatedBy: ",")
-                //assignees = assignees.map { $0.trim }
-                //if deBug {print(codeLineClean, assignees)}
-                for assignee in assignees {
-                    var name = assignee.trim
-                    if name.hasPrefix("(") {
-                        name = String(name.dropFirst()).trim
-                    }
-                    if name.hasSuffix(")") {
-                        name = String(name.dropLast()).trim
-                    }
-                    if !isCamelCase(name) {
-                        let lineItem = LineItem(lineNum: lineNum, name: name, extra: "")
-                        if deBug {print("➡️ \(lineItem.lineNum) Non-CamelCased \(lineItem.name)")}
-                        nonCamelVars.append(lineItem)
-                        swiftSummary.nonCamelCases.append(lineItem.name)
-                        if nonCamelVars.count != swiftSummary.nonCamelCases.count {
-                            print("⛔️ analyseSwift #\(#line) \(nonCamelVars.count) != \(swiftSummary.nonCamelCases.count)")
-                        }
-                    }
-                }//next assignee
-            }
-        }//end is CodeLine
+        }
     }//next line
     //MARK: end Main Loop
 
@@ -773,7 +943,7 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
 private func getExtraForFoceUnwrap(codeLineClean: String, word: String, p: Int) -> String {
     let maxPrefixLen = 44
     let maxSuffixLen = 22
-    var prefix = codeLineClean.mid(begin: 0, length: p)         // prefix is stuff before word
+    var prefix = codeLineClean.substring(begin: 0, length: p)         // prefix is stuff before word
 
     prefix = prefix.replacingOccurrences(of: "~~~~", with: "~") // remove excess garbage
     prefix = prefix.replacingOccurrences(of: "~~~~", with: "~")
@@ -786,7 +956,7 @@ private func getExtraForFoceUnwrap(codeLineClean: String, word: String, p: Int) 
     }
 
     let pTrail = p + word.count
-    var suffix = codeLineClean.mid(begin: pTrail)
+    var suffix = codeLineClean.substring(begin: pTrail)
     if suffix.count > maxSuffixLen {
         suffix = suffix.prefix(maxSuffixLen - 3) + "..."
     }
