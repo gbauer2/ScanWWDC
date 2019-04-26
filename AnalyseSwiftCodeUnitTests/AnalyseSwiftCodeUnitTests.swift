@@ -159,46 +159,61 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         var hasTrailing = false
         var hasEmbedded = false
         var inBlockComment = false
+        var inTripleQuote  = false
+
+        inBlockComment = false
+        line = #"print("s\(s)")"#
+        (codeLine, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment)
+        XCTAssertEqual(codeLine, #"print("~~~~~")"#)
+        XCTAssertFalse(hasTrailing)
+        XCTAssertFalse(hasEmbedded)
+        XCTAssertFalse(inBlockComment)
+
+        line = "//"
+        (codeLine, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment)
+        XCTAssertEqual(codeLine, line.trim)
+        XCTAssertFalse(hasTrailing)
+        XCTAssertFalse(hasEmbedded)
 
         line = "myVar = false"
-        (codeLine, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: 0, inBlockComment: &inBlockComment)
+        (codeLine, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment)
         XCTAssertEqual(codeLine, line.trim)
         XCTAssertFalse(hasTrailing)
         XCTAssertFalse(hasEmbedded)
 
         line = "myVar = false    // Comment"
-        (codeLine, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: 0, inBlockComment: &inBlockComment)
+        (codeLine, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment)
         XCTAssertEqual(codeLine, "myVar = false")
         XCTAssertTrue(hasTrailing)
         XCTAssertFalse(hasEmbedded)
 
-        line = "myVar = \"test\""
-        (codeLine, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: 0, inBlockComment: &inBlockComment)
-        XCTAssertEqual(codeLine, "myVar = \"~~~~\"")
+        line = #"myVar = "test""#
+        (codeLine, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment)
+        XCTAssertEqual(codeLine, #"myVar = "~~~~""#)
         XCTAssertFalse(hasTrailing)
         XCTAssertFalse(hasEmbedded)
 
         line = "myVar = /*embed*/ test"
-        (codeLine, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: 0, inBlockComment: &inBlockComment)
+        (codeLine, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment)
         XCTAssertEqual(codeLine, "myVar =  test")
         XCTAssertFalse(hasTrailing)
         XCTAssertTrue(hasEmbedded)
 
         line = "#\"You can use \" and \"\\\" in a raw string. Interpolating as \\#(var).\"#"
         line = "#\"123\"#"
-        (codeLine, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: 0, inBlockComment: &inBlockComment)
+        (codeLine, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment)
         XCTAssertEqual(codeLine, "#\"~~~\"#")
 
         inBlockComment = true
         line = "myVar = false    // Comment"
-        (codeLine, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: 0, inBlockComment: &inBlockComment)
+        (codeLine, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment)
         XCTAssertEqual(codeLine, "")
         XCTAssertFalse(hasTrailing)
         XCTAssertFalse(hasEmbedded)
         XCTAssertTrue(inBlockComment)
 
         line = "comment*/myVar = false    // Comment"
-        (codeLine, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: 0, inBlockComment: &inBlockComment)
+        (codeLine, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment)
         XCTAssertEqual(codeLine, "myVar = false")
         XCTAssertTrue(hasTrailing)
         XCTAssertFalse(hasEmbedded)

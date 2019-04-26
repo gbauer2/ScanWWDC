@@ -171,112 +171,119 @@ func stripComment(fullLine: String, lineNum: Int) -> (codeLine: String, comment:
     return (fullLine, "")
 }//end func stripComment
 
-// Strip comment & neuter quotes from line, returning code portion,
-func stripCommentAndQuote(fullLine: String, lineNum: Int, inBlockComment: inout Bool) -> (codeLine: String, hasTrailing: Bool, hasEmbedded: Bool) {
-    if inBlockComment && !fullLine.contains("*/") {
-        return ("", false, false)                       // Whole line is in BlockComment
-    }
-    if !fullLine.contains("//") && !fullLine.contains("\"") && !fullLine.contains("/*")  && !fullLine.contains("*/") {
-        return (fullLine, false, false)                 // No comment or quote
-    }
+// Strip comment & neuter quotes from line, returning trimmed code portion, hasTrailingComment, hasEmbeddedComment 175-280 = 105-lines
+func stripCommentAndQuote(fullLine: String, lineNum: Int, inTripleQuote: inout Bool, inBlockComment: inout Bool)
+    -> (codeLine: String, hasTrailing: Bool, hasEmbedded: Bool) {
+        if inBlockComment && !fullLine.contains("*/") {
+            return ("", false, false)                       // Whole line is in BlockComment
+        }
+        if !fullLine.contains("//") && !fullLine.contains("\"") && !fullLine.contains("/*")  && !fullLine.contains("*/") {
+            return (fullLine, false, false)                 // No comment or quote
+        }
+        if fullLine.hasPrefix("\"\"\"") {
+            inTripleQuote = !inTripleQuote
+        }
+        if !inBlockComment && fullLine.hasPrefix("//") {
+            return (fullLine, false, false)
+        }
 
-    let blockCommentStr  = "🔹"
-    let blockCommentChar = Character(blockCommentStr)
-    var hasTrailing = false
-    var hasEmbedded = false
-    // Block comment ignores all but "\" and "*/"
-    // Raw String ignores all but \# and "#
-    //#”You can use “ and “\” in a raw string. Interpolating as \#(var).”#
-    //  #"  "#    //    /*  */    \    \#
-    var pComment    = -1
-    var blockPrev   = false
-    var preserveQuote = false
-    var inQuote     = false     // in String literal OR Raw String
-    var inRawQuote  = false     // in Raw String
-    var isEscaped   = false
-    var prevChar    = Character(" ")
-    var chars = Array(fullLine)
-    for (p,char) in chars.enumerated() {
-        if !isEscaped && !inBlockComment {
-            // Quote "
-            if char == "\"" {
-                if inQuote {
-                    if !inRawQuote {
-                        inQuote = false
+        let blockCommentStr  = "⌇"
+        let blockCommentChar = Character(blockCommentStr)
+        var hasTrailing = false
+        var hasEmbedded = false
+        // Block comment ignores all but "\" and "*/"
+        // Raw String ignores all but \# and "#
+        //#”You can use “ and “\” in a raw string. Interpolating as \#(var).”#
+        //  #"  "#    //    /*  */    \    \#
+        var pComment    = -1
+        var blockPrev   = false
+        var preserveQuote = false
+        var inQuote     = false     // in String literal OR Raw String
+        var inRawQuote  = false     // in Raw String
+        var isEscaped   = false
+        var prevChar    = Character(" ")
+        var chars = Array(fullLine)
+        for (p,char) in chars.enumerated() {
+            if !isEscaped && !inBlockComment {
+                // Quote "
+                if char == "\"" {
+                    if inQuote {
+                        if !inRawQuote {
+                            inQuote = false
+                        }
+                    } else {
+                        inQuote = true              // in Quotes
+                        preserveQuote = true
+                        if prevChar == "#" {        // #" as in #"xxx"#
+                            inRawQuote = true
+                        }
                     }
-                } else {
-                    inQuote = true              // in Quotes
-                    preserveQuote = true
-                    if prevChar == "#" {        // #" as in #"xxx"#
-                        inRawQuote = true
+
+                    // Hashtag "#"
+                } else if char == "#" {
+                    if prevChar == "\"" {           // "# as in #"xxx"#
+                        if inRawQuote {
+                            chars[p-1] = prevChar
+                            inQuote = false
+                            inRawQuote = false
+                        }
+                    }
+
+                    // Asterisk "*"
+                } else if char == "*" {
+                    if !inQuote && prevChar == "/" {           // "/*"
+                        blockPrev = true
+                        hasEmbedded = true
+                        inBlockComment = true
+                    }
+
+                    // BackSlash "\"
+                } else if inQuote {
+                    //isEscaped = !isEscaped && !inRawQuote && char == "\\"
+
+                    // Slash "/"
+                } else if char == "/" {
+                    if !inQuote && prevChar == "/" {
+                        pComment = p
+                        hasTrailing = true
+                        break
                     }
                 }
+            }//endif Not escaped and Not blockComment
 
-                // Hashtag "#"
-            } else if char == "#" {
-                if prevChar == "\"" {           // "# as in #"xxx"#
-                    if inRawQuote {
-                        chars[p-1] = prevChar
-                        inQuote = false
-                        inRawQuote = false
-                    }
-                }
-
-                // Astorisk "*"
-            } else if char == "*" {
-                if !inQuote && prevChar == "/" {           // "/*"
-                    blockPrev = true
-                    hasEmbedded = true
-                    inBlockComment = true
-                }
-
-                // BackSlash "\"
-            } else if inQuote {
-                isEscaped = !isEscaped && !inRawQuote && char == "\\"
-
-                // Slash "/"
-            } else if char == "/" {
-                if !inQuote && prevChar == "/" {
-                    pComment = p
-                    hasTrailing = true
-                    break
+            if inBlockComment {
+                if char == "/" && prevChar == "*" {         // "*/"
+                    inBlockComment = false
+                    chars[p] = blockCommentChar
                 }
             }
-        }//endif Not escaped and Not blockComment
 
-        if inBlockComment {
-            if char == "/" && prevChar == "*" {         // "*/"
-                inBlockComment = false
+            if inBlockComment {
                 chars[p] = blockCommentChar
+                if blockPrev {
+                    chars[p-1] = blockCommentChar
+                    blockPrev = false
+                }
             }
-        }
 
-        if inBlockComment {
-            chars[p] = blockCommentChar
-            if blockPrev {
-                chars[p-1] = blockCommentChar
-                blockPrev = false
+            if inQuote {
+                if preserveQuote {
+                    preserveQuote = false
+                } else {
+                    chars[p] = "~"
+                }
             }
-        }
 
-        if inQuote {
-            if preserveQuote {
-                preserveQuote = false
-            } else {
-                chars[p] = "~"
-            }
+            prevChar = char
+        }//next p
+        let codeLine: String
+        if pComment >= 0 {
+            let sliceChars = chars.prefix(pComment - 1)
+            codeLine = String(sliceChars).replacingOccurrences(of: blockCommentStr, with: "").trim
+        } else {
+            codeLine = String(chars).replacingOccurrences(of: blockCommentStr, with: "").trim
         }
-
-        prevChar = char
-    }//next p
-    let codeLine: String
-    if pComment >= 0 {
-        let sliceChars = chars.prefix(pComment - 2)
-        codeLine = String(sliceChars).trim.replacingOccurrences(of: blockCommentStr, with: "")
-    } else {
-        codeLine = String(chars).trim.replacingOccurrences(of: blockCommentStr, with: "")
-    }
-    return (codeLine, hasTrailing, hasEmbedded)
+        return (codeLine, hasTrailing, hasEmbedded)
 }//end func stripCommentAndQuote
 
 //---- isCamelCase
@@ -357,7 +364,7 @@ func checkParams(line: String) {
 }
 
 // MARK: - the main event 580-lines
-// called from analyseContentsButtonClicked         //249-829 = 580-lines
+// called from analyseContentsButtonClicked         //359-939 = 580-lines
 func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, deBug: Bool = true) -> (SwiftSummary, NSAttributedString) {
     let lines = contentFromFile.components(separatedBy: "\n")
 
@@ -390,12 +397,12 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
     blockStack   = []
     codeElements = []
 
+    var whatViewController = ""
     var copyright       = ""
     var createdBy       = ""
     var version         = ""
     var containerName   = ""
     var projectType     = ProjectType.unknown
-    var whatViewController = ""
     var index        = 0
     var lineNum      = 0
     var nCommentLine = 0
@@ -403,9 +410,10 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
     var nCodeLine    = 0
     var nTrailing    = 0
 
-    var inMultiLineComment  = false
-    var inQuote             = false
-    //var inTripleQuote     = false
+    var inMultiLineComment = false
+    var inBlockComment  = false
+    var inTripleQuote = false
+    var inQuote    = false
 
     var inBlockName         = ["","","","","","","","",""]
 
@@ -419,11 +427,11 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
 
     //infoTextView.string = "Analysing..."
 
-    var fromPrevLine = ""       // if prev line had ";"s, this is the excess after 1st ";"
-    var skipLineCount = 0       // Number of lines to skipdue to line continuation
-    var iLine = 0
+    var fromPrevLine    = ""    // if prev line had a ";", this is the excess after 1st ";"
+    var skipLineCount   = 0     // Number of lines to skipdue to line continuation
+    var iLine           = 0
 
-    // MARK: Main Loop 315-639 = 324-lines
+    // MARK: Main Loop 425-749 = 324-lines
     while iLine < lines.count {
         //        // Multitasking Check
         //        if selecFileInfo.url != ViewController.latestUrl {
@@ -442,9 +450,14 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
             line = lines[iLine].trim
             iLine += 1
             lineNum += 1
+            if line.isEmpty {
+                nBlankLine += 1
+                continue
+            }
         } else {                        // Still working in a compound line
             line = fromPrevLine.trim
             fromPrevLine = ""
+            if line.isEmpty { continue }
         }
         var netCurlys = 0
 
@@ -454,6 +467,8 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
             inMultiLineComment = false
         }
         if inMultiLineComment && line.contains("*/") { inMultiLineComment = false }
+
+        let (codeLine2, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: lineNum, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment)
 
         if line.hasPrefix("//") || inMultiLineComment {   // "//"
             nCommentLine += 1
@@ -467,19 +482,17 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
                 }
             }
             continue
-        } else if line.isEmpty {
-            nBlankLine += 1
-            continue
         } else if line.count == 1 {
             nBlankLine += 1
             if line == "{" { gotOpenCurly(lineNum: lineNum) }                                 // single "{" on line
             if line == "}" { gotCloseCurly(lineNum: lineNum, nCodeLine: nCodeLine) }          // single "}" on line
             continue
+        } else if inTripleQuote {
+            continue
         }
 
-        // MARK: Code!  368-639 = 271-lines
+        // MARK: Code!  478-749 = 271-lines
         nCodeLine += 1
-
         let (codeLine, comment) = stripComment(fullLine: line, lineNum: lineNum)
         if !comment.isEmpty { nTrailing += 1 }
 
@@ -540,6 +553,10 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
             codeLineClean = codeLineClean1
         }
 
+        if codeLine2 != codeLineClean {
+            print("\(lineNum) \"\(codeLine2)\" != \"\(codeLineClean)\"")
+            let i=0 // !?!?!???????
+        }
 
 
         // Create a CharacterSet of delimiters.
@@ -552,9 +569,9 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
             // Find Forced Unwraps
             if word.hasSuffix("!") && firstWord != "@IBOutlet" {
                 let p = codeLineClean.firstIntIndexOf(word)                         // p is pointer to word
-                let isOK = word.count > 1 || p == 0 || codeLineClean[p-1] != " "    // must not have whitespace before "!"
-                if isOK {
-                    let extra = getExtraForFoceUnwrap(codeLineClean: codeLineClean, word: word, p: p)
+                let isForce = word.count > 1 || p == 0 || codeLineClean[p-1] != " "    // must not have whitespace before "!"
+                if isForce {
+                    let extra = getExtraForForceUnwrap(codeLineClean: codeLineClean, word: word, p: p)
                     if deBug {
                         print("line \(lineNum): \(word)")
                         print(codeLineClean)
@@ -940,7 +957,7 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
     return (swiftSummary, txt)
 }//end func analyseSwiftFile
 
-private func getExtraForFoceUnwrap(codeLineClean: String, word: String, p: Int) -> String {
+private func getExtraForForceUnwrap(codeLineClean: String, word: String, p: Int) -> String {
     let maxPrefixLen = 44
     let maxSuffixLen = 22
     var prefix = codeLineClean.substring(begin: 0, length: p)         // prefix is stuff before word

@@ -38,7 +38,7 @@
 // Bug: Handle "var ee: Int=0, ff = 0, gg: Int" vs "var hh = kk.substring(start: 1, length:2)"
 // Make handling quotes more robust - (codeLineClean)
 // Handle Raw Strings" #"literal"#
-// Handle multi-line Strings:  inTripleQuote """
+// Bug: Handle multi-line Strings:  inTripleQuote """
 // Bug: in GetKeyWords/ViewController.swift -> finds error inside triple-quote
 // dependency
 // computed variables, var observer
