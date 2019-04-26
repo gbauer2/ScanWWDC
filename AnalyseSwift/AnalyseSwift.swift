@@ -134,8 +134,6 @@ func stripComment(fullLine: String, lineNum: Int) -> (codeLine: String, comment:
     var pCommentF   = fullLine.firstIntIndexOf("//")                    // Leftmost  "//"
     var pCommentR   = fullLine.lastIntIndexOf("//")                     // Rightmost "//"
     let pQuoteFirst = fullLine.firstIntIndexOf("\"")
-    //let pQuoteLast   = fullLine.IndexOfRev("\"")
-    var pSemiColon  = fullLine.firstIntIndexOf(";")
 
     if pQuoteFirst >= 0 {                                               // we have a Quote
         var inQuote = false
@@ -171,7 +169,7 @@ func stripComment(fullLine: String, lineNum: Int) -> (codeLine: String, comment:
     return (fullLine, "")
 }//end func stripComment
 
-// Strip comment & neuter quotes from line, returning trimmed code portion, hasTrailingComment, hasEmbeddedComment 175-280 = 105-lines
+// Strip comment & neuter quotes from line, returning trimmed code portion, hasTrailingComment, hasEmbeddedComment 173-288 = 115-lines
 func stripCommentAndQuote(fullLine: String, lineNum: Int, inTripleQuote: inout Bool, inBlockComment: inout Bool)
     -> (codeLine: String, hasTrailing: Bool, hasEmbedded: Bool) {
         if inBlockComment && !fullLine.contains("*/") {
@@ -204,6 +202,7 @@ func stripCommentAndQuote(fullLine: String, lineNum: Int, inTripleQuote: inout B
         var prevChar    = Character(" ")
         var chars = Array(fullLine)
         for (p,char) in chars.enumerated() {
+            //if char == "(" { isEscaped = false }
             if !isEscaped && !inBlockComment {
                 // Quote "
                 if char == "\"" {
@@ -238,8 +237,8 @@ func stripCommentAndQuote(fullLine: String, lineNum: Int, inTripleQuote: inout B
                     }
 
                     // BackSlash "\"
-                } else if inQuote {
-                    //isEscaped = !isEscaped && !inRawQuote && char == "\\"
+                } else if char == "\\" {
+                    isEscaped = inQuote && !inRawQuote
 
                     // Slash "/"
                 } else if char == "/" {
@@ -249,6 +248,8 @@ func stripCommentAndQuote(fullLine: String, lineNum: Int, inTripleQuote: inout B
                         break
                     }
                 }
+            } else {
+                isEscaped = false
             }//endif Not escaped and Not blockComment
 
             if inBlockComment {
@@ -363,8 +364,8 @@ func checkParams(line: String) {
     }
 }
 
-// MARK: - the main event 580-lines
-// called from analyseContentsButtonClicked         //359-939 = 580-lines
+// MARK: - the main event 591-lines
+// called from analyseContentsButtonClicked         //368-959 = 591-lines
 func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, deBug: Bool = true) -> (SwiftSummary, NSAttributedString) {
     let lines = contentFromFile.components(separatedBy: "\n")
 
@@ -431,7 +432,7 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
     var skipLineCount   = 0     // Number of lines to skipdue to line continuation
     var iLine           = 0
 
-    // MARK: Main Loop 425-749 = 324-lines
+    // MARK: Main Loop 435-769 = 334-lines
     while iLine < lines.count {
         //        // Multitasking Check
         //        if selecFileInfo.url != ViewController.latestUrl {
@@ -491,7 +492,7 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
             continue
         }
 
-        // MARK: Code!  478-749 = 271-lines
+        // MARK: Code!  495-769 = 274-lines
         nCodeLine += 1
         let (codeLine, comment) = stripComment(fullLine: line, lineNum: lineNum)
         if !comment.isEmpty { nTrailing += 1 }

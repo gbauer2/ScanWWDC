@@ -169,6 +169,10 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         XCTAssertFalse(hasEmbedded)
         XCTAssertFalse(inBlockComment)
 
+        line = #"a="\n""#
+        (codeLine, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment)
+        XCTAssertEqual(codeLine, #"a="~~""#)
+
         line = "//"
         (codeLine, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment)
         XCTAssertEqual(codeLine, line.trim)
