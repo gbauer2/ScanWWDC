@@ -37,24 +37,6 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         XCTAssertEqual(pathName, "Desktop/.../Note.txt")
     }
 
-    //203 ViewController
-    func testremoveQuotedStuff() {
-        var str = ""
-        var result = ""
-        str = "abcd 1234"
-        result = removeQuotedStuff(str)
-        XCTAssertEqual(result, str)
-        str = "abc\"\"123"
-        result = removeQuotedStuff(str)
-        XCTAssertEqual(result, str)
-        str = "abc\"def\"123"
-        result = removeQuotedStuff(str)
-        XCTAssertEqual(result, "abc\"~~~\"123")
-        str = "abc\"d\\\"ef\"123"
-        result = removeQuotedStuff(str)
-        XCTAssertEqual(result, "abc\"~~~~~\"123")
-    }
-
     //107 AttributableStrings
     func testMarkCodeLine() {
         let codeColor     = NSColor.black
@@ -153,6 +135,9 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         XCTAssertEqual(newLine, "<black>01<red>\"/*\"<black>")
     }
 
+    //TODO: test TripleQuote xxx = """
+    //TODO: test Compound line
+    //TODO: test line-continuation (skipLine)
     func testStripCommentAndQuote() {
         var line = ""
         var codeLine = ""

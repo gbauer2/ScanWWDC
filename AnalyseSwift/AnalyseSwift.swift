@@ -125,60 +125,30 @@ private func checkCurlys(codeName: String, itemName: String,posItem: Int, pOpenC
     }
 }
 
-// Strip comment from line, returning code portion and comment-including-leading-spaces
-func stripComment(fullLine: String, lineNum: Int) -> (codeLine: String, comment: String) {
-    if !fullLine.contains("//") && !fullLine.contains("\"") && !fullLine.contains(";") {
-        return (fullLine, "")  // No comment or quote or ";"                                ?????
-    }
-
-    var pCommentF   = fullLine.firstIntIndexOf("//")                    // Leftmost  "//"
-    var pCommentR   = fullLine.lastIntIndexOf("//")                     // Rightmost "//"
-    let pQuoteFirst = fullLine.firstIntIndexOf("\"")
-
-    if pQuoteFirst >= 0 {                                               // we have a Quote
-        var inQuote = false
-        var isEscaped = false
-        for p in 0..<fullLine.count {
-            let char = fullLine[p]
-            if char == "\"" && !isEscaped { inQuote = !inQuote }        // if Quote not escaped,
-            if inQuote {
-                if p == pCommentF {
-                    pCommentF = fullLine.firstIntIndexOf("//",startingAt: p+1)
-                }
-                if p == pCommentR { pCommentR = -1 }
-                isEscaped = (!isEscaped && (char == "\\"))
-            }
-        }//next p
-
-        if pCommentF < 0 { pCommentF = pCommentR }
-        if pCommentR < 0 { pCommentR = pCommentF }
-
-        if pCommentF != pCommentR { print("⚠️\(lineNum) Comment mismatch \(fullLine)") }
-
-    }//endif pQuoteFirst >= 0
-
-    if pCommentF >= 0 {
-        let codeLinePlus = "^" + fullLine.left(pCommentF)
-        let codeLineP = codeLinePlus.trim
-        let nSpaces  = codeLinePlus.count - codeLineP.count
-        let codeLine = String(codeLineP.dropFirst())
-        let spaces: String = String(repeating: " ", count: nSpaces)
-        let comment  = spaces + fullLine.substring(begin: pCommentF)
-        return (codeLine, comment)
-    }
-    return (fullLine, "")
-}//end func stripComment
-
-// Strip comment & neuter quotes from line, returning trimmed code portion, hasTrailingComment, hasEmbeddedComment 173-288 = 115-lines
+// Strip comment & neuter quotes from line, returning trimmed code portion, hasTrailingComment, hasEmbeddedComment
+/// Strip comments & neutralize quotes from trimmed sourcecode line
+///
+/// - Parameters:
+///   - fullLine: Swift source code - already TRIMMED
+///   - lineNum: Swift source line number
+///   - inTripleQuote: inout. Are we inside a multi-line string literal
+///   - inBlockComment: inout. Are we inside a block comment (/*.../*)
+/// - Returns: tuple (CleanLine, hastrailingComment, hasEmbeddedComment)
 func stripCommentAndQuote(fullLine: String, lineNum: Int, inTripleQuote: inout Bool, inBlockComment: inout Bool)
-    -> (codeLine: String, hasTrailing: Bool, hasEmbedded: Bool) {
+    -> (codeLine: String, hasTrailing: Bool, hasEmbedded: Bool) {   //137-258 = 121-lines
+        //TODO: Raw-string delimiters with more than 1 asterisk **"..."**
+        //TODO: Raw-triple-quote    *"""
+        //TODO: Interpolation       \(var)
+        //TODO: Mark-up detection   ///     /**.../*
+        //TODO: Add inout inBlockMarkup
+        //TODO: Add return isMarkup (struct?)
         if inBlockComment && !fullLine.contains("*/") {
             return ("", false, false)                       // Whole line is in BlockComment
         }
         if !fullLine.contains("//") && !fullLine.contains("\"") && !fullLine.contains("/*")  && !fullLine.contains("*/") {
             return (fullLine, false, false)                 // No comment or quote
         }
-        if fullLine.hasPrefix("\"\"\"") {
+        if fullLine.hasPrefix("\"\"\"") || fullLine.hasSuffix("\"\"\"") {
             inTripleQuote = !inTripleQuote
         }
         if !inBlockComment && fullLine.hasPrefix("//") {
@@ -318,29 +288,6 @@ func isCamelCase(_ word: String) -> Bool {
     return true
 }//end func
 
-//---- removeQuotedStuff - Replace everything in quotes with tildi's - Tested
-func removeQuotedStuff(_ str: String) -> String {
-    let pQuoteFirst = str.firstIntIndexOf("\"")
-    let pQuoteLast  = str.lastIntIndexOf("\"")
-    if pQuoteFirst < 0 { return str }               // No quote
-    if pQuoteLast - pQuoteFirst <= 1 { return str } // Only 1 quote
-    var array = Array(str)
-    var inQuote = true
-    var ignoreNext = false
-    for p in (pQuoteFirst+1)..<pQuoteLast {
-        let char = array[p]
-        if ignoreNext {
-            array[p] = "~"
-            ignoreNext = false; continue
-        }
-        if char == "\\" { ignoreNext = true }
-        if char == "\"" { inQuote.toggle(); continue }
-        if inQuote { array[p] = "~" }
-    }
-    let strNew = String(array)
-    return strNew
-}
-
 func checkParams(line: String) {
     let open = line.firstIntIndexOf("(")
     if open < 0 {
@@ -364,8 +311,8 @@ func checkParams(line: String) {
     }
 }
 
-// MARK: - the main event 591-lines
-// called from analyseContentsButtonClicked         //368-959 = 591-lines
+// MARK: - the main event 562-lines
+// called from analyseContentsButtonClicked         //315-877 = 562-lines
 func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, deBug: Bool = true) -> (SwiftSummary, NSAttributedString) {
     let lines = contentFromFile.components(separatedBy: "\n")
 
@@ -386,7 +333,8 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
     blockTypes.append(BlockAggregate(blockType: .Extension,   subType: .Class,codeName: "extension",    displayName: "Extension",    showNone: false,count: 0))
     blockTypes.append(BlockAggregate(blockType: .Class,       subType: .Class,codeName: "class",        displayName: "Class",        showNone: true, count: 0))
     blockTypes.append(BlockAggregate(blockType: .isProtocol,  subType: .isProtocol,codeName: "protocol",displayName: "Protocol",     showNone: false,count: 0))
-    for i in 0..<blockTypes.count {         // Error check location in array vs. enum
+
+    for i in 0..<blockTypes.count {         // Error check location in array vs. enum - not needed
         let ty = blockTypes[i]
         if i != ty.blockType.rawValue {
             print("⛔️ Error \(ty.blockType) \(i) <> \(ty.blockType.rawValue)")
@@ -415,8 +363,6 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
     var inBlockComment  = false
     var inTripleQuote = false
     var inQuote    = false
-
-    var inBlockName         = ["","","","","","","","",""]
 
     var imports             = [LineItem]()
     var nonCamelVars        = [LineItem]()
@@ -469,8 +415,6 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
         }
         if inMultiLineComment && line.contains("*/") { inMultiLineComment = false }
 
-        let (codeLine2, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: lineNum, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment)
-
         if line.hasPrefix("//") || inMultiLineComment {   // "//"
             nCommentLine += 1
             if nCodeLine == 0 {
@@ -488,14 +432,25 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
             if line == "{" { gotOpenCurly(lineNum: lineNum) }                                 // single "{" on line
             if line == "}" { gotCloseCurly(lineNum: lineNum, nCodeLine: nCodeLine) }          // single "}" on line
             continue
-        } else if inTripleQuote {
+        } else if inTripleQuote && !line.contains("\"\"\"") {
             continue
         }
 
         // MARK: Code!  495-769 = 274-lines
         nCodeLine += 1
-        let (codeLine, comment) = stripComment(fullLine: line, lineNum: lineNum)
-        if !comment.isEmpty { nTrailing += 1 }
+        let (codeLineFull, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: lineNum, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment)
+        if hasTrailing { nTrailing += 1 }
+
+        //FIXME: Split compound line - remove "false &&"
+        let codeLine: String
+        if  codeLineFull.contains(";") {
+            print("Compound line \"\(codeLineFull)\"")
+            let ptr = codeLineFull.firstIntIndexOf(";")
+            fromPrevLine = codeLineFull.substring(begin: ptr+1).trim
+            codeLine = codeLineFull.left(ptr)
+        } else {
+            codeLine = codeLineFull
+        }
 
         let pQuoteFirst  = codeLine.firstIntIndexOf("\"")
         let pQuoteLast   = codeLine.lastIntIndexOf("\"")
@@ -535,47 +490,23 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
             print("⚠️\(lineNum) multiple close curlys.  \"\(line)\"")
         }
 
-        let codeLineClean1: String
-        if pQuoteFirst >= 0 && pQuoteLast > pQuoteFirst+1 {
-            codeLineClean1  = removeQuotedStuff(codeLine)
-            //if deBug {print(lineNum,codeLine," --> ",codeLineClean)}
-        } else {
-            codeLineClean1 = codeLine
-        }
-
-        //FIXME: Split compound line - remove "false &&"
-        let codeLineClean: String
-        if  false && codeLineClean1.contains(";") {
-            print("Compound line \"\(codeLineClean1)\"")
-            let ptr = codeLineClean1.firstIntIndexOf(";")
-            fromPrevLine = codeLineClean1.substring(begin: ptr+1).trim
-            codeLineClean = codeLineClean1.left(ptr)
-        } else {
-            codeLineClean = codeLineClean1
-        }
-
-        if codeLine2 != codeLineClean {
-            print("\(lineNum) \"\(codeLine2)\" != \"\(codeLineClean)\"")
-            let i=0 // !?!?!???????
-        }
-
 
         // Create a CharacterSet of delimiters.
-        let separators = CharacterSet(charactersIn: "\t ([{:}]),;")             //tab, space, open*, colon, close*, comma, semi
-        let wordsWithEmpty = codeLineClean.components(separatedBy: separators)  // Split based on characters.
-        let words = wordsWithEmpty.filter { !$0.isEmpty }                       // Use filter to eliminate empty strings.
+        let separators = CharacterSet(charactersIn: "\t ([{:}]),;")     //tab, space, open*, colon, close*, comma, semi
+        let wordsWithEmpty = codeLine.components(separatedBy: separators)   // Split based on characters.
+        let words = wordsWithEmpty.filter { !$0.isEmpty }                   // Use filter to eliminate empty strings.
         let firstWord = words.first ?? ""
 
         for word in words {
             // Find Forced Unwraps
             if word.hasSuffix("!") && firstWord != "@IBOutlet" {
-                let p = codeLineClean.firstIntIndexOf(word)                         // p is pointer to word
-                let isForce = word.count > 1 || p == 0 || codeLineClean[p-1] != " "    // must not have whitespace before "!"
+                let p = codeLine.firstIntIndexOf(word)                         // p is pointer to word
+                let isForce = word.count > 1 || p == 0 || codeLine[p-1] != " "    // must not have whitespace before "!"
                 if isForce {
-                    let extra = getExtraForForceUnwrap(codeLineClean: codeLineClean, word: word, p: p)
+                    let extra = getExtraForForceUnwrap(codeLineClean: codeLine, word: word, p: p)
                     if deBug {
                         print("line \(lineNum): \(word)")
-                        print(codeLineClean)
+                        print(codeLine)
                     }
                     var xword = word
                     if word.contains(".") {
@@ -631,7 +562,7 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
                     nonCamelVars.append(lineItem)
                     swiftSummary.nonCamelCases.append(lineItem.name)
                 }
-                checkParams(line: codeLineClean)
+                checkParams(line: codeLine)
             } else {
                 print("⛔️ Probable line-continuation (end with 'func')")
             }
@@ -686,8 +617,6 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
                 default: break
                 }
 
-                inBlockName[index] = itemName                               // isStruct
-
                 blockTypes[index].count += 1
                 foundNamedBlock = true
             }//endif codeLine.contains
@@ -721,8 +650,8 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
         // let ee,ff:Int
         // var ee:Int=0,ff = 0,gg:Int
 
-        if codeLineClean.hasPrefix("let ") || codeLineClean.hasPrefix("var ") {
-            let codeLineTrunc = String(codeLineClean.dropFirst(4))
+        if codeLine.hasPrefix("let ") || codeLine.hasPrefix("var ") {
+            let codeLineTrunc = String(codeLine.dropFirst(4))
             let comps1 = codeLineTrunc.components(separatedBy: "=")
             var assigneeList = comps1[0]                                // Strip off right side of "="
             let comps2 = assigneeList.components(separatedBy: ":")
@@ -749,8 +678,8 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
                 }
             }//next assignee
         } else { // "let " or "var " not at beginning if line ?????
-            if codeLineClean.contains(" let ") || codeLineClean.contains(" var ") {
-                print(codeLineClean)
+            if codeLine.contains(" let ") || codeLine.contains(" var ") {
+                print(codeLine)
                 // @IBOutlet weak var tableView:    NSTableView!
                 // if let selectedFolderUrl = selectedFolderUrl {
                 // static var latestUrl: URL?

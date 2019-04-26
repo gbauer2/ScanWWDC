@@ -697,7 +697,7 @@ extension ViewController {
 
     // Helper for restoreCurrentSelections
     private func selectUrlInTable(_ url: URL?) {
-        guard let url = url else { tableView.deselectAll(nil);return }
+        guard let url = url else { tableView.deselectAll(nil); return }
 
         if let rowNumber = filesList.firstIndex(of: url) {
             let indexSet = IndexSet(integer: rowNumber)
@@ -736,7 +736,7 @@ extension ViewController {
         return dataFileUrl
     }//end func urlForDataStorage
 
-}//end class ViewController
+}//end extension ViewController
 
 // MARK: - Read file (GWB).
 extension ViewController {
