@@ -26,7 +26,7 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         super.tearDown()
     }
 
-    //481 ViewController
+    //482 ViewController
     func testTruncateURLforDisplay() {
         let str = "/Users/georgebauer/Desktop/Misc/Note.txt"
         let url = URL(fileURLWithPath: str)
@@ -37,7 +37,7 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         XCTAssertEqual(pathName, "Desktop/.../Note.txt")
     }
 
-    //107 AttributableStrings
+    //107 AttributableStrings (ViewController Extension)
     func testMarkCodeLine() {
         let codeColor     = NSColor.black
         let commentColor  = NSColor(calibratedRed: 0, green: 0.6, blue: 0.15, alpha: 1)  //Green
@@ -136,79 +136,112 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
     }
 
     //TODO: test TripleQuote xxx = """
-    //TODO: test Compound line
-    //TODO: test line-continuation (skipLine)
+    //TODO: test parenMismatch
+    //11 CodeLineDetails.swift
     func testStripCommentAndQuote() {
         var line = ""
-        var codeLine = ""
-        var hasTrailing = false
-        var hasEmbedded = false
+        var codeLineDetail = CodeLineDetail()
         var inBlockComment = false
+        var inBlockMarkup = false
         var inTripleQuote  = false
 
         inBlockComment = false
+        line = ##"a=#"1\"2"#"##
+        codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
+        XCTAssertEqual(codeLineDetail.codeLine,##"a=#"~~~~"#"##)
+
+        line = ##"a="1\"2""##
+        codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
+        XCTAssertEqual(codeLineDetail.codeLine,##"a="~~~~""##)
+
         line = #"print("s\(s)")"#
-        (codeLine, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment)
-        XCTAssertEqual(codeLine, #"print("~~~~~")"#)
-        XCTAssertFalse(hasTrailing)
-        XCTAssertFalse(hasEmbedded)
+        codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
+        XCTAssertEqual(codeLineDetail.codeLine, #"print("~~~~~")"#)
+        XCTAssertFalse(codeLineDetail.hasTrailingComment)
+        XCTAssertFalse(codeLineDetail.hasEmbeddedComment)
         XCTAssertFalse(inBlockComment)
 
         line = #"a="\n""#
-        (codeLine, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment)
-        XCTAssertEqual(codeLine, #"a="~~""#)
+        codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
+        XCTAssertEqual(codeLineDetail.codeLine, #"a="~~""#)
 
         line = "//"
-        (codeLine, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment)
-        XCTAssertEqual(codeLine, line.trim)
-        XCTAssertFalse(hasTrailing)
-        XCTAssertFalse(hasEmbedded)
+        codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
+        XCTAssertEqual(codeLineDetail.codeLine, "")
+        XCTAssertFalse(codeLineDetail.hasTrailingComment)
+        XCTAssertFalse(codeLineDetail.hasEmbeddedComment)
 
+        line = "// My Comments"
+        codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
+        XCTAssertEqual(codeLineDetail.codeLine, "")
+        XCTAssertFalse(codeLineDetail.hasTrailingComment)
+        XCTAssertFalse(codeLineDetail.hasEmbeddedComment)
+        
         line = "myVar = false"
-        (codeLine, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment)
-        XCTAssertEqual(codeLine, line.trim)
-        XCTAssertFalse(hasTrailing)
-        XCTAssertFalse(hasEmbedded)
+        codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
+        XCTAssertEqual(codeLineDetail.codeLine, line.trim)
+        XCTAssertFalse(codeLineDetail.hasTrailingComment)
+        XCTAssertFalse(codeLineDetail.hasEmbeddedComment)
 
         line = "myVar = false    // Comment"
-        (codeLine, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment)
-        XCTAssertEqual(codeLine, "myVar = false")
-        XCTAssertTrue(hasTrailing)
-        XCTAssertFalse(hasEmbedded)
+        codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
+        XCTAssertEqual(codeLineDetail.codeLine, "myVar = false")
+        XCTAssertTrue(codeLineDetail.hasTrailingComment)
+        XCTAssertFalse(codeLineDetail.hasEmbeddedComment)
 
         line = #"myVar = "test""#
-        (codeLine, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment)
-        XCTAssertEqual(codeLine, #"myVar = "~~~~""#)
-        XCTAssertFalse(hasTrailing)
-        XCTAssertFalse(hasEmbedded)
+        codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
+        XCTAssertEqual(codeLineDetail.codeLine, #"myVar = "~~~~""#)
+        XCTAssertFalse(codeLineDetail.hasTrailingComment)
+        XCTAssertFalse(codeLineDetail.hasEmbeddedComment)
 
         line = "myVar = /*embed*/ test"
-        (codeLine, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment)
-        XCTAssertEqual(codeLine, "myVar =  test")
-        XCTAssertFalse(hasTrailing)
-        XCTAssertTrue(hasEmbedded)
+        codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
+        XCTAssertEqual(codeLineDetail.codeLine, "myVar =  test")
+        XCTAssertFalse(codeLineDetail.hasTrailingComment)
+        XCTAssertTrue(codeLineDetail.hasEmbeddedComment)
 
         line = "#\"You can use \" and \"\\\" in a raw string. Interpolating as \\#(var).\"#"
         line = "#\"123\"#"
-        (codeLine, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment)
-        XCTAssertEqual(codeLine, "#\"~~~\"#")
+        codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
+        XCTAssertEqual(codeLineDetail.codeLine, "#\"~~~\"#")
 
         inBlockComment = true
         line = "myVar = false    // Comment"
-        (codeLine, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment)
-        XCTAssertEqual(codeLine, "")
-        XCTAssertFalse(hasTrailing)
-        XCTAssertFalse(hasEmbedded)
+        codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
+        XCTAssertEqual(codeLineDetail.codeLine, "")
+        XCTAssertFalse(codeLineDetail.hasTrailingComment)
+        XCTAssertFalse(codeLineDetail.hasEmbeddedComment)
         XCTAssertTrue(inBlockComment)
 
         line = "comment*/myVar = false    // Comment"
-        (codeLine, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment)
-        XCTAssertEqual(codeLine, "myVar = false")
-        XCTAssertTrue(hasTrailing)
-        XCTAssertFalse(hasEmbedded)
+        codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
+        XCTAssertEqual(codeLineDetail.codeLine, "myVar = false")
+        XCTAssertTrue(codeLineDetail.hasTrailingComment)
+        XCTAssertFalse(codeLineDetail.hasEmbeddedComment)
         XCTAssertFalse(inBlockComment)
     }
 
+    //327 AnalyseSwift.swift
+    func testNeedsContinuation() {
+        let nextLine = ""
+        let lineNum = 0
+        var codeLineDetail = CodeLineDetail()
+        var codeLine = ""
+        var result = false
+
+        codeLine = "test"
+        codeLineDetail.codeLine = codeLine
+        result = needsContinuation(codeLineDetail: codeLineDetail, nextLine: nextLine, lineNum: lineNum)
+        XCTAssertFalse(result)
+
+        codeLine = "test,"
+        codeLineDetail.codeLine = codeLine
+        result = needsContinuation(codeLineDetail: codeLineDetail, nextLine: nextLine, lineNum: lineNum)
+        XCTAssertTrue(result)
+    }
+
+    //284 AnalyseSwift.swift
     func testAnalyseSwiftFile() {
         let fileAtt = FileAttributes(url: URL(fileURLWithPath: "/????"), name: "????", creationDate: Date(), modificationDate: Date(), size: 1234, isDir: false)
         let (sw, _) = analyseSwiftFile(contentFromFile: sampleCode, selecFileInfo: fileAtt, deBug: true)
@@ -221,7 +254,7 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         //XCTAssertEqual(sw.extensionNames[0], "ViewController", "")
         XCTAssertEqual(sw.fileName, "????", "")
         XCTAssertEqual(sw.funcs.count,    5, "")
-        XCTAssertEqual(sw.codeLineCount, 89, "")
+        XCTAssertEqual(sw.codeLineCount, 96, "")
         XCTAssertEqual(sw.nonCamelCases.count, 13, "")
         XCTAssertEqual(sw.forceUnwraps.count,  15, "")
         XCTAssertEqual(sw.vbCompatCalls.count,  3, "")
@@ -229,6 +262,7 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         //SampleCode.swift                89       13        15        3      -
     }
 
+    // 31 Keywords.swift
     func testisKeyword() {
         var result = false
         result = isKeyword(word: "let")
@@ -242,6 +276,7 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         XCTAssertFalse(result)
     }
 
+    // MenuRulesVC.swift
     func testCR() {
         //Int
         var cr = CR(tag: 1, idx: 64, name: "Sample # 1 Int", key: "", helpMsg: "This is a test", dfault: "12.33", int: 1234, minV: 1232, maxV: 1235, dp: 2)
@@ -279,19 +314,6 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
 
     // MARK: - Sample Data
 
-    private func camelCase(p1: Int, p2: Int , Param3:String) {
-        let n, Bad1:   Int
-        var i,j_bad2:  Int      //?????
-        var k , Bad3 : Int      //?????
-        let Bad4 = ""
-        let Bad5=0
-        let Bad6:String
-        n=0;i=0;k=0; Bad1=0; j_bad2=0; Bad3=0; Bad6=""      // To avoid warnings
-        print(n,Bad1,i,j_bad2,k,Bad3,Bad4,Bad5,Bad6)        // To avoid warnings
-        if !Param3.contains("//") && !Param3.contains("/*") && !Param3.contains("*/") {} //ok
-        print("\"") //ok
-    }
-
     let sampleWWDC =
     """
     help
@@ -328,6 +350,7 @@ import Cocoa    /* ????? partial-line Block Comment does not work.*/
  #warning("This code is incomplete.")
  */
 
+let raw = *"12"3"*
 private func DoForceUnwrap() {
     var dict = [String: String]()
     dict["as!"] = "as!"

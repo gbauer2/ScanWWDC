@@ -24,6 +24,7 @@
 		CECCE41822539EB800DF2C02 /* PBX.swift in Sources */ = {isa = PBXBuildFile; fileRef = CECCE41722539EB800DF2C02 /* PBX.swift */; };
 		CED9D7F9223E090F009978EF /* VBcompatablity.swift in Sources */ = {isa = PBXBuildFile; fileRef = CED9D7F8223E090F009978EF /* VBcompatablity.swift */; };
 		CEE94E93223EB84E00A6F2FB /* AnalyseWWDC.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEE94E92223EB84E00A6F2FB /* AnalyseWWDC.swift */; };
+		CEF60B442274FDAF00C04442 /* CodeLineDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEF60B432274FDAF00C04442 /* CodeLineDetail.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -58,6 +59,7 @@
 		CECCE41722539EB800DF2C02 /* PBX.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PBX.swift; sourceTree = "<group>"; };
 		CED9D7F8223E090F009978EF /* VBcompatablity.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VBcompatablity.swift; sourceTree = "<group>"; };
 		CEE94E92223EB84E00A6F2FB /* AnalyseWWDC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyseWWDC.swift; sourceTree = "<group>"; };
+		CEF60B432274FDAF00C04442 /* CodeLineDetail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeLineDetail.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -102,6 +104,7 @@
 				26ECD33A1E874B5C00380F56 /* AppDelegate.swift */,
 				26ECD33C1E874B5C00380F56 /* ViewController.swift */,
 				CEA6263B20068AA2000F923D /* AnalyseSwift.swift */,
+				CEF60B432274FDAF00C04442 /* CodeLineDetail.swift */,
 				CEE94E92223EB84E00A6F2FB /* AnalyseWWDC.swift */,
 				CEBAD4A32194A8E600CBBCBA /* AnalyseXcodeproj.swift */,
 				CE4194AD21BD8C22006808B1 /* AttributableStrings.swift */,
@@ -257,6 +260,7 @@
 				CE67A6A41FFA066B00BD57BD /* StringExtension.swift in Sources */,
 				CEE94E93223EB84E00A6F2FB /* AnalyseWWDC.swift in Sources */,
 				CE9BBFF72235598500DCE317 /* Keywords.swift in Sources */,
+				CEF60B442274FDAF00C04442 /* CodeLineDetail.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

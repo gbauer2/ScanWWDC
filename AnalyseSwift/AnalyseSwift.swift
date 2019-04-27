@@ -125,137 +125,6 @@ private func checkCurlys(codeName: String, itemName: String,posItem: Int, pOpenC
     }
 }
 
-// Strip comment & neuter quotes from line, returning trimmed code portion, hasTrailingComment, hasEmbeddedComment
-/// Strip comments & neutralize quotes from trimmed sourcecode line
-///
-/// - Parameters:
-///   - fullLine: Swift source code - already TRIMMED
-///   - lineNum: Swift source line number
-///   - inTripleQuote: inout. Are we inside a multi-line string literal
-///   - inBlockComment: inout. Are we inside a block comment (/*.../*)
-/// - Returns: tuple (CleanLine, hastrailingComment, hasEmbeddedComment)
-func stripCommentAndQuote(fullLine: String, lineNum: Int, inTripleQuote: inout Bool, inBlockComment: inout Bool)
-    -> (codeLine: String, hasTrailing: Bool, hasEmbedded: Bool) {   //137-258 = 121-lines
-        //TODO: Raw-string delimiters with more than 1 asterisk **"..."**
-        //TODO: Raw-triple-quote    *"""
-        //TODO: Interpolation       \(var)
-        //TODO: Mark-up detection   ///     /**.../*
-        //TODO: Add inout inBlockMarkup
-        //TODO: Add return isMarkup (struct?)
-        if inBlockComment && !fullLine.contains("*/") {
-            return ("", false, false)                       // Whole line is in BlockComment
-        }
-        if !fullLine.contains("//") && !fullLine.contains("\"") && !fullLine.contains("/*")  && !fullLine.contains("*/") {
-            return (fullLine, false, false)                 // No comment or quote
-        }
-        if fullLine.hasPrefix("\"\"\"") || fullLine.hasSuffix("\"\"\"") {
-            inTripleQuote = !inTripleQuote
-        }
-        if !inBlockComment && fullLine.hasPrefix("//") {
-            return (fullLine, false, false)
-        }
-
-        let blockCommentStr  = "⌇"
-        let blockCommentChar = Character(blockCommentStr)
-        var hasTrailing = false
-        var hasEmbedded = false
-        // Block comment ignores all but "\" and "*/"
-        // Raw String ignores all but \# and "#
-        //#”You can use “ and “\” in a raw string. Interpolating as \#(var).”#
-        //  #"  "#    //    /*  */    \    \#
-        var pComment    = -1
-        var blockPrev   = false
-        var preserveQuote = false
-        var inQuote     = false     // in String literal OR Raw String
-        var inRawQuote  = false     // in Raw String
-        var isEscaped   = false
-        var prevChar    = Character(" ")
-        var chars = Array(fullLine)
-        for (p,char) in chars.enumerated() {
-            //if char == "(" { isEscaped = false }
-            if !isEscaped && !inBlockComment {
-                // Quote "
-                if char == "\"" {
-                    if inQuote {
-                        if !inRawQuote {
-                            inQuote = false
-                        }
-                    } else {
-                        inQuote = true              // in Quotes
-                        preserveQuote = true
-                        if prevChar == "#" {        // #" as in #"xxx"#
-                            inRawQuote = true
-                        }
-                    }
-
-                    // Hashtag "#"
-                } else if char == "#" {
-                    if prevChar == "\"" {           // "# as in #"xxx"#
-                        if inRawQuote {
-                            chars[p-1] = prevChar
-                            inQuote = false
-                            inRawQuote = false
-                        }
-                    }
-
-                    // Asterisk "*"
-                } else if char == "*" {
-                    if !inQuote && prevChar == "/" {           // "/*"
-                        blockPrev = true
-                        hasEmbedded = true
-                        inBlockComment = true
-                    }
-
-                    // BackSlash "\"
-                } else if char == "\\" {
-                    isEscaped = inQuote && !inRawQuote
-
-                    // Slash "/"
-                } else if char == "/" {
-                    if !inQuote && prevChar == "/" {
-                        pComment = p
-                        hasTrailing = true
-                        break
-                    }
-                }
-            } else {
-                isEscaped = false
-            }//endif Not escaped and Not blockComment
-
-            if inBlockComment {
-                if char == "/" && prevChar == "*" {         // "*/"
-                    inBlockComment = false
-                    chars[p] = blockCommentChar
-                }
-            }
-
-            if inBlockComment {
-                chars[p] = blockCommentChar
-                if blockPrev {
-                    chars[p-1] = blockCommentChar
-                    blockPrev = false
-                }
-            }
-
-            if inQuote {
-                if preserveQuote {
-                    preserveQuote = false
-                } else {
-                    chars[p] = "~"
-                }
-            }
-
-            prevChar = char
-        }//next p
-        let codeLine: String
-        if pComment >= 0 {
-            let sliceChars = chars.prefix(pComment - 1)
-            codeLine = String(sliceChars).replacingOccurrences(of: blockCommentStr, with: "").trim
-        } else {
-            codeLine = String(chars).replacingOccurrences(of: blockCommentStr, with: "").trim
-        }
-        return (codeLine, hasTrailing, hasEmbedded)
-}//end func stripCommentAndQuote
 
 //---- isCamelCase
 func isCamelCase(_ word: String) -> Bool {
@@ -309,6 +178,22 @@ func checkParams(line: String) {
     for paramWithType in paramsWithTypes {
         let paramPair = paramWithType.components(separatedBy: ":")[0].trim
     }
+}
+
+//FIXME:-needsContinuation -
+func needsContinuation(codeLineDetail: CodeLineDetail, nextLine: String, lineNum: Int) -> Bool {
+    if codeLineDetail.codeLine.isEmpty { return false }
+
+    if codeLineDetail.bracketMismatch > 0 || codeLineDetail.parenMismatch > 0 {
+        return true
+    }
+
+    let suspectStr = ",(["
+    let lastChar = codeLineDetail.codeLine.suffix(1)
+    if suspectStr.contains(lastChar) {
+        return true
+    }
+    return false
 }
 
 // MARK: - the main event 562-lines
@@ -377,7 +262,7 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
     var fromPrevLine    = ""    // if prev line had a ";", this is the excess after 1st ";"
     var skipLineCount   = 0     // Number of lines to skipdue to line continuation
     var iLine           = 0
-
+    var partialLine     = ""
     // MARK: Main Loop 435-769 = 334-lines
     while iLine < lines.count {
         //        // Multitasking Check
@@ -392,7 +277,7 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
             skipLineCount -= 1
             continue
         }
-        let line: String
+        var line: String
         if fromPrevLine.isEmpty {       // Read a new line from source
             line = lines[iLine].trim
             iLine += 1
@@ -406,6 +291,13 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
             fromPrevLine = ""
             if line.isEmpty { continue }
         }
+
+        // Line Continution
+        if !partialLine.isEmpty {
+            line = partialLine + " " + line
+            partialLine = ""
+        }
+
         var netCurlys = 0
 
         if line.hasPrefix("/*") {                             // "/*"
@@ -438,10 +330,14 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
 
         // MARK: Code!  495-769 = 274-lines
         nCodeLine += 1
-        let (codeLineFull, hasTrailing, hasEmbedded) = stripCommentAndQuote(fullLine: line, lineNum: lineNum, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment)
-        if hasTrailing { nTrailing += 1 }
-
-        //FIXME: Split compound line - remove "false &&"
+        var inBlockMarkup = false
+        let codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: lineNum,
+                                                  inTripleQuote:  &inTripleQuote,
+                                                  inBlockComment: &inBlockComment,
+                                                  inBlockMarkup:  &inBlockMarkup)
+        if codeLineDetail.hasTrailingComment { nTrailing += 1 }
+        let codeLineFull = codeLineDetail.codeLine
+        //Split compound line
         let codeLine: String
         if  codeLineFull.contains(";") {
             print("Compound line \"\(codeLineFull)\"")
@@ -450,6 +346,14 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
             codeLine = codeLineFull.left(ptr)
         } else {
             codeLine = codeLineFull
+        }
+
+        //FIXME: Handle unmatched [(
+        // 
+        if needsContinuation(codeLineDetail: codeLineDetail, nextLine: lines[iLine], lineNum: lineNum) {
+            print("\(lineNum) Partial line? \"\(codeLine)\"")
+            partialLine = codeLine
+            continue
         }
 
         let pQuoteFirst  = codeLine.firstIntIndexOf("\"")

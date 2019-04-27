@@ -33,8 +33,7 @@
 // Fix Unhandled
 
 //AnalyseSwift:
-// Bug: Handle ";"                  fromPrevLine
-// Bug: Handle Line continuations   skipLineCount
+// Bug: needLineContinuation() - incomplete, does not handle ([ mismatch
 // Bug: Handle "var ee: Int=0, ff = 0, gg: Int" vs "var hh = kk.substring(start: 1, length:2)"
 // Handle String interpolation
 // Make handling quotes more robust - (codeLineClean)
@@ -846,4 +845,3 @@ extension ViewController {
     }//end func test
 
 }//end Extension
-

@@ -162,4 +162,3 @@ func analyseWWDC(_ str: String, selecFileInfo: FileAttributes) -> NSAttributedSt
     print("\(totalSessions) Total Sessions")
     return attTxt
 }//end func analyseWWDC
-
