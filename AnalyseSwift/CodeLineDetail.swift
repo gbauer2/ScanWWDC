@@ -32,7 +32,7 @@ public struct CodeLineDetail {
 func stripCommentAndQuote(fullLine: String, lineNum: Int,
                           inTripleQuote:  inout Bool
     , inBlockComment: inout Bool
-    , inBlockMarkup:  inout Bool) -> CodeLineDetail {   //149-291 = 142-lines
+    , inBlockMarkup:  inout Bool) -> CodeLineDetail {   //32-193 = 161-lines
     //TODO: Raw-string delimiters with more than 1 asterisk **"..."**
     //TODO: Raw-triple-quote    *"""
     //TODO: Interpolation       \(var)
@@ -72,6 +72,8 @@ func stripCommentAndQuote(fullLine: String, lineNum: Int,
     }
     let blockCommentStr  = "⌇"
     let blockCommentChar = Character(blockCommentStr)
+    let quoteChar        = Character("\"")
+
     // Block comment ignores all but "\" and "*/"
     // Raw String ignores all but \# and "#
     //#”You can use “ and “\” in a raw string. Interpolating as \#(var).”#
@@ -84,62 +86,74 @@ func stripCommentAndQuote(fullLine: String, lineNum: Int,
     var prevChar    = Character(" ")
     var chars = Array(trimLine)
     var quoteStatus: QuoteStatus = .notInQuotes
-    let quoteChar: Character = "\""
     for (p,char) in chars.enumerated() {
 
         //if char == "(" { isEscaped = false }
         if !isEscaped && !inBlockCommentOrMarkup {      //--- Not Escaped & Not inBlockComment & Not inBlockMarkup
 
-            // Quote (")
-            if char == quoteChar {
-                if quoteStatus == .inRegular {                                    // --inQuote
-                    quoteStatus = .notInQuotes
-                } else if quoteStatus == .notInQuotes {                           // --not inQuotes
+            if quoteStatus == .notInQuotes {                // ------------ NOT in quotes
+
+                if char == quoteChar {                              //- Quote (")
                     preserveQuote = true
                     if prevChar == "#" {        // #" as in #"xxx"#
                         quoteStatus = .inRawString  //????? Count "#"s here
                     } else {
                         quoteStatus = .inRegular
                     }
-                }
 
-                // Hashtag "#" Need changing for ###"..."###
-            } else if char == "#" {
-                if prevChar == quoteChar {           // "# as in #"xxx"#
-                    if quoteStatus == .inRawString {                             // --inRawQuote
-                        // Check "#"s count here
-                        chars[p-1] = prevChar
-                        quoteStatus = .notInQuotes      //end of RawString
+                } else if char == "*" {                             //- Asterisk "*"
+                    if prevChar == "/" {   // "/*"   // --not inQuotes
+                        chars[p-1] = blockCommentChar
+                        codeLineDetail.hasEmbeddedComment = true
+                        if p >= chars.count || chars[p+1] != "*" {
+                            inBlockComment = true
+                        } else {
+                            inBlockMarkup = true
+                        }
+                        inBlockCommentOrMarkup = true
+                    }
+
+                }  else if char == "/" {                            //- Comment "//"
+                    if prevChar == "/" {
+                        pComment = p
+                        codeLineDetail.hasTrailingComment = true
+                        break                               // EXIT LOOP
+                    }
+
+                } else if char == "(" {
+                    codeLineDetail.parenMismatch += 1
+                } else if char == ")" {
+                    codeLineDetail.parenMismatch -= 1
+                } else if char == "[" {
+                    codeLineDetail.bracketMismatch += 1
+                } else if char == "]" {
+                    codeLineDetail.bracketMismatch -= 1
+
+                }//endif char
+
+
+            } else if quoteStatus == .inRawString {         // ------------ in Raw String
+
+                if char == "#" {                                    //- Hashtag "#"
+                    //Need changing for ###"..."###
+                    if prevChar == quoteChar {          // "# as in #"xxx"#
+                            // Check "#"s count here
+                            chars[p-1] = quoteChar      // restore "
+                            quoteStatus = .notInQuotes  // end of RawString
                     }
                 }
 
-                // Asterisk "*"
-            } else if char == "*" {
-                if quoteStatus == .notInQuotes && prevChar == "/" {   // "/*"   // --not inQuotes
-                    chars[p-1] = blockCommentChar
-                    codeLineDetail.hasEmbeddedComment = true
-                    if p >= chars.count || chars[p+1] != "*" {
-                        inBlockComment = true
-                    } else {
-                        inBlockMarkup = true
-                    }
-                    inBlockCommentOrMarkup = true
+            } else if quoteStatus == .inRegular {           // ------------ in Regular quotes
+
+                if char == quoteChar {                              //- Quote (")
+                    quoteStatus = .notInQuotes
+
+                } else if char == "\\" {                            //- BackSlash "\"
+                        isEscaped = true
                 }
 
-                // BackSlash "\"
-            } else if char == "\\" {                                            // --inQuote
-                if quoteStatus == .inRegular {
-                    isEscaped = true
-                }
+            }//endif quoteStatus
 
-                // Slash "/"
-            } else if char == "/" {
-                if quoteStatus == .notInQuotes && prevChar == "/" {             // --not inQuote
-                    pComment = p
-                    codeLineDetail.hasTrailingComment = true
-                    break
-                }
-            }
         } else {
             isEscaped = false
         }//endif Not escaped and Not blockComment

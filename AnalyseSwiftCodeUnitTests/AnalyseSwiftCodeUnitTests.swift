@@ -146,6 +146,13 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         var inTripleQuote  = false
 
         inBlockComment = false
+        line = #"""
+        print("\"") //ok
+        """#
+        codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
+        XCTAssertEqual(codeLineDetail.codeLine, #"print("~~")"#)
+
+        inBlockComment = false
         line = ##"a=#"1\"2"#"##
         codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
         XCTAssertEqual(codeLineDetail.codeLine,##"a=#"~~~~"#"##)
@@ -223,19 +230,55 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
     }
 
     //327 AnalyseSwift.swift
+    /**
+     tests for needsContinuation()
+
+     line 2
+     line 3
+
+     line 5
+ */
     func testNeedsContinuation() {
-        let nextLine = ""
         let lineNum = 0
         var codeLineDetail = CodeLineDetail()
         var codeLine = ""
+        var nextLine = ""
         var result = false
 
         codeLine = "test"
+        nextLine = ",next"
         codeLineDetail.codeLine = codeLine
         result = needsContinuation(codeLineDetail: codeLineDetail, nextLine: nextLine, lineNum: lineNum)
         XCTAssertFalse(result)
 
-        codeLine = "test,"
+        codeLine = "test"
+        nextLine = ",next"
+        codeLineDetail.codeLine = codeLine
+        result = needsContinuation(codeLineDetail: codeLineDetail, nextLine: nextLine, lineNum: lineNum)
+        XCTAssertFalse(result)
+
+        codeLineDetail.bracketMismatch = 1
+
+        codeLine = "[test"
+        nextLine = "next"
+        codeLineDetail.codeLine = codeLine
+        result = needsContinuation(codeLineDetail: codeLineDetail, nextLine: nextLine, lineNum: lineNum)
+        XCTAssertFalse(result)
+
+        codeLine = "[test,"
+        nextLine = "next"
+        codeLineDetail.codeLine = codeLine
+        result = needsContinuation(codeLineDetail: codeLineDetail, nextLine: nextLine, lineNum: lineNum)
+        XCTAssertTrue(result)
+
+        codeLine = "[test"
+        nextLine = ",next"
+        codeLineDetail.codeLine = codeLine
+        result = needsContinuation(codeLineDetail: codeLineDetail, nextLine: nextLine, lineNum: lineNum)
+        XCTAssertTrue(result)
+
+        codeLine = "test["
+        nextLine = "next"
         codeLineDetail.codeLine = codeLine
         result = needsContinuation(codeLineDetail: codeLineDetail, nextLine: nextLine, lineNum: lineNum)
         XCTAssertTrue(result)
@@ -247,14 +290,14 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         let (sw, _) = analyseSwiftFile(contentFromFile: sampleCode, selecFileInfo: fileAtt, deBug: true)
         XCTAssertEqual(sw.byteCount,   1234, "")
         XCTAssertEqual(sw.classNames.count,   1, "")
-        XCTAssertEqual(sw.classNames[0], "MySampleClass", "")
+        if !sw.classNames.isEmpty { XCTAssertEqual(sw.classNames[0], "MySampleClass", "")}
         XCTAssertEqual(sw.enumNames.count,   0, "")
         //XCTAssertEqual(sw.enumNames[0], "SortType", "")
         XCTAssertEqual(sw.extensionNames.count,   0, "")
         //XCTAssertEqual(sw.extensionNames[0], "ViewController", "")
         XCTAssertEqual(sw.fileName, "????", "")
         XCTAssertEqual(sw.funcs.count,    5, "")
-        XCTAssertEqual(sw.codeLineCount, 96, "")
+        XCTAssertEqual(sw.codeLineCount, 98, "")
         XCTAssertEqual(sw.nonCamelCases.count, 13, "")
         XCTAssertEqual(sw.forceUnwraps.count,  15, "")
         XCTAssertEqual(sw.vbCompatCalls.count,  3, "")
@@ -334,7 +377,7 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
     ARKit provides a cutting-edge platform for developing augmented reality (AR) apps for iPhone and...
     """
 
-    let sampleCode = """
+    let sampleCode = #"""
 //
 //  SampleCode.swift
 //  AnalyseSwiftCode
@@ -375,6 +418,7 @@ private func DoForceUnwrap() {
     print(str, date, int)
 }
 
+/// This is a single-line Mark-up
 private func DoCamelCase(p1: Int, p2: Int , Param3:String) {
     let n, Bad1:   Int
     var i,j_bad2:  Int      //?????
@@ -391,6 +435,9 @@ private func DoCamelCase(p1: Int, p2: Int , Param3:String) {
     print("\"") //ok
 }
 
+/**
+This is a Block Mark-up
+*/
 private func sampleVBCall() {
     let i = CInt("123")
     print(i)
@@ -485,7 +532,7 @@ struct MySampleStruct {
 }
 
 
-"""
+"""#
 
     //    func testPerformanceExample() {
     //        // This is an example of a performance test case.

@@ -181,23 +181,29 @@ func checkParams(line: String) {
 }
 
 //FIXME:-needsContinuation -
-func needsContinuation(codeLineDetail: CodeLineDetail, nextLine: String, lineNum: Int) -> Bool {
+func needsContinuation(codeLineDetail: CodeLineDetail, nextLine: String, lineNum: Int = 0) -> Bool {
     if codeLineDetail.codeLine.isEmpty { return false }
 
     if codeLineDetail.bracketMismatch > 0 || codeLineDetail.parenMismatch > 0 {
-        return true
-    }
-
-    let suspectStr = ",(["
-    let lastChar = codeLineDetail.codeLine.suffix(1)
-    if suspectStr.contains(lastChar) {
-        return true
+        let lastChar = codeLineDetail.codeLine.suffix(1)
+        if ",([".contains(lastChar) {
+            print("\(lineNum)⬇️ needsContinuation: \(codeLineDetail.parenMismatch) \(codeLineDetail.bracketMismatch) \(codeLineDetail.codeLine)" )
+            return true
+        }
+        let firstChar = nextLine.trim.prefix(1)
+        if ",)]".contains(firstChar) {
+            print("\(lineNum)⬇️ needsContinuation: \(codeLineDetail.parenMismatch) \(codeLineDetail.bracketMismatch) \(codeLineDetail.codeLine)" )
+            return true
+        }
+        print("⛔️ Error from needsContinuation(): OpenClose Mismatch: Paren excess = \(codeLineDetail.parenMismatch) Bracket exess = \(codeLineDetail.bracketMismatch)" )
+        print("  \(lineNum) \(codeLineDetail.codeLine)\n  \(lineNum+1) \(nextLine)" )
+        print()
     }
     return false
 }
 
-// MARK: - the main event 562-lines
-// called from analyseContentsButtonClicked         //315-877 = 562-lines
+// MARK: - the main event 587-lines
+// called from analyseContentsButtonClicked         //206-793 = 587-lines
 func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, deBug: Bool = true) -> (SwiftSummary, NSAttributedString) {
     let lines = contentFromFile.components(separatedBy: "\n")
 
@@ -260,10 +266,10 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
     //infoTextView.string = "Analysing..."
 
     var fromPrevLine    = ""    // if prev line had a ";", this is the excess after 1st ";"
-    var skipLineCount   = 0     // Number of lines to skipdue to line continuation
     var iLine           = 0
     var partialLine     = ""
-    // MARK: Main Loop 435-769 = 334-lines
+
+    // MARK: Main Loop 272-604 = 332-lines
     while iLine < lines.count {
         //        // Multitasking Check
         //        if selecFileInfo.url != ViewController.latestUrl {
@@ -273,10 +279,6 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
         //                //return (swiftSummary, tx)
         //            }
         //        }
-        if skipLineCount > 0 {          // Skip this line, it was already used as a line continuation
-            skipLineCount -= 1
-            continue
-        }
         var line: String
         if fromPrevLine.isEmpty {       // Read a new line from source
             line = lines[iLine].trim
@@ -328,7 +330,7 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
             continue
         }
 
-        // MARK: Code!  495-769 = 274-lines
+        // MARK: Code!  334-604 = 270-lines
         nCodeLine += 1
         var inBlockMarkup = false
         let codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: lineNum,
@@ -348,10 +350,9 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
             codeLine = codeLineFull
         }
 
-        //FIXME: Handle unmatched [(
-        // 
+        // Handle unmatched [(
         if needsContinuation(codeLineDetail: codeLineDetail, nextLine: lines[iLine], lineNum: lineNum) {
-            print("\(lineNum) Partial line? \"\(codeLine)\"")
+            //print("\(lineNum) Partial line? \"\(line)\" -> \"\(codeLine)\" from #\(#line)")
             partialLine = codeLine
             continue
         }
