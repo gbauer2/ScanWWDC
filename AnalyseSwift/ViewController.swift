@@ -35,15 +35,11 @@
 //AnalyseSwift:
 // Bug: Handle "var ee: Int=0, ff = 0, gg: Int" vs "var hh = kk.substring(start: 1, length:2)"
 // Handle String interpolation
-// Handle Raw Strings" #"literal"#
 // dependency
 // computed variables, var observer
-// Bug: analysis: func params not checked for camelCase, forceUnwraap
-// Bug: analysis: "if let", "guard let" not checked
 // analysis: show commentLinesCount(dead code?) vs MarkupLineCount (///) (/**)
 // analysis: organize by MARK: or by extension
 // allow extensions other than class
-// Bug: "Check for Forced Unwrapping" may fail with multiple "!"s
 // Display as expandable tree, with option for printable
 // remove display code (tx=, txt=, etc.) from analyseSwiftFile()
 
@@ -59,7 +55,7 @@
 //   Multiple declarations on a line
 //   CodeLine too long
 //   Missing Unit-Test
-//   Type names Start with uppercase
+//   Type-Names must Start with Uppercase
 
 //Done:
 

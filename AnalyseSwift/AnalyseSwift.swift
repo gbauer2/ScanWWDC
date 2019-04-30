@@ -8,11 +8,11 @@
 
 import Cocoa
 
-// MARK: - Properties of analyseSwiftFile (instance vars)
-var curlyDepth      = 0                     //accessed from gotOpenCurly, gotCloseCurly, getSelecFileInfo
-var blockOnDeck     = BlockInfo()           //accessed from gotOpenCurly,                analyseSwiftFile
-var blockStack      = [BlockInfo]()         //accessed from gotOpenCurly, gotCloseCurly, analyseSwiftFile
-var codeElements    = [BlockInfo]()         //accessed from               gotCloseCurly, analyseSwiftFile
+// MARK: - Properties of analyseSwiftFile (globals - change to instance vars)
+fileprivate var curlyDepth      = 0                     //accessed from gotOpenCurly, gotCloseCurly, getSelecFileInfo
+fileprivate var blockOnDeck     = BlockInfo()           //accessed from gotOpenCurly,                analyseSwiftFile
+fileprivate var blockStack      = [BlockInfo]()         //accessed from gotOpenCurly, gotCloseCurly, analyseSwiftFile
+fileprivate var codeElements    = [BlockInfo]()         //accessed from               gotCloseCurly, analyseSwiftFile
 
 // MARK: - Block Structs & Enums
 
@@ -40,12 +40,12 @@ public struct SwiftSummary {
     var url = FileManager.default.homeDirectoryForCurrentUser
 }
 
-public struct FuncInfo {
+internal struct FuncInfo {
     var name = ""
     var codeLineCount = 0
 }
 
-enum BlockType: Int {
+internal enum BlockType: Int {
     case None           = 0
     case Func           = 1
     case IBActionFunc   = 2
@@ -57,13 +57,13 @@ enum BlockType: Int {
     case isProtocol     = 8
 }
 
-enum ProjectType {
+internal enum ProjectType {
     case unknown
     case OSX
     case iOS
 }
 
-struct BlockAggregate {
+internal struct BlockAggregate {
     let blockType:  BlockType
     let subType:    BlockType
     let codeName:   String
@@ -72,7 +72,7 @@ struct BlockAggregate {
     var count       = 0
 }
 
-struct BlockInfo {
+internal struct BlockInfo {
     var blockType        = BlockType.None
     var lineNum          = 0
     var codeLinesAtStart = 0
@@ -81,7 +81,7 @@ struct BlockInfo {
     var codeLineCount    = 0
 }
 
-private struct LineItem {
+internal struct LineItem {
     let lineNum: Int
     let name:  String
     let extra: String
@@ -120,14 +120,11 @@ private func checkCurlys(codeName: String, itemName: String,posItem: Int, pOpenC
     if pCloseCurlyR > 0 {
         print("⛔️ close curly on \(codeName) \(itemName) line")
     }
-    if pOpenCurlyR > posItem {
-        //print("😃 open curly after \(codeName) \(itemName)")
-    }
 }
 
-
 //---- isCamelCase
-func isCamelCase(_ word: String) -> Bool {
+// Uses CodeRule
+internal func isCamelCase(_ word: String) -> Bool {
 
     //TODO: Change minimum name length to IssuePreference
     if word == "_" { return true }
@@ -138,7 +135,7 @@ func isCamelCase(_ word: String) -> Bool {
         var isAllCaps = true
         for char in word {
             if !char.isUppercase {
-                if !CodeRule.allowUnderscore ||  char != "_" {
+                if !CodeRule.allowUnderscore || char != "_" {
                     isAllCaps = false
                     break
                 }
@@ -157,40 +154,47 @@ func isCamelCase(_ word: String) -> Bool {
     return true
 }//end func
 
-func checkParams(line: String) {
+internal func getParamNames(line: String) -> [String] {
     let open = line.firstIntIndexOf("(")
     if open < 0 {
         print("⛔️ Probable line-continuation ('func' with no '(')")
-        return
+        return []
     }
     let close = line.firstIntIndexOf(")")
     if close < open+1 {
         print("⛔️ Probable line-continuation ('func' with no ')')")
-        return
+        return []
     }
     let paramStr = line.substring(begin: open+1, end: close-1)
     print("🔹 paramStr for \(line) = \"\(paramStr)\"")
     let paramsWithTypes = paramStr.components(separatedBy: ",").filter { !$0.isEmpty }.map { $0.trim }
-    if paramsWithTypes.isEmpty { return }
+    if paramsWithTypes.isEmpty { return [] }
 
     print(paramsWithTypes)
+    var paramNames = [String]()
 
     for paramWithType in paramsWithTypes {
         let paramPair = paramWithType.components(separatedBy: ":")[0].trim
-    }
+        let names = paramPair.components(separatedBy: " ").filter { !$0.isEmpty }.map { $0.trim }
+        for name in names {
+            paramNames.append(name)
+        }//next name
+    }//next paramWithType
+    return paramNames
 }
 
-//FIXME:-needsContinuation -
-func needsContinuation(codeLineDetail: CodeLineDetail, nextLine: String, lineNum: Int = 0) -> Bool {
+internal func needsContinuation(codeLineDetail: CodeLineDetail, nextLine: String, lineNum: Int = 0) -> Bool {
     if codeLineDetail.codeLine.isEmpty { return false }
+    let lastChar = codeLineDetail.codeLine.suffix(1)
+    let firstChar = nextLine.prefix(1)
+
+    if lastChar == "=" || firstChar == "=" {return false}
 
     if codeLineDetail.bracketMismatch > 0 || codeLineDetail.parenMismatch > 0 {
-        let lastChar = codeLineDetail.codeLine.suffix(1)
         if ",([".contains(lastChar) {
             print("\(lineNum)⬇️ needsContinuation: \(codeLineDetail.parenMismatch) \(codeLineDetail.bracketMismatch) \(codeLineDetail.codeLine)" )
             return true
         }
-        let firstChar = nextLine.trim.prefix(1)
         if ",)]".contains(firstChar) {
             print("\(lineNum)⬇️ needsContinuation: \(codeLineDetail.parenMismatch) \(codeLineDetail.bracketMismatch) \(codeLineDetail.codeLine)" )
             return true
@@ -199,12 +203,26 @@ func needsContinuation(codeLineDetail: CodeLineDetail, nextLine: String, lineNum
         print("  \(lineNum) \(codeLineDetail.codeLine)\n  \(lineNum+1) \(nextLine)" )
         print()
     }
+
+    let hangers = "=+-*&|"      //"/" does not work - might be "//" or "/*"
+    for hanger in hangers {
+        let str = String(hanger)
+        if firstChar == str || lastChar == str {
+            return true
+        }
+    }
+    if firstChar == "/" && nextLine.count >= 2 {
+        let char2 = nextLine[1]
+        if char2 != "/" && char2 != "*" {
+            return true
+        }
+    }
     return false
 }
 
 // MARK: - the main event 587-lines
 // called from analyseContentsButtonClicked         //206-793 = 587-lines
-func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, deBug: Bool = true) -> (SwiftSummary, NSAttributedString) {
+public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, deBug: Bool = true) -> (SwiftSummary, NSAttributedString) {
     let lines = contentFromFile.components(separatedBy: "\n")
 
     resetVBwords()
@@ -225,11 +243,10 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
     blockTypes.append(BlockAggregate(blockType: .Class,       subType: .Class,codeName: "class",        displayName: "Class",        showNone: true, count: 0))
     blockTypes.append(BlockAggregate(blockType: .isProtocol,  subType: .isProtocol,codeName: "protocol",displayName: "Protocol",     showNone: false,count: 0))
 
-    for i in 0..<blockTypes.count {         // Error check location in array vs. enum - not needed
-        let ty = blockTypes[i]
-        if i != ty.blockType.rawValue {
-            print("⛔️ Error \(ty.blockType) \(i) <> \(ty.blockType.rawValue)")
-        }
+    //
+    var blockLookup = [String : Int]()
+    for (i, bkTyp) in blockTypes.enumerated() {
+        blockLookup[bkTyp.codeName] = i
     }//next i
 
     curlyDepth   = 0
@@ -249,6 +266,7 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
     var nBlankLine   = 0
     var nCodeLine    = 0
     var nTrailing    = 0
+    var nEmbedded    = 0
 
     var inMultiLineComment = false
     var inBlockComment  = false
@@ -266,8 +284,15 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
     //infoTextView.string = "Analysing..."
 
     var fromPrevLine    = ""    // if prev line had a ";", this is the excess after 1st ";"
+    var partialLine     = ""    // if this is a continuation line
     var iLine           = 0
-    var partialLine     = ""
+
+    func recordNonCamelcase(_ name: String) {
+        let lineItem = LineItem(lineNum: lineNum, name: name, extra: "")
+        if deBug {print("➡️ \(lineItem.lineNum) Non-CamelCased \(lineItem.name)")}
+        nonCamelVars.append(lineItem)
+        swiftSummary.nonCamelCases.append(lineItem.name)
+    }
 
     // MARK: Main Loop 272-604 = 332-lines
     while iLine < lines.count {
@@ -322,23 +347,37 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
             }
             continue
         } else if line.count == 1 {
-            nBlankLine += 1
+            nBlankLine += 1 //???
             if line == "{" { gotOpenCurly(lineNum: lineNum) }                                 // single "{" on line
             if line == "}" { gotCloseCurly(lineNum: lineNum, nCodeLine: nCodeLine) }          // single "}" on line
-            continue
+            continue                                                // bypass further processing
         } else if inTripleQuote && !line.contains("\"\"\"") {
-            continue
+            continue                                                // bypass further processing???
         }
 
         // MARK: Code!  334-604 = 270-lines
-        nCodeLine += 1
         var inBlockMarkup = false
         let codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: lineNum,
                                                   inTripleQuote:  &inTripleQuote,
                                                   inBlockComment: &inBlockComment,
                                                   inBlockMarkup:  &inBlockMarkup)
-        if codeLineDetail.hasTrailingComment { nTrailing += 1 }
         let codeLineFull = codeLineDetail.codeLine
+        if codeLineDetail.hasTrailingComment || codeLineDetail.hasEmbeddedComment {
+            if codeLineDetail.hasTrailingComment {
+                nTrailing += 1
+            } else {
+                nEmbedded += 1
+            }
+            if codeLineFull.count <= 1 {
+                if codeLineFull == "{" { gotOpenCurly(lineNum: lineNum) }                                 // single "{" on line
+                if codeLineFull == "}" { gotCloseCurly(lineNum: lineNum, nCodeLine: nCodeLine) }          // single "}" on line
+                continue                                                // bypass further processing
+            }
+        }
+        if codeLineFull.isEmpty {
+            continue
+        }
+
         //Split compound line
         let codeLine: String
         if  codeLineFull.contains(";") {
@@ -351,11 +390,15 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
         }
 
         // Handle unmatched [(
-        if needsContinuation(codeLineDetail: codeLineDetail, nextLine: lines[iLine], lineNum: lineNum) {
+        var nextLine = ""
+        if iLine<lines.count { nextLine = lines[iLine].trim }
+        if needsContinuation(codeLineDetail: codeLineDetail, nextLine: nextLine, lineNum: lineNum) {
             //print("\(lineNum) Partial line? \"\(line)\" -> \"\(codeLine)\" from #\(#line)")
             partialLine = codeLine
             continue
         }
+
+        nCodeLine += 1
 
         let pQuoteFirst  = codeLine.firstIntIndexOf("\"")
         let pQuoteLast   = codeLine.lastIntIndexOf("\"")
@@ -367,7 +410,7 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
 
         inQuote = false
         var isEscaped = false
-        for p in 0..<codeLine.count {                        // Read line char by char
+        for p in 0..<codeLine.count {                        // Read line char by char ?????
             let char = codeLine.substring(begin: p, length: 1)
             if char == "\"" && !isEscaped { inQuote = !inQuote }
             if inQuote {
@@ -462,12 +505,12 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
             if posFunc < words.count {
                 funcName = words[posFunc + 1]   // get the word that follows "func"
                 if !isCamelCase(funcName) {
-                    let lineItem = LineItem(lineNum: lineNum, name: funcName, extra: "")
-                    if deBug {print("➡️ \(lineItem.lineNum) Non-CamelCased \(lineItem.name)")}
-                    nonCamelVars.append(lineItem)
-                    swiftSummary.nonCamelCases.append(lineItem.name)
+                    recordNonCamelcase(funcName)
                 }
-                checkParams(line: codeLine)
+                let paramNames = getParamNames(line: codeLine)
+                for name in paramNames {
+                    if !isCamelCase(name) { recordNonCamelcase(name) }
+                }
             } else {
                 print("⛔️ Probable line-continuation (end with 'func')")
             }
@@ -496,9 +539,23 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
             foundNamedBlock = true
         }//endif func
 
-        for index in 4...8 {        // containers: 4)Struct, 5)Enum, 6)Extension, 7)Class, 8)isProtocol
+        //FIXME: THIS IS NUTS
+        while true {//for index in 4...8 {        // containers: 4)Struct, 5)Enum, 6)Extension, 7)Class, 8)isProtocol
             if foundNamedBlock { break }
+            if words.count < 2 { break }
+            let iMax = min(3, words.count)
+            var index = -1
+            for i in 0..<iMax {     // see if Block-Type appeaer in 1st 4 words
+                if let k = blockLookup[words[i]] {
+                    index = k
+                    foundNamedBlock = true
+                    break
+                }
+            }
+            if index < 0 { break }
+
             codeName = blockTypes[index].codeName
+            //print("\(index) \(iLine) \(line) \(words)")
             if let posItem = words.firstIndex(of: codeName) {
                 let itemName = words[posItem + 1]
                 var extra = ""
@@ -524,8 +581,9 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
 
                 blockTypes[index].count += 1
                 foundNamedBlock = true
+                break
             }//endif codeLine.contains
-        }//next index
+        }//end while
 
         //---------------------------------------------------------------   //end Named Blocks
 
@@ -555,8 +613,17 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
         // let ee,ff:Int
         // var ee:Int=0,ff = 0,gg:Int
 
-        if codeLine.hasPrefix("let ") || codeLine.hasPrefix("var ") {
-            let codeLineTrunc = String(codeLine.dropFirst(4))
+        if words.isEmpty { continue }
+        var isDeclaration = false
+        var pLet = 4
+        if words[0] == "let" || words[0] == "var" {
+            isDeclaration = true
+        } else if words.count >= 2 && (words.firstIndex(of: "let") != nil ||  words.firstIndex(of: "var") != nil ) {
+            isDeclaration = true
+            pLet = max(codeLine.firstIntIndexOf(" let "), codeLine.firstIntIndexOf(" var ")) + 5
+        }
+        if isDeclaration {
+            let codeLineTrunc = codeLine.substring(begin: pLet).trim
             let comps1 = codeLineTrunc.components(separatedBy: "=")
             var assigneeList = comps1[0]                                // Strip off right side of "="
             let comps2 = assigneeList.components(separatedBy: ":")
@@ -573,13 +640,7 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
                     name = String(name.dropLast()).trim
                 }
                 if !isCamelCase(name) {
-                    let lineItem = LineItem(lineNum: lineNum, name: name, extra: "")
-                    if deBug {print("➡️ \(lineItem.lineNum) Non-CamelCased \(lineItem.name)")}
-                    nonCamelVars.append(lineItem)
-                    swiftSummary.nonCamelCases.append(lineItem.name)
-                    if nonCamelVars.count != swiftSummary.nonCamelCases.count {
-                        print("⛔️ analyseSwift #\(#line) \(nonCamelVars.count) != \(swiftSummary.nonCamelCases.count)")
-                    }
+                    recordNonCamelcase(name)
                 }
             }//next assignee
         } else { // "let " or "var " not at beginning if line ?????
@@ -676,7 +737,9 @@ func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, de
     if nCodeLine > CodeRule.maxFileCodeLines { swiftSummary.massiveFile = 1 }
     tx  = NSMutableAttributedString(string: "\(nCodeLine) lines of code.  ", attributes: attributesMediumFont)
     txt.append(tx)
-    tx  = NSMutableAttributedString(string: "\(nTrailing) with trailing comments.\n", attributes: attributesSmallFont)
+    tx  = NSMutableAttributedString(string: "\(nTrailing) with trailing comments", attributes: attributesSmallFont)
+    txt.append(tx)
+    tx  = NSMutableAttributedString(string: "\(nEmbedded) with embedded comments.\n", attributes: attributesSmallFont)
     txt.append(tx)
     //if deBug {print()}
 

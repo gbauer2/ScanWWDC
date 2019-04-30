@@ -17,7 +17,6 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         super.setUp()
         // Put setup code here. This method is called before the invocation of each test method in the class.
         vcTest = ViewController()
-
     }
 
     override func tearDown() {
@@ -136,7 +135,6 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
     }
 
     //TODO: test TripleQuote xxx = """
-    //TODO: test parenMismatch
     //11 CodeLineDetails.swift
     func testStripCommentAndQuote() {
         var line = ""
@@ -229,7 +227,7 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         XCTAssertFalse(inBlockComment)
     }
 
-    //327 AnalyseSwift.swift
+    //186 AnalyseSwift.swift
     /**
      tests for needsContinuation()
 
@@ -284,8 +282,24 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         XCTAssertTrue(result)
     }
 
+    //157 AnalyseSwift.swift
+    func testGetParamNames() {
+        //var codeLine = ""
+        var result = [String]()
+
+        result = getParamNames(line: "func f(extern intern: Int)")
+        XCTAssertEqual(result.count, 2)
+        XCTAssertEqual(result[0], "extern")
+        XCTAssertEqual(result[1], "intern")
+
+        result = getParamNames(line: "func f(extern intern: Int, var1: String)")
+        XCTAssertEqual(result.count, 3)
+        XCTAssertEqual(result[0], "extern")
+        XCTAssertEqual(result[2], "var1")
+    }
+
     //284 AnalyseSwift.swift
-    func testAnalyseSwiftFile() {
+    func testAnalyseSwiftFileLong() {
         let fileAtt = FileAttributes(url: URL(fileURLWithPath: "/????"), name: "????", creationDate: Date(), modificationDate: Date(), size: 1234, isDir: false)
         let (sw, _) = analyseSwiftFile(contentFromFile: sampleCode, selecFileInfo: fileAtt, deBug: true)
         XCTAssertEqual(sw.byteCount,   1234, "")
@@ -297,13 +311,59 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         //XCTAssertEqual(sw.extensionNames[0], "ViewController", "")
         XCTAssertEqual(sw.fileName, "????", "")
         XCTAssertEqual(sw.funcs.count,    5, "")
-        XCTAssertEqual(sw.codeLineCount, 98, "")
-        XCTAssertEqual(sw.nonCamelCases.count, 13, "")
+        XCTAssertEqual(sw.codeLineCount, 73, "")
+        XCTAssertEqual(sw.nonCamelCases.count, 14, "")
         XCTAssertEqual(sw.forceUnwraps.count,  15, "")
         XCTAssertEqual(sw.vbCompatCalls.count,  3, "")
         print(sw.codeLineCount)
         //SampleCode.swift                89       13        15        3      -
     }
+
+    //284 AnalyseSwift.swift
+    func testAnalyseSwiftFileShort() {
+        let fileAtt = FileAttributes(url: URL(fileURLWithPath: "/????"), name: "????", creationDate: Date(), modificationDate: Date(), size: 1234, isDir: false)
+        let (sw, _) = analyseSwiftFile(contentFromFile: sampleCodeShort, selecFileInfo: fileAtt, deBug: true)
+        XCTAssertEqual(sw.byteCount,   1234, "")
+
+        XCTAssertEqual(sw.classNames.count,     1, "")
+        if !sw.classNames.isEmpty { XCTAssertEqual(sw.classNames[0], "ViewController", "")}
+
+        XCTAssertEqual(sw.enumNames.count,      1, "")
+        if !sw.enumNames.isEmpty { XCTAssertEqual(sw.enumNames[0], "Enum1", "")}
+
+        XCTAssertEqual(sw.extensionNames.count, 1, "")
+        if !sw.extensionNames.isEmpty { XCTAssertEqual(sw.extensionNames[0], "ViewController", "") }
+
+        //funcs
+        XCTAssertEqual(sw.funcs.count,          2, "")
+        if !sw.funcs.isEmpty   { XCTAssertEqual(sw.funcs[0].name, "ViewController.MyFuncVC", "")}
+        if sw.funcs.count >= 2 { XCTAssertEqual(sw.funcs[1].name, "MyFreeFunc", "")}
+
+        // ibActionFuncs
+        XCTAssertEqual(sw.ibActionFuncs.count,          1, "")
+        if !sw.ibActionFuncs.isEmpty   { XCTAssertEqual(sw.ibActionFuncs[0].name, "saveInfoClicked", "")}
+
+        //codeLine
+        XCTAssertEqual(sw.codeLineCount,       19, "")
+
+        //nonCamelCases
+        XCTAssertEqual(sw.nonCamelCases.count,  9, "")
+
+        //forceUnwraps.count
+        XCTAssertEqual(sw.forceUnwraps.count,   4, "")
+
+        // vbCompatCalls.count
+        XCTAssertEqual(sw.vbCompatCalls.count,  1, "")
+    }
+
+/*
+      OverrideFunc   = 3-
+      Extension      = 6-
+      isProtocol     = 8-
+Markup
+tripleQuote
+RawString
+ */
 
     // 31 Keywords.swift
     func testisKeyword() {
@@ -533,6 +593,37 @@ struct MySampleStruct {
 
 
 """#
+
+    let sampleCodeShort = ###"""
+class ViewController: NSViewController, NSWindowDelegate {  //1
+    private enum Enum1 {                                    //2 enum
+        case: case1, case2, case3                           //3
+    }
+    private func MyFuncVC(Extern Intern: Int,
+                        a: String,
+                        bb: Double) {    //4  4-Camel
+        guard let Bb = bb else { return }                   //5  1-Camel ???
+        if let a = bb {                                     //6  1-Camel ???
+            let Bc = bb!                                    //7  1-Camel 1-UnWrap
+            let cc = CInt("12")                             //8  1-VB
+        }
+    }
+}
+public struct SwiftSummary {                                //9
+    var Camel = 0                                           //10  1-Camel
+}
+func MyFreeFunc() -> Int {                                  //11  1-Camel
+    let aa = fake(a1: bb!, a2: dd!, ff! )                   //12  3-Unwrap
+    aa=0; bb=1; cc=2                                        //13,14,15
+    return 0                                                //16
+}
+
+extension ViewController: NSTableViewDelegate {             //17
+    @IBOutlet weak var tableView:    NSTableView!           //18
+    @IBAction func saveInfoClicked(_ sender: Any) {         //19
+    }
+}//not a codeLine
+"""###
 
     //    func testPerformanceExample() {
     //        // This is an example of a performance test case.
