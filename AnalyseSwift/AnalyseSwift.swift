@@ -737,7 +737,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
     if nCodeLine > CodeRule.maxFileCodeLines { swiftSummary.massiveFile = 1 }
     tx  = NSMutableAttributedString(string: "\(nCodeLine) lines of code.  ", attributes: attributesMediumFont)
     txt.append(tx)
-    tx  = NSMutableAttributedString(string: "\(nTrailing) with trailing comments", attributes: attributesSmallFont)
+    tx  = NSMutableAttributedString(string: "\(nTrailing) with trailing comments.  ", attributes: attributesSmallFont)
     txt.append(tx)
     tx  = NSMutableAttributedString(string: "\(nEmbedded) with embedded comments.\n", attributes: attributesSmallFont)
     txt.append(tx)

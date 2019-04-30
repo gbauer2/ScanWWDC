@@ -286,7 +286,7 @@ extension ViewController {
         for i in 0..<marks.count {
             let start = marks[i].index
             var end = codeLine.count
-            if i < marks.count-1 { end = marks[i+1].index }
+            if i < marks.count-1 { end = marks[i+1].index-1 } //added -1 4/29/19
             let subStr = codeLine.substring(begin: start, end: end) // getSubStr(line: codeLine, start: start, end: end)
             lineAttributes[NSAttributedString.Key.foregroundColor] = marks[i].color
             let formattedText = NSMutableAttributedString(string: "\(subStr)", attributes: lineAttributes)

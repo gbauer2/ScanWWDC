@@ -37,8 +37,8 @@
 // Handle String interpolation
 // dependency
 // computed variables, var observer
-// analysis: show commentLinesCount(dead code?) vs MarkupLineCount (///) (/**)
-// analysis: organize by MARK: or by extension
+// show commentLinesCount(dead code?) vs MarkupLineCount (///) (/**)
+// organize by MARK: or by extension
 // allow extensions other than class
 // Display as expandable tree, with option for printable
 // remove display code (tx=, txt=, etc.) from analyseSwiftFile()

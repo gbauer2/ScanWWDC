@@ -356,9 +356,8 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         XCTAssertEqual(sw.vbCompatCalls.count,  1, "")
     }
 
-/*
+/* Still needed in sampleCodeShort
       OverrideFunc   = 3-
-      Extension      = 6-
       isProtocol     = 8-
 Markup
 tripleQuote
