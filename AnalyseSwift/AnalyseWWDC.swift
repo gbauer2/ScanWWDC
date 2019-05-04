@@ -32,7 +32,7 @@ func analyseWWDC(_ str: String, selecFileInfo: FileAttributes) -> NSAttributedSt
         }
     }
     if year.isEmpty {
-        print("⛔️ Bad format in \(selecFileInfo.url!.lastPathComponent)!\nCould not find title \"WWDC 20xx\"")
+        print("⛔️ analyseWWDC #\(#line) Bad format in \(selecFileInfo.url!.lastPathComponent)!\nCould not find title \"WWDC 20xx\"")
         return attTxt
     }
 

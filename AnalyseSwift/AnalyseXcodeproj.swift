@@ -63,10 +63,8 @@ public func analyseXcodeproj(url: URL, goDeep: Bool, deBug: Bool = true) -> (Str
     xcodeProj = XcodeProj()
     xcodeProj.url       = url
     xcodeProj.filename  = url.lastPathComponent
-    let pbxprojURL    = url.appendingPathComponent("project.pbxproj")
-    let urlFile       = URL(fileURLWithPath: #file)
-    let swiftFilename = urlFile.lastPathComponent
-    print("\n🔷 \(swiftFilename) line#\(#line) Start processing 😃\(xcodeProj.filename)😃")
+    let pbxprojURL      = url.appendingPathComponent("project.pbxproj")
+    print("\n🔷 AnalyseXcodeproj.swift #\(#line) Enter analyseXcodeproj(\(xcodeProj.filename))")
 
     do {
         let storedData = try String(contentsOf: pbxprojURL)
@@ -84,7 +82,7 @@ public func analyseXcodeproj(url: URL, goDeep: Bool, deBug: Bool = true) -> (Str
 
             do {
                 let contentFromFile = try String(contentsOf: url, encoding: String.Encoding.utf8)
-                let (swiftSummary, _) = analyseSwiftFile(contentFromFile: contentFromFile, selecFileInfo: fileInfo, deBug: false )
+                let swiftSummary = analyseSwiftFile(contentFromFile: contentFromFile, selecFileInfo: fileInfo, deBug: false )
                 xcodeProj.swiftSummaries.append(swiftSummary)
             } catch let error as NSError {
                 print("⛔️ analyseContentsButtonClicked error: ⛔️\n⛔️\(error)⛔️")
@@ -290,7 +288,7 @@ func pbxToXcodeProj(_ xcodeprojRaw: String, deBug: Bool = true) {        //116-3
         let productType = targetObj.productType
         //if deBug {print(targetKey, targetObj)}
         if !productType.contains(".application") {
-            print(productType)
+            print("AnalyseXcodeproj.swift #\(#line) productType:\(productType)")
             if productType.contains("unit-test ") { xcodeProj.hasUnitTest = true }
             if productType.contains("ui-test ")   { xcodeProj.hasUITest   = true }
             continue
@@ -700,7 +698,7 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
             if clCt > CodeRule.maxFileCodeLines {
                 issues.append("\"\(name)\" has \(clCt) code-lines (>\(CodeRule.maxFileCodeLines)).")
             }
-            let ccCt = swiftSummary.nonCamelCases.count
+            let ccCt = swiftSummary.nonCamelVars.count
             totalNonCamelCase += ccCt
             let fuCt = swiftSummary.forceUnwraps.count
             totalForceUnwrap += fuCt

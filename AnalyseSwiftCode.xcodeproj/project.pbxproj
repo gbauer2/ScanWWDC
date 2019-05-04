@@ -13,6 +13,7 @@
 		26ECD3421E874B5C00380F56 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 26ECD3401E874B5C00380F56 /* Main.storyboard */; };
 		CE063B8F22160B5B000CACDF /* FindVBCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE063B8E22160B5B000CACDF /* FindVBCode.swift */; };
 		CE1D751421BDA90B00286967 /* AnalyseSwiftCodeUnitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE1D751321BDA90B00286967 /* AnalyseSwiftCodeUnitTests.swift */; };
+		CE410E93227D383B00D4B351 /* FormatSwiftSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE410E92227D383B00D4B351 /* FormatSwiftSummary.swift */; };
 		CE4194AE21BD8C22006808B1 /* AttributableStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE4194AD21BD8C22006808B1 /* AttributableStrings.swift */; };
 		CE510E2F2256F34700B53541 /* MenuRulesVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE510E2E2256F34700B53541 /* MenuRulesVC.swift */; };
 		CE67A6A41FFA066B00BD57BD /* StringExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE67A6A31FFA066B00BD57BD /* StringExtension.swift */; };
@@ -47,6 +48,7 @@
 		CE1D751121BDA90B00286967 /* AnalyseSwiftCodeUnitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AnalyseSwiftCodeUnitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE1D751321BDA90B00286967 /* AnalyseSwiftCodeUnitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyseSwiftCodeUnitTests.swift; sourceTree = "<group>"; };
 		CE1D751521BDA90B00286967 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CE410E92227D383B00D4B351 /* FormatSwiftSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatSwiftSummary.swift; sourceTree = "<group>"; };
 		CE4194AD21BD8C22006808B1 /* AttributableStrings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttributableStrings.swift; sourceTree = "<group>"; };
 		CE50C10E226B979000329E6B /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/Main.storyboard; sourceTree = "<group>"; };
 		CE510E2E2256F34700B53541 /* MenuRulesVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuRulesVC.swift; sourceTree = "<group>"; };
@@ -104,6 +106,7 @@
 				26ECD33A1E874B5C00380F56 /* AppDelegate.swift */,
 				26ECD33C1E874B5C00380F56 /* ViewController.swift */,
 				CEA6263B20068AA2000F923D /* AnalyseSwift.swift */,
+				CE410E92227D383B00D4B351 /* FormatSwiftSummary.swift */,
 				CEE94E92223EB84E00A6F2FB /* AnalyseWWDC.swift */,
 				CEBAD4A32194A8E600CBBCBA /* AnalyseXcodeproj.swift */,
 				CE4194AD21BD8C22006808B1 /* AttributableStrings.swift */,
@@ -253,6 +256,7 @@
 				CE4194AE21BD8C22006808B1 /* AttributableStrings.swift in Sources */,
 				CE83F8BB1FFD329D00C39EC8 /* MyFuncs.swift in Sources */,
 				CEBAD4A42194A8E600CBBCBA /* AnalyseXcodeproj.swift in Sources */,
+				CE410E93227D383B00D4B351 /* FormatSwiftSummary.swift in Sources */,
 				CEA6263A20067DCA000F923D /* SampleCode.swift in Sources */,
 				CEA6263D20068AA2000F923D /* AnalyseSwift.swift in Sources */,
 				CE510E2F2256F34700B53541 /* MenuRulesVC.swift in Sources */,

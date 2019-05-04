@@ -3,24 +3,28 @@
 //  AnalyseSwiftCode
 //
 //  Created by George Bauer on 11/8/18.
-//  Copyright © 2018,2019 George Bauer. All rights reserved.//
+//  Copyright © 2018,2019 George Bauer. All rights reserved.
+//
 
+// User Interface:
 // Make ">" companion to "< Up" or maybe a "< back"
 // When in full screen mode - Show file-path above window
-// change state storage to userDefaults
 // make btnFindAllxcodeproj the default if popup touched.
 // toggle btnFindAllxcodeproj to "Abort" when running, (and disable other buttons).
 // selectively enable View & Analyse buttons or use segmented button.
-// Use Menus: File/Find_All_xcodeproj_Files, Help
+// Use Menus: File/Find_All_xcodeproj_Files
 // Help System
 // Error Handler
 // Single Click for analyse & change dir - no double Click
 // if newly opened folder has a single xcodeproj: analyse it
 
+// Code:
+// change state storage to userDefaults
+
 // showContents - Swift file:
 //  Fix namesColor to include:  classNames, funcNames, InstanceVars, Globals, & library names (MK- for MapKit,  etc.)
-//  Use CharacterSets for type-of-char lookup
-//  user chooses colors & truncation
+//     e.g. NSColor, URL, false
+//  User chooses colors & truncation
 
 //AnalyseXcodeproj:
 // View source
@@ -29,7 +33,6 @@
 // Bug: "mainSourceKey = childKey", "Most likely child" may pick wrong child.
 // Bug: AnalyseXcodeproj called twice on startup
 
-// Eliminate non-error error messages.
 // Fix Unhandled
 
 //AnalyseSwift:
@@ -141,21 +144,21 @@ class ViewController: NSViewController, NSWindowDelegate {
                 analyseMode = .swift                            //  1) analyse Swift
                 readContentsButton.isEnabled    = true
                 analyseContentsButton.isEnabled = true
-                print("🔷 selectedItemUrl is Swift File: \(selectedUrl.lastPathComponent)")
+                print("🔷 ViewController #\(#line) selectedItemUrl is Swift File: \(selectedUrl.lastPathComponent)")
                 analyseContentsButtonClicked(self)
 
             } else if selectedUrl.lastPathComponent.hasPrefix("WWDC-20") && selectedUrl.pathExtension == "txt" {
                 readContentsButton.isEnabled = true
                 analyseMode = .WWDC                             //  2) analyse WWDC-20xx.txt
                 analyseContentsButton.isEnabled = true
-                print("🔷 selectedItemUrl is WWDC20xx.txt File: \(selectedUrl.lastPathComponent)")
+                print("🔷 ViewController #\(#line) selectedItemUrl is WWDC20xx.txt File: \(selectedUrl.lastPathComponent)")
 
             } else if selecFileInfo.isDir {                     // isDir
                 if selectedUrl.pathExtension == "xcodeproj" {
                     readContentsButton.isEnabled = false
                     analyseMode = .xcodeproj                    //  3) analyse FileName.xcodeproj
                     analyseContentsButton.isEnabled = true
-                    print("🔷 selectedItemUrl is xcodeproj File: \(selectedUrl.lastPathComponent)")
+                    print("🔷 ViewController #\(#line) selectedItemUrl is xcodeproj File: \(selectedUrl.lastPathComponent)")
                     analyseContentsButtonClicked(self)
 
                 } else {                                        //  4) show dir contents
@@ -571,7 +574,8 @@ extension ViewController {
                         var txt: NSAttributedString
                         if  self.analyseMode == .swift {
                             //var swiftSummary = SwiftSummary()
-                            (_, txt) = analyseSwiftFile(contentFromFile: contentFromFile, selecFileInfo: self.selecFileInfo, deBug: true )
+                            let swiftSummary = analyseSwiftFile(contentFromFile: contentFromFile, selecFileInfo: self.selecFileInfo, deBug: true )
+                            txt = formatSwiftSummary(swiftSummary: swiftSummary, selecFileInfo: self.selecFileInfo, deBug: true)
                         } else if self.analyseMode == .WWDC {
                             txt = analyseWWDC(contentFromFile, selecFileInfo: self.selecFileInfo)
                         } else {
@@ -595,7 +599,7 @@ extension ViewController {
                 }//end try catch
 
             } else if analyseMode == .xcodeproj {
-                let (errCode, xcodeProj) = analyseXcodeproj(url:url, goDeep: true, deBug: true)
+                let (errCode, xcodeProj) = analyseXcodeproj(url:url, goDeep: true, deBug: false)
                 let formattedText: NSAttributedString
                 if errCode.isEmpty {
                     formattedText = showXcodeproj(xcodeProj)
@@ -708,7 +712,7 @@ extension ViewController {
         // It is unlikely to return more than one URL, but you only want to take the first one.
         // You can use this method with different parameters to locate many different folders.
         guard let folder = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else { return nil }
-        print("✅ #\(#line): dataFileUrl = \(folder)")
+        print("\n\n✅ ViewController #\(#line): dataFileUrl = \(folder.path)")
         // append a path component to create an app-specific folder URL and check to see if it exists.
         let appFolder = folder.appendingPathComponent("AnalyseSwiftCode")
         var isDirectory: ObjCBool = false
