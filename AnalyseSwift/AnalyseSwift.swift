@@ -234,8 +234,8 @@ internal func needsContinuation(codeLineDetail: CodeLineDetail, nextLine: String
     return false
 }
 
-// MARK: - the main event 420-lines
-// called from analyseContentsButtonClicked         //239-659 = 420-lines
+// MARK: - the main event 407-lines
+// called from analyseContentsButtonClicked         //239-646 = 407-lines
 public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, deBug: Bool = true) -> (SwiftSummary) {
     print("🔷 AnalyseSwift.swift #\(#line) Enter AnalyseSwiftFile(\(selecFileInfo.name))")
 
@@ -278,7 +278,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         //swiftSummary.nonCamelCases.append(lineItem.name)
     }
 
-    // MARK: Main Loop 282-629 = 347-lines
+    // MARK: Main Loop 282-616 = 334-lines
     while iLine < lines.count {
         //        // Multitasking Check
         //        if selecFileInfo.url != ViewController.latestUrl {
@@ -339,7 +339,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             continue                                                // bypass further processing???
         }
 
-        // MARK: Code!  343-629 = 286-lines
+        // MARK: Code!  343-616 = 273-lines
         var inBlockMarkup = false
         let codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: lineNum,
                                                   inTripleQuote:  &inTripleQuote,
@@ -412,8 +412,8 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         let words = wordsWithEmpty.filter { !$0.isEmpty }                   // Use filter to eliminate empty strings.
         let firstWord = words.first ?? ""
 
+        // Find Forced Unwraps
         for word in words {
-            // Find Forced Unwraps
             if word.hasSuffix("!") && firstWord != "@IBOutlet" {
                 let p = codeLine.firstIntIndexOf(word)                         // p is pointer to word
                 let isForce = word.count > 1 || p == 0 || codeLine[p-1] != " "    // must not have whitespace before "!"
@@ -594,7 +594,6 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             let comps2 = assigneeList.components(separatedBy: ":")
             assigneeList = comps2[0]                                    // Strip off right side of ":"
             let assignees = assigneeList.components(separatedBy: ",")
-            //assignees = assignees.map { $0.trim }
             //if deBug {print(codeLineTrunc, assignees)}
             for assignee in assignees {
                 var name = assignee.trim
@@ -611,18 +610,6 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         } else { // "let " or "var " not at beginning if line ?????
             if codeLine.contains(" let ") || codeLine.contains(" var ") {
                 print(codeLine)
-                // @IBOutlet weak var tableView:    NSTableView!
-                // if let selectedFolderUrl = selectedFolderUrl {
-                // static var latestUrl: URL?
-                // guard let selectedUrl = selectedItemUrl else { return }
-                // catch let error as NSError {
-                // } catch let error as NSError {
-                // } catch let error {
-                // } else if let db = value as? Double {
-                // private var pbxObjects = [String: PBX]()
-                // public var debugDescription: String {
-                // static let flagProductNameDif   = 1
-                // private var vowels: [String] {
                 print()
             }
         }
@@ -661,11 +648,11 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
 private func getExtraForForceUnwrap(codeLineClean: String, word: String, p: Int) -> String {
     let maxPrefixLen = 44
     let maxSuffixLen = 22
-    var prefix = codeLineClean.substring(begin: 0, length: p)         // prefix is stuff before word
+    var prefix = codeLineClean.substring(begin: 0, length: p)   // prefix is stuff before word
 
     prefix = prefix.replacingOccurrences(of: "~~~~", with: "~") // remove excess garbage
     prefix = prefix.replacingOccurrences(of: "~~~~", with: "~")
-    if prefix.contains(" = ") {                             // cut off all before "="
+    if prefix.contains(" = ") {                                 // cut off all before "="
         let comps = prefix.components(separatedBy: " = ")
         prefix = "...= " + (comps.last ?? "")
     }
@@ -682,5 +669,5 @@ private func getExtraForForceUnwrap(codeLineClean: String, word: String, p: Int)
         suffix = "..."
     }
     return prefix + word + suffix
-}
+}//end func
 

@@ -66,14 +66,14 @@ let vbLf = "\n"
 public var VBcompPrintToLog = false
 public var knownProblems = 0
 
-@available(*, deprecated, message: "Use 'str.uppercased(n)' instead")
-public func UCase(_ a: String) -> String {
-    return a.uppercased()
+@available(*, deprecated, message: "Use 'str.uppercased()' instead")
+public func UCase(_ str: String) -> String {
+    return str.uppercased()
 }
 
-@available(*, deprecated, message: "Use 'str.lowercased(n)' instead")
-public func LCase(_ a: String) -> String {
-    return a.lowercased()
+@available(*, deprecated, message: "Use 'str.lowercased()' instead")
+public func LCase(_ str: String) -> String {
+    return str.lowercased()
 }
 
 @available(*, deprecated, message: "Use 'str.prefix(int)' instead")
@@ -81,19 +81,19 @@ public func Left(_ str: String, _ int: Int) -> String {
     return str.left(int)
 }
 
-@available(*, deprecated, message: "Use 'str.suffix(n)' instead")
+@available(*, deprecated, message: "Use 'str.suffix(int)' instead")
 public func Right(_ str: String, _ int: Int) -> String {
     return str.right(int)
 }
 
 /// Emulates VB Mid func (start at 1)
-public func Mid(_ a: String, _ i: Int) -> String {
-    return a.substring(begin: i - 1)
+public func Mid(_ str: String, _ idx: Int) -> String {
+    return str.substring(begin: idx - 1)
 }
 
 /// Emulates VB Mid func (start at 1)
-public func Mid(_ a: String, _ i: Int, _ len: Int) -> String {
-    return a.substring(begin: i - 1, length: len)
+public func Mid(_ str: String, _ idx: Int, _ len: Int) -> String {
+    return str.substring(begin: idx - 1, length: len)
 }
 
 //Mid(w, 1, 3) = "FEW"
@@ -104,21 +104,21 @@ public func MidEquals(str: String, Start: Int, Len: Int, newStr: String) -> Stri
 }
 
 /// Emulates VB InStr func (start at 1)
-public func InStr(_ a: String, _ b: String) -> Int {
-    return a.firstIntIndexOf(b) + 1
+public func InStr(_ str: String, _ searchStr: String) -> Int {
+    return str.firstIntIndexOf(searchStr) + 1
 }
 
 /// Emulates VB InStrRev func (start at 1)
-public func InStrRev(_ a: String, _ b: String) -> Int {
-    return a.lastIntIndexOf(b) + 1
+public func InStrRev(_ str: String, _ searchStr: String) -> Int {
+    return str.lastIntIndexOf(searchStr) + 1
 }
 
 /// Emulates VB InStr func (start at 1)
-public func InStr(_ start: Int, _ a: String, _ b: String) -> Int {
-    let aa = a.substring(begin: start-1)
-    let i = aa.firstIntIndexOf(b)
-    if i < 0 { return 0 }
-    return i + start
+public func InStr(_ start: Int, _ str: String, _ searchStr: String) -> Int {
+    let aa = str.substring(begin: start-1)
+    let idx = aa.firstIntIndexOf(searchStr)
+    if idx < 0 { return 0 }
+    return idx + start
 }
 
 //---- Trim - Removes whitespace AND NewLines from both ends
@@ -149,19 +149,19 @@ public func Len(_ str: String) -> Int {
 }
 
 @available(*, deprecated, message: "Use 'String(repeating: \" \", count: n)' instead")
-public func Space(_ i: Int) -> String {
-    return String(repeating: " ", count: i)
+public func Space(_ count: Int) -> String {
+    return String(repeating: " ", count: count)
 }
 
-///Use 'Int(Double(str.trim)?.rounded() ?? 0)' instead
+///Use 'Int(Double(str.rounded() )' instead
 public func CInt(_ str: String) -> Int {
     let dbl = Double(str.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0.0
     return Int(dbl.rounded())
 }
 
 ///Use 'Int(dbl.rounded() )' instead
-public func CInt(_ a: Double) -> Int {
-    return Int(a.rounded())
+public func CInt(_ str: Double) -> Int {
+    return Int(str.rounded())
 }
 
 /// Use 'Double(str.trim) ?? 0' instead
@@ -175,8 +175,8 @@ public func CDbl(_ int: Int) -> Double {
 }
 
 @available(*, deprecated, message: "Use 'Float(n) ?? 0' instead")
-public func CSng(_ a: String) -> Float {
-    return Float(a) ?? 0.0
+public func CSng(_ str: String) -> Float {
+    return Float(str) ?? 0.0
 }
 
 @available(*, deprecated, message: "Use Float(n) instead")
@@ -217,8 +217,8 @@ private func getHexVal(_ string: String) -> Double {
 }
 
 @available(*, deprecated, message: "Use 'n.signum()' instead")
-public func Sign(_ i: Int) -> Int {
-    return i.signum()
+public func Sign(_ int: Int) -> Int {
+    return int.signum()
 }
 
 /// Round a Double to a fixed number of places.
@@ -384,14 +384,14 @@ public func GetParentPath(_ fullPath: String) -> String {
 }
 
 
-@available(*, deprecated, message: "Use ' \"\\(d)\" ' instead")
-public func Format(_ d: Double) -> String {
-    return "\(d)"
+@available(*, deprecated, message: "Use ' \"\\(dbl)\" ' instead")
+public func Format(_ dbl: Double) -> String {
+    return "\(dbl)"
 }
 
-@available(*, deprecated, message: "Use ' \"\\(d)\" ' instead")
-public func Format(_ d: Int) -> String {
-    return "\(d)"
+@available(*, deprecated, message: "Use ' \"\\(dbl)\" ' instead")
+public func Format(_ dbl: Int) -> String {
+    return "\(dbl)"
 }
 
 
@@ -415,19 +415,19 @@ public func Format(_ int: Int, _ format: String) -> String {
     for char in format {
         if char == "0" { zeros += 1 }
     }
-    var a = "\(int)"
-    if a.count < zeros {
-        a = String(repeating: "0", count: zeros - a.count) + a
+    var str = "\(int)"
+    if str.count < zeros {
+        str = String(repeating: "0", count: zeros - str.count) + str
     }
-    if a.count < fieldLen {
-        a = String(repeating: " ", count: fieldLen - a.count) + a
+    if str.count < fieldLen {
+        str = String(repeating: " ", count: fieldLen - str.count) + str
     }
-    return a
+    return str
 }
 
-@available(*, deprecated, message: "Use ' \"\\(d)\" ' instead")
-public func Str(_ d: Any) -> String {
-    return "\(d)"
+@available(*, deprecated, message: "Use ' \"\\(anyType)\" ' instead")
+public func Str(_ anyType: Any) -> String {
+    return "\(anyType)"
 }
 
 public func Ljust(_ str: String, _ n: Int) -> String {
@@ -446,9 +446,9 @@ public func Rjust(_ str: String, _ n: Int) -> String {
 
 public func Asc(_ str: String) -> Int {
     if str.isEmpty { return 0 }
-    guard let u = (UnicodeScalar(str)) else  { return 0 }
-    let i = Int(u.value)
-    return i
+    guard let uScaler = (UnicodeScalar(str)) else  { return 0 }
+    let int = Int(uScaler.value)
+    return int
 }
 
 public func Asc(_ char: Character) -> Int {
@@ -504,36 +504,36 @@ public enum MsgBoxResult {
     case Cancel
 }
 
-public func MsgBox(_ a: String) {
-    if VBcompPrintToLog { print("VBMsgBox: ", a) }
+public func MsgBox(_ str: String) {
+    if VBcompPrintToLog { print("VBMsgBox: ", str) }
     //DispatchQueue.main.async {
         let alert = NSAlert()
-        alert.informativeText = a
+        alert.informativeText = str
         alert.runModal()
     //}
     return
 }
 
-public func MsgBox(_ a: String, _ title: String) {
-    if VBcompPrintToLog { print("VBMsgBox: ", a) }
+public func MsgBox(_ str: String, _ title: String) {
+    if VBcompPrintToLog { print("VBMsgBox: ", str) }
     //DispatchQueue.main.async {
         let alert = NSAlert()
         alert.messageText = title
-        alert.informativeText = a
+        alert.informativeText = str
         alert.runModal()
     //}
     return
 }
 
-public func MsgBox(_ a: String, _ style: MsgBoxStyle) -> MsgBoxResult {
+public func MsgBox(_ str: String, _ style: MsgBoxStyle) -> MsgBoxResult {
 
     if style == .Information {
-        MsgBox(a)
+        MsgBox(str)
         return .None
     }
 
     if style == .OkCancel {
-        let response = alertOKCancel(question: a, text: "")
+        let response = alertOKCancel(question: str, text: "")
         if response {
             return .Ok
         }
@@ -541,7 +541,7 @@ public func MsgBox(_ a: String, _ style: MsgBoxStyle) -> MsgBoxResult {
     }
 
     if style == .YesNo {
-        let response = alertYesNo(question: a, text: "")
+        let response = alertYesNo(question: str, text: "")
         if response {
             return .Yes
         }
@@ -620,9 +620,9 @@ public func DateValue(_ dateStr: String) -> Date {
     return CDate(dateStr)
 }
 
-public func Format(_ d: Any, _ format: String) -> String {
+public func Format(_ anyType: Any, _ format: String) -> String {
     knownProblems += 1
-    return "\(d)"
+    return "\(anyType)"
 }
 
 public func Seek(_ chan: Int, _ ptr: Int) {
@@ -826,13 +826,13 @@ public func FreeFile() -> Int {
 public class VB {
 
     //---- VB.Left -
-    static func Left(_ a: String, _ i: Int) -> String {
-        return a.left(i)
+    static func Left(_ str: String, _ count: Int) -> String {
+        return str.left(count)
     }
 
     //---- VB.Right -
-    static func Right(_ a: String, _ i: Int) -> String {
-        return a.right(i)
+    static func Right(_ str: String, _ count: Int) -> String {
+        return str.right(count)
     }
 
     //VB File IO
@@ -1063,8 +1063,8 @@ class ListBox {
 class RichTextBox {
     var Text = ""
     var TextLength: Int { return Text.count }
-    func AppendText(_ a: String) {
-        Text += a
+    func AppendText(_ str: String) {
+        Text += str
     }
 }
 

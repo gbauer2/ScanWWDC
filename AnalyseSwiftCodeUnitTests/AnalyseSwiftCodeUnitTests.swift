@@ -142,6 +142,20 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         var inBlockComment = false
         var inBlockMarkup = false
         var inTripleQuote  = false
+        /*
+         ##"xxx\(myVar)yyy"##
+         print(#"xxx\#(myVar)yyy"#)
+         */
+
+        inBlockComment = false
+        line = ##" i = #"xxx\#"## + ##"(myVar)yyy"#"##
+        codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
+        XCTAssertEqual(codeLineDetail.codeLine, ##"i = #"~~~~~ myVar ~~~"#"##)
+
+        inBlockComment = false
+        line = ##" i = "xxx\(myVar)yyy""##
+        codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
+        XCTAssertEqual(codeLineDetail.codeLine, #"i = "~~~~ myVar ~~~""#)
 
         inBlockComment = false
         line = #"""
@@ -161,7 +175,7 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
 
         line = #"print("s\(s)")"#
         codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
-        XCTAssertEqual(codeLineDetail.codeLine, #"print("~~~~~")"#)
+        XCTAssertEqual(codeLineDetail.codeLine, #"print("~~ s ")"#)
         XCTAssertFalse(codeLineDetail.hasTrailingComment)
         XCTAssertFalse(codeLineDetail.hasEmbeddedComment)
         XCTAssertFalse(inBlockComment)
@@ -301,7 +315,7 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
     //284 AnalyseSwift.swift
     func testAnalyseSwiftFileLong() {
         let fileAtt = FileAttributes(url: URL(fileURLWithPath: "/????"), name: "????", creationDate: Date(), modificationDate: Date(), size: 1234, isDir: false)
-        let (sw, _) = analyseSwiftFile(contentFromFile: sampleCode, selecFileInfo: fileAtt, deBug: true)
+        let sw = analyseSwiftFile(contentFromFile: sampleCode, selecFileInfo: fileAtt, deBug: true)
         XCTAssertEqual(sw.byteCount,   1234, "")
         XCTAssertEqual(sw.classNames.count,   1, "")
         if !sw.classNames.isEmpty { XCTAssertEqual(sw.classNames[0], "MySampleClass", "")}
@@ -312,7 +326,7 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         XCTAssertEqual(sw.fileName, "????", "")
         XCTAssertEqual(sw.funcs.count,    5, "")
         XCTAssertEqual(sw.codeLineCount, 73, "")
-        XCTAssertEqual(sw.nonCamelCases.count, 14, "")
+        XCTAssertEqual(sw.nonCamelVars.count, 14, "")
         XCTAssertEqual(sw.forceUnwraps.count,  15, "")
         XCTAssertEqual(sw.vbCompatCalls.count,  3, "")
         print(sw.codeLineCount)
@@ -322,7 +336,7 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
     //284 AnalyseSwift.swift
     func testAnalyseSwiftFileShort() {
         let fileAtt = FileAttributes(url: URL(fileURLWithPath: "/????"), name: "????", creationDate: Date(), modificationDate: Date(), size: 1234, isDir: false)
-        let (sw, _) = analyseSwiftFile(contentFromFile: sampleCodeShort, selecFileInfo: fileAtt, deBug: true)
+        let sw = analyseSwiftFile(contentFromFile: sampleCodeShort, selecFileInfo: fileAtt, deBug: true)
         XCTAssertEqual(sw.byteCount,   1234, "")
 
         XCTAssertEqual(sw.classNames.count,     1, "")
@@ -347,7 +361,7 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         XCTAssertEqual(sw.codeLineCount,       19, "")
 
         //nonCamelCases
-        XCTAssertEqual(sw.nonCamelCases.count,  9, "")
+        XCTAssertEqual(sw.nonCamelVars.count,  9, "")
 
         //forceUnwraps.count
         XCTAssertEqual(sw.forceUnwraps.count,   4, "")

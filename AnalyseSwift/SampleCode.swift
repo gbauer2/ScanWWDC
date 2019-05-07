@@ -13,6 +13,14 @@ import Cocoa    /* ????? partial-line Block Comment does not work.*/
  #warning("This code is incomplete.")
  */
 
+private func doNothing() { print("Do Nothing") }
+
+private func interpolate() {
+    let myVar = 14
+    print("xxx\(myVar)yyy")
+    print(#"xxx\#(myVar)yyy"#)
+}
+
 private func DoForceUnwrap() {
     var dict = [String: String]()
     dict["as!"] = "as!"
@@ -43,9 +51,9 @@ private func DoCamelCase(p1: Int, p2: Int , Param3:String) {
     var k , Bad3 : Int      //?????
     let Bad4 = ""
     let Bad5=0
-    let Bad6:String
+    var Bad6:String = "Bad666", Bad7 = "7"
     n=0;i=0;k=0; Bad1=0; j_bad2=0; Bad3=0; Bad6=""      // To avoid warnings
-    print(n,Bad1,i,j_bad2,k,Bad3,Bad4,Bad5,Bad6)        // To avoid warnings
+    print(n,Bad1,i,j_bad2,k,Bad3,Bad4,Bad5,Bad6,Bad7)        // To avoid warnings
     if !Param3.contains("//") && !Param3.contains("/*") && !Param3.contains("*/") {} //ok
     let comps = "1 22 333 4444".components(separatedBy: " ")
     print(comps.first!)

@@ -394,8 +394,8 @@ public func formatDictionaryStr(title: String, str: String, titleLen: Int = 10, 
 
 //=========================================================================================
 public func printDictionary(dict: [String: AnyObject]?, expandLevels: Int = 0, dashLen: Int = 0, title: String) {
-    guard let d = dict else { print("\n\(title) is nil!"); return }
-    let dictNS = d as NSDictionary
+    guard let dic = dict else { print("\n\(title) is nil!"); return }
+    let dictNS = dic as NSDictionary
     printDictionaryNS(dictNS: dictNS, expandLevels: expandLevels, dashLen: dashLen, title: title)
     return
 }

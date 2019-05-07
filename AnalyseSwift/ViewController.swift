@@ -37,7 +37,6 @@
 
 //AnalyseSwift:
 // Bug: Handle "var ee: Int=0, ff = 0, gg: Int" vs "var hh = kk.substring(start: 1, length:2)"
-// Handle String interpolation
 // dependency
 // computed variables, var observer
 // show commentLinesCount(dead code?) vs MarkupLineCount (///) (/**)

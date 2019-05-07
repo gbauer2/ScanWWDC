@@ -31,14 +31,15 @@ public struct CodeLineDetail {
 /// - Returns: CodeLineDetail
 func stripCommentAndQuote(fullLine: String, lineNum: Int,
                           inTripleQuote:  inout Bool
-    , inBlockComment: inout Bool
-    , inBlockMarkup:  inout Bool) -> CodeLineDetail {   //32-193 = 161-lines
+                        , inBlockComment: inout Bool
+                        , inBlockMarkup:  inout Bool) -> CodeLineDetail {   //32-213 = 181-lines
     //TODO: Raw-string delimiters with more than 1 asterisk **"..."**
     //TODO: Raw-triple-quote    *"""
     //TODO: Interpolation       \(var)
     //TODO: Mark-up detection   ///     /**.../*
     //TODO: Add return isMarkup (struct?)
     let trimLine = fullLine.trim
+    let dummyChar: Character = "~"
     var codeLineDetail = CodeLineDetail()
     var inBlockCommentOrMarkup = inBlockComment || inBlockMarkup
 
@@ -80,13 +81,14 @@ func stripCommentAndQuote(fullLine: String, lineNum: Int,
     //  #"  "#    //    /*  */    \    \#
     var pComment    = -1
     var preserveQuote = false
-//    var inQuote     = false     // in String literal OR Raw String
-//    var inRawQuote  = false     // in Raw String
     var isEscaped   = false
     var prevChar    = Character(" ")
     var chars = Array(trimLine)
-    var quoteStatus: QuoteStatus = .notInQuotes
-    for (p,char) in chars.enumerated() {
+    var quoteStatus: QuoteStatus = .notInQuotes     // inRegular, inRawString, notInQuotes
+    var inInterpolate = false
+    var interpolateParenDepth = 0
+
+    for (p, char) in chars.enumerated() {
 
         //if char == "(" { isEscaped = false }
         if !isEscaped && !inBlockCommentOrMarkup {      //--- Not Escaped & Not inBlockComment & Not inBlockMarkup
@@ -134,12 +136,17 @@ func stripCommentAndQuote(fullLine: String, lineNum: Int,
 
             } else if quoteStatus == .inRawString {         // ------------ in Raw String
 
-                if char == "#" {                                    //- Hashtag "#"
+                if char == "#" {                                // Hashtag "#"
                     //Need changing for ###"..."###
                     if prevChar == quoteChar {          // "# as in #"xxx"#
                             // Check "#"s count here
                             chars[p-1] = quoteChar      // restore "
                             quoteStatus = .notInQuotes  // end of RawString
+                    } else if prevChar == "\\" && chars[p+1] == "(" {
+                        inInterpolate = true
+                        interpolateParenDepth = 0
+                        chars[p]   = dummyChar
+                        chars[p-1] = dummyChar
                     }
                 }
 
@@ -148,9 +155,13 @@ func stripCommentAndQuote(fullLine: String, lineNum: Int,
                 if char == quoteChar {                              //- Quote (")
                     quoteStatus = .notInQuotes
 
-                } else if char == "\\" {                            //- BackSlash "\"
+                } else if char == "\\" && chars[p+1] != "(" {       //- BackSlash "\"
                         isEscaped = true
+                } else if char == "(" && prevChar == "\\" {
+                    inInterpolate = true
+                    interpolateParenDepth = 0
                 }
+
 
             }//endif quoteStatus
 
@@ -172,8 +183,17 @@ func stripCommentAndQuote(fullLine: String, lineNum: Int,
         if quoteStatus != .notInQuotes {
             if preserveQuote {          // Preserve the opening quotation mark
                 preserveQuote = false
+            } else if inInterpolate {
+                if char == "(" {
+                    chars[p] = " "
+                    interpolateParenDepth += 1
+                } else if char == ")" {
+                    chars[p] = " "
+                    interpolateParenDepth -= 1
+                    if interpolateParenDepth == 0 { inInterpolate = false }
+                }
             } else {
-                chars[p] = "~"
+                chars[p] = dummyChar
             }
         }
 

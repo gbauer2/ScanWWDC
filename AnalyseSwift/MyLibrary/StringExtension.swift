@@ -11,7 +11,7 @@
 //      1.5.2   5/30/2018 Fix Error in .mid where .mid(begin: i, length: 0) would return same as .mid(begin: i)
 //      1.5.1   5/23/2018 Add trimStart, trimEnd
 //      1.5.0   5/20/2018 change .indexOf(SearchforStr) to .IndexOf(_) move PadLeft, PadRight from VBCompatability
-//      1.4.1   5/16/2018 Protect .mid(str,p,length) from negative length
+//      1.4.1   5/16/2018 Protect .mid(str,idx,length) from negative length
 //      1.4.0   5/06/2018 Add Integer Subscripts again
 //      1.3.1   5/06/2018 Remove "Trim", leaving only "trim"
 //      1.3.0   5/03/2018 Change func trim() to var trim
@@ -28,9 +28,9 @@ import Foundation
 extension StringProtocol {
 
     //------ subscript: allows string to be sliced by ints: e.g. str[2] ------
-    /// Int wrapper for str[index(startIndex, offsetBy: i)] -> Character
+    /// Int wrapper for str[str.index(str.startIndex, offsetBy: int)] -> Character
     subscript (_ i: Int) -> Character {
-        return self[index(startIndex, offsetBy: i)]
+        return self[self.index(self.startIndex, offsetBy: i)]
     }
 
 //    /// Int wrapper for str[index(startIndex, offsetBy: i)] -> String
@@ -38,22 +38,29 @@ extension StringProtocol {
 //        return String(self[i])
 //    }
 
-    /// Int wrapper for str[HalfOpenRange] -> String
+    /// Int wrapper for str[HalfOpenRange] -> String    ([start..<end])
     subscript (bounds: CountableRange<Int>) -> String {
+        if bounds.lowerBound >= self.count        { return "" }     // protection
+        if bounds.lowerBound < 0                  { return "" }     // protection
+        if bounds.lowerBound >= bounds.upperBound { return "" }     // protection
+
         let start = index(startIndex, offsetBy: bounds.lowerBound)
         let end   = index(startIndex, offsetBy: bounds.upperBound)
         return String(self[start..<end])
     }
 
-    /// Int wrapper for str[ClosedRange] -> String
+    /// Int wrapper for str[ClosedRange] -> String  ([start...])
     subscript (bounds: CountableClosedRange<Int>) -> String {
+        if bounds.lowerBound > self.count { return "" }             // protection
         let start = index(startIndex, offsetBy: bounds.lowerBound)
         let end   = index(startIndex, offsetBy: bounds.upperBound)
         return String(self[start...end])
     }
 
-    /// Int wrapper for str[CountablePartialRangeFrom<Int>] -> String
+    /// Int wrapper for str[CountablePartialRangeFrom<Int>] -> String ([start...])
     subscript (bounds: CountablePartialRangeFrom<Int>) -> String {
+        if bounds.lowerBound > self.count { return "" }             // protection
+        if bounds.lowerBound < 0          { return "" }             // protection
         let start = index(startIndex, offsetBy: bounds.lowerBound)
         return String(self[start...])
     }
@@ -154,24 +161,28 @@ extension StringProtocol {
     }
 
     //---- PadRight - add spaces to right ---- ToDo: Add parameter to allow non-space padding ???
-    /// Add spaces to end of String to fill a field
-    /// - Parameter n: Size of field (length of resulting String)
-    /// - Returns: New String of length n
-    func PadRight(_ n: Int) -> String {
+    /// Add spaces (or fillChr) to end of String to fill a field
+    /// - Parameters:
+    ///   - width: Size of field (length of resulting String)
+    ///   - fillChr: Optional fill character (defaults to space)
+    /// - Returns: New String of length width
+    func PadRight(_ width: Int, fillChr: Character = " ") -> String {
         let len = self.count
-        if n <= len { return String(self.prefix(n)) }
-        let fill = String(repeating: " ", count: n - len)
+        if width <= len { return String(self.prefix(width)) }
+        let fill = String(repeating: fillChr, count: width - len)
         return self + fill
     }
 
     //---- PadLeft - add spaces to left ---- ToDo: Add parameter to allow non-space padding ???
-    /// Add spaces to left side of String to fill a field
-    /// - Parameter n: Size of field (length of resulting String)
-    /// - Returns: New String of length n
-    func PadLeft(_ n: Int) -> String {
+    /// Add spaces ((or fillChr) to left side of String to fill a field
+    /// - Parameters:
+    ///   - width: Size of field (length of resulting String)
+    ///   - fillChr: Optional fill character (defaults to space)
+    /// - Returns: New String of length width
+    func PadLeft(_ width: Int, fillChr: Character = " ") -> String {
         let len = self.count
-        if n <= len { return String(self.prefix(n)) }
-        let fill = String(repeating: " ", count: n - len)
+        if width <= len { return String(self.prefix(width)) }
+        let fill = String(repeating: fillChr, count: width - len)
         return fill + self
     }
 
@@ -184,12 +195,12 @@ extension StringProtocol {
         if self.contains(searchforStr) {
             let lenOrig = self.count
             let lenSearchFor = searchforStr.count
-            var p = 0
-            while p + lenSearchFor <= lenOrig {
-                if self.mid(begin: p, length: lenSearchFor) == searchforStr {
-                    return p
+            var idx = 0
+            while idx + lenSearchFor <= lenOrig {
+                if self.mid(begin: idx, length: lenSearchFor) == searchforStr {
+                    return idx
                 }
-                p += 1
+                idx += 1
             }                       // Should never get here
         }//endif                    // Should never get here
         return -1                   // Indicates "Not found"
@@ -206,12 +217,12 @@ extension StringProtocol {
         if !self.contains(searchforStr) { return -1 }
         let lenOrig = self.count
         let lenSearchFor = searchforStr.count
-        var p = startPoint
-        while p + lenSearchFor <= lenOrig {
-            if self.mid(begin: p, length: lenSearchFor) == searchforStr {
-                return p
+        var idx = startPoint
+        while idx + lenSearchFor <= lenOrig {
+            if self.mid(begin: idx, length: lenSearchFor) == searchforStr {
+                return idx
             }
-            p += 1
+            idx += 1
         }
         return -1
     }
@@ -276,12 +287,12 @@ extension StringProtocol {
         if self.contains(searchforStr) {
             let lenOrig = self.count
             let lenSearchFor = searchforStr.count
-            var p = lenOrig - lenSearchFor
-            while p >= 0 {
-                if self.mid(begin: p, length: lenSearchFor) == searchforStr {
-                    return p
+            var idx = lenOrig - lenSearchFor
+            while idx >= 0 {
+                if self.mid(begin: idx, length: lenSearchFor) == searchforStr {
+                    return idx
                 }
-                p -= 1
+                idx -= 1
             }                   // Should never get here
         }                       // Should never get here
         return -1
