@@ -262,9 +262,6 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
     var index        = 0
     var lineNum      = 0
 
-    var inMultiLineComment = false
-    var inBlockComment  = false
-    var inTripleQuote = false
     var inQuote    = false
 
     var fromPrevLine    = ""    // if prev line had a ";" (Compund Line), this is the excess after 1st ";"
@@ -276,6 +273,8 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         if deBug {print("➡️ \(lineItem.lineNum) Non-CamelCased \(lineItem.name)")}
         swiftSummary.nonCamelVars.append(lineItem)
     }
+
+    var codeLineDetail = CodeLineDetail()
 
     // MARK: Main Loop 282-616 = 334-lines
     while iLine < lines.count {
@@ -311,13 +310,13 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         var netCurlys = 0
 
         if line.hasPrefix("/*") {                             // "/*"
-            inMultiLineComment = true
+            codeLineDetail.inBlockComment = true
         } else if line.hasPrefix("*/") {                      // "*/"
-            inMultiLineComment = false
+            codeLineDetail.inBlockComment = false
         }
-        if inMultiLineComment && line.contains("*/") { inMultiLineComment = false }
+        if codeLineDetail.inBlockComment && line.contains("*/") { codeLineDetail.inBlockComment = false }
 
-        if line.hasPrefix("//") || inMultiLineComment {   // "//"
+        if line.hasPrefix("//") || codeLineDetail.inBlockComment {   // "//"
             swiftSummary.nCommentLine += 1
             if swiftSummary.nCodeLine == 0 {
                 if line.contains("Copyright") {
@@ -334,16 +333,14 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             if line == "{" { gotOpenCurly(lineNum: lineNum) }                                 // single "{" on line
             if line == "}" { gotCloseCurly(lineNum: lineNum, nCodeLine: swiftSummary.nCodeLine) }          // single "}" on line
             continue                                                // bypass further processing
-        } else if inTripleQuote && !line.contains("\"\"\"") {
+        } else if codeLineDetail.inTripleQuote && !line.contains("\"\"\"") {
             continue                                                // bypass further processing???
         }
 
         // MARK: Code!  343-616 = 273-lines
-        var inBlockMarkup = false
-        let codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: lineNum,
-                                                  inTripleQuote:  &inTripleQuote,
-                                                  inBlockComment: &inBlockComment,
-                                                  inBlockMarkup:  &inBlockMarkup)
+
+        codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: codeLineDetail, lineNum: lineNum)
+
         let codeLineFull = codeLineDetail.codeLine
         if codeLineDetail.hasTrailingComment || codeLineDetail.hasEmbeddedComment {
             if codeLineDetail.hasTrailingComment {

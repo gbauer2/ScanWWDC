@@ -13,206 +13,205 @@ enum QuoteStatus {
 }
 
 public struct CodeLineDetail {
-    var codeLine = ""
+    var trimLine = ""               // The entire line - trimmed
+    var codeLine = ""               // The Code portion (clean of comments & quotes
     var hasTrailingComment = false
     var hasEmbeddedComment = false
-    var hasInterpoation    = false
-    var isComment          = false
-    var isMarkup           = false
-    var parenMismatch      = 0
+    var hasInterpolation   = false  // not used
+    var isComment          = false  // Entire line is Comment
+    var isMarkup           = false  // Entire line is Mark-up
+    var parenMismatch      = 0      // Flags for Line-Continuation
     var bracketMismatch    = 0
-}
+    var inTripleQuote      = false  // Multi-line state
+    var inBlockComment     = false
+    var inBlockMarkup      = false
+    init() {}
 
-// Strip comment & neuter quotes from line, returning trimmed code portion, hasTrailingComment, hasEmbeddedComment
-/// Strip comments & neutralize quotes from trimmed sourcecode line
-///
-/// - Parameters:
-///   - fullLine: Swift source code line
-///   - lineNum: Swift source line number
-///   - inTripleQuote: inout. Are we inside a multi-line string literal
-///   - inBlockComment: inout. Are we inside a block comment (/*.../*)
-///   - inBlockMarkup: inout. Are we inside a block markup  (/**.../*)
-/// - Returns: CodeLineDetail
-func stripCommentAndQuote(fullLine: String, lineNum: Int,
-                          inTripleQuote:  inout Bool
-                        , inBlockComment: inout Bool
-                        , inBlockMarkup:  inout Bool) -> CodeLineDetail {   //32-213 = 181-lines
-    //TODO: Raw-string delimiters with more than 1 asterisk **"..."**
-    //TODO: Raw-triple-quote    *"""
-    //TODO: Mark-up detection   ///     /**.../*
-    //TODO: Add return isMarkup (struct?)
-    let trimLine = fullLine.trim
-    let dummyChar: Character = "~"
-    var codeLineDetail = CodeLineDetail()
-    var inBlockCommentOrMarkup = inBlockComment || inBlockMarkup
+    /// Strip comments & neutralize quotes from trimmed sourcecode line
+    ///
+    /// - Parameters:
+    ///   - fullLine: Swift source code line
+    ///   - lineNum: Swift source line number
+    ///   - prevCodeLineDetail: provides: inTripleQuote: inside multi-line string literal?  inBlockComment: inside block comment (/*.../*)?  inBlockMarkup: inside a block markup  (/**.../*)?
+    /// - Returns: CodeLineDetail
+    init(fullLine: String, prevCodeLineDetail: CodeLineDetail, lineNum: Int) { //37-216 = 179-lines
+        //TODO: Raw-string delimiters with more than 1 asterisk **"..."**
+        //TODO: Raw-triple-quote    *"""
+        //TODO: Mark-up detection   ///     /**.../*
+        //TODO: Add return isMarkup (struct?)
+        let trimLine = fullLine.trim
+        let dummyChar: Character = "~"
 
-    // inBlockCommentOrMarkup with no end in sight
-    if (inBlockCommentOrMarkup) && !trimLine.contains("*/") {
-        if inBlockComment { codeLineDetail.isComment = true }
-        if inBlockMarkup  { codeLineDetail.isMarkup  = true }
-        return codeLineDetail                         // Whole line is in BlockComment or BlockMarkup
-    }
+        self = CodeLineDetail()
+        self.trimLine       = trimLine
+        self.inBlockComment = prevCodeLineDetail.inBlockComment
+        self.inBlockMarkup  = prevCodeLineDetail.inBlockMarkup
+        self.inTripleQuote  = prevCodeLineDetail.inTripleQuote
+        var inBlockCommentOrMarkup = self.inBlockComment || self.inBlockMarkup
 
-    // All code & nothing to see here
-    if !trimLine.contains("//") && !trimLine.contains("\"") && !trimLine.contains("/*")  && !trimLine.contains("*/")
-        && !trimLine.contains("(") && !trimLine.contains("[") {
-        codeLineDetail.codeLine = trimLine
-        return codeLineDetail                        // No comment or quote
-    }
-    if trimLine.hasPrefix("\"\"\"") || trimLine.hasSuffix("\"\"\"") {
-        inTripleQuote.toggle()
-    }
-    if !inBlockCommentOrMarkup && trimLine.hasPrefix("//") {
-        if trimLine.hasPrefix("///") {
-            codeLineDetail.isMarkup = true
-        } else {
-            codeLineDetail.isComment = true
+        // inBlockCommentOrMarkup with no end in sight
+        if (inBlockCommentOrMarkup) && !trimLine.contains("*/") {
+            if self.inBlockComment { self.isComment = true }
+            if self.inBlockMarkup  { self.isMarkup  = true }
+            return                          // Whole line is in BlockComment or BlockMarkup
         }
-        return codeLineDetail
-    }
 
-    if trimLine.hasPrefix("\"\"\"") || trimLine.hasSuffix("\"\"\"") {
-        inTripleQuote = !inTripleQuote
-    }
-    let blockCommentStr  = "⌇"
-    let blockCommentChar = Character(blockCommentStr)
-    let quoteChar        = Character("\"")
+        // All code & nothing to see here
+        if !trimLine.contains("//") && !trimLine.contains("\"") && !trimLine.contains("/*")  && !trimLine.contains("*/")
+            && !trimLine.contains("(") && !trimLine.contains("[") {
+            self.codeLine = trimLine
+            return                        // No comment or quote
+        }
+        if trimLine.hasPrefix("\"\"\"") || trimLine.hasSuffix("\"\"\"") {
+            self.inTripleQuote.toggle()
+        }
+        if !inBlockCommentOrMarkup && trimLine.hasPrefix("//") {
+            if trimLine.hasPrefix("///") {
+                self.isMarkup = true
+            } else {
+                self.isComment = true
+            }
+            return
+        }
+        let blockCommentStr  = "⌇"
+        let blockCommentChar = Character(blockCommentStr)
+        let quoteChar        = Character("\"")
 
-    // Block comment ignores all but "\" and "*/"
-    // Raw String ignores all but \# and "#
-    //#”You can use “ and “\” in a raw string. Interpolating as \#(var).”#
-    //  #"  "#    //    /*  */    \    \#
-    var pComment    = -1
-    var preserveQuote = false
-    var isEscaped   = false
-    var prevChar    = Character(" ")
-    var chars = Array(trimLine)
-    var quoteStatus: QuoteStatus = .notInQuotes     // inRegular, inRawString, notInQuotes
-    var inInterpolate = false
-    var interpolateParenDepth = 0
+        // Block comment ignores all but "\" and "*/"
+        // Raw String ignores all but \# and "#
+        //#”You can use “ and “\” in a raw string. Interpolating as \#(var).”#
+        //  #"  "#    //    /*  */    \    \#
+        var pComment    = -1
+        var preserveQuote = false
+        var isEscaped   = false
+        var prevChar    = Character(" ")
+        var chars = Array(trimLine)
+        var quoteStatus: QuoteStatus = .notInQuotes     // inRegular, inRawString, notInQuotes
+        var inInterpolate = false
+        var interpolateParenDepth = 0
 
-    for (p, char) in chars.enumerated() {
+        for (p, char) in chars.enumerated() {
 
-        //if char == "(" { isEscaped = false }
-        if !isEscaped && !inBlockCommentOrMarkup {      //--- Not Escaped & Not inBlockComment & Not inBlockMarkup
+            //if char == "(" { isEscaped = false }
+            if !isEscaped && !inBlockCommentOrMarkup {      //--- Not Escaped & Not inBlockComment & Not inBlockMarkup
 
-            if quoteStatus == .notInQuotes {                // ------------ NOT in quotes
+                if quoteStatus == .notInQuotes {                // ------------ NOT in quotes
 
-                if char == quoteChar {                              //- Quote (")
-                    preserveQuote = true
-                    if prevChar == "#" {        // #" as in #"xxx"#
-                        quoteStatus = .inRawString  //????? Count "#"s here
-                    } else {
-                        quoteStatus = .inRegular
-                    }
-
-                } else if char == "*" {                             //- Asterisk "*"
-                    if prevChar == "/" {   // "/*"   // --not inQuotes
-                        chars[p-1] = blockCommentChar
-                        codeLineDetail.hasEmbeddedComment = true
-                        if p >= chars.count || chars[p+1] != "*" {
-                            inBlockComment = true
+                    if char == quoteChar {                              //- Quote (")
+                        preserveQuote = true
+                        if prevChar == "#" {        // #" as in #"xxx"#
+                            quoteStatus = .inRawString  //????? Count "#"s here
                         } else {
-                            inBlockMarkup = true
+                            quoteStatus = .inRegular
                         }
-                        inBlockCommentOrMarkup = true
-                    }
 
-                }  else if char == "/" {                            //- Comment "//"
-                    if prevChar == "/" {
-                        pComment = p
-                        codeLineDetail.hasTrailingComment = true
-                        break                               // EXIT LOOP
-                    }
+                    } else if char == "*" {                             //- Asterisk "*"
+                        if prevChar == "/" {   // "/*"   // --not inQuotes
+                            chars[p-1] = blockCommentChar
+                            self.hasEmbeddedComment = true
+                            if p >= chars.count || chars[p+1] != "*" {
+                                self.inBlockComment = true
+                            } else {
+                                self.inBlockMarkup = true
+                            }
+                            inBlockCommentOrMarkup = true
+                        }
 
-                } else if char == "(" {
-                    codeLineDetail.parenMismatch += 1
-                } else if char == ")" {
-                    codeLineDetail.parenMismatch -= 1
-                } else if char == "[" {
-                    codeLineDetail.bracketMismatch += 1
-                } else if char == "]" {
-                    codeLineDetail.bracketMismatch -= 1
+                    }  else if char == "/" {                            //- Comment "//"
+                        if prevChar == "/" {
+                            pComment = p
+                            self.hasTrailingComment = true
+                            break                               // EXIT LOOP
+                        }
 
-                }//endif char
+                    } else if char == "(" {
+                        self.parenMismatch += 1
+                    } else if char == ")" {
+                        self.parenMismatch -= 1
+                    } else if char == "[" {
+                        self.bracketMismatch += 1
+                    } else if char == "]" {
+                        self.bracketMismatch -= 1
+
+                    }//endif char
 
 
-            } else if quoteStatus == .inRawString {         // ------------ in Raw String
+                } else if quoteStatus == .inRawString {         // ------------ in Raw String
 
-                if char == "#" {                                // Hashtag "#"
-                    //Need changing for ###"..."###
-                    if prevChar == quoteChar {          // "# as in #"xxx"#
+                    if char == "#" {                                // Hashtag "#"
+                        //Need changing for ###"..."###
+                        if prevChar == quoteChar {          // "# as in #"xxx"#
                             // Check "#"s count here
                             chars[p-1] = quoteChar      // restore "
                             quoteStatus = .notInQuotes  // end of RawString
-                    } else if prevChar == "\\" && chars[p+1] == "(" {
+                        } else if prevChar == "\\" && chars[p+1] == "(" {
+                            inInterpolate = true
+                            interpolateParenDepth = 0
+                            chars[p]   = dummyChar
+                            chars[p-1] = dummyChar
+                        }
+                    }
+
+                } else if quoteStatus == .inRegular {           // ------------ in Regular quotes
+
+                    if char == quoteChar {                              //- Quote (")
+                        quoteStatus = .notInQuotes
+
+                    } else if char == "\\" && chars[p+1] != "(" {       //- BackSlash "\"
+                        isEscaped = true
+                    } else if char == "(" && prevChar == "\\" {
                         inInterpolate = true
                         interpolateParenDepth = 0
-                        chars[p]   = dummyChar
-                        chars[p-1] = dummyChar
                     }
-                }
-
-            } else if quoteStatus == .inRegular {           // ------------ in Regular quotes
-
-                if char == quoteChar {                              //- Quote (")
-                    quoteStatus = .notInQuotes
-
-                } else if char == "\\" && chars[p+1] != "(" {       //- BackSlash "\"
-                        isEscaped = true
-                } else if char == "(" && prevChar == "\\" {
-                    inInterpolate = true
-                    interpolateParenDepth = 0
-                }
 
 
-            }//endif quoteStatus
+                }//endif quoteStatus
 
-        } else {
-            isEscaped = false
-        }//endif Not escaped and Not blockComment
-
-        // Mark Comment Char & Check for End of Block
-        if inBlockCommentOrMarkup {
-            if char == "/" && prevChar == "*" {         // "*/"
-                inBlockComment = false
-                inBlockMarkup = false
-                inBlockCommentOrMarkup = false
-            }
-            chars[p] = blockCommentChar
-        }
-
-        // Make quoted Char benign (needs to change for interpolation)
-        if quoteStatus != .notInQuotes {
-            if preserveQuote {          // Preserve the opening quotation mark
-                preserveQuote = false
-            } else if inInterpolate {
-                if char == "(" {
-                    if interpolateParenDepth == 0 { chars[p] = " " }
-                    interpolateParenDepth += 1
-                } else if char == ")" {
-                    interpolateParenDepth -= 1
-                    if interpolateParenDepth == 0 {
-                        chars[p] = " "
-                        inInterpolate = false
-                    }
-                }
             } else {
-                chars[p] = dummyChar
+                isEscaped = false
+            }//endif Not escaped and Not blockComment
+
+            // Mark Comment Char & Check for End of Block
+            if inBlockCommentOrMarkup {
+                if char == "/" && prevChar == "*" {         // "*/"
+                    self.inBlockComment = false
+                    self.inBlockMarkup = false
+                    inBlockCommentOrMarkup = false
+                }
+                chars[p] = blockCommentChar
             }
+
+            // Make quoted Char benign (needs to change for interpolation)
+            if quoteStatus != .notInQuotes {
+                if preserveQuote {          // Preserve the opening quotation mark
+                    preserveQuote = false
+                } else if inInterpolate {
+                    if char == "(" {
+                        if interpolateParenDepth == 0 { chars[p] = " " }
+                        interpolateParenDepth += 1
+                    } else if char == ")" {
+                        interpolateParenDepth -= 1
+                        if interpolateParenDepth == 0 {
+                            chars[p] = " "
+                            inInterpolate = false
+                        }
+                    }
+                } else {
+                    chars[p] = dummyChar
+                }
+            }
+
+            prevChar = char
+        }//next p
+        //----------------------
+
+        let codeLine: String
+        if pComment >= 0 {
+            let sliceChars = chars.prefix(pComment - 1)
+            codeLine = String(sliceChars).replacingOccurrences(of: blockCommentStr, with: "")
+        } else {
+            codeLine = String(chars).replacingOccurrences(of: blockCommentStr, with: "")
         }
-
-        prevChar = char
-    }//next p
-    //----------------------
-
-    let codeLine: String
-    if pComment >= 0 {
-        let sliceChars = chars.prefix(pComment - 1)
-        codeLine = String(sliceChars).replacingOccurrences(of: blockCommentStr, with: "")
-    } else {
-        codeLine = String(chars).replacingOccurrences(of: blockCommentStr, with: "")
-    }
-    codeLineDetail.codeLine = codeLine.trim
-    return codeLineDetail
-}//end func stripCommentAndQuote
+        self.codeLine = codeLine.trim
+    }//end init
+}//end struct

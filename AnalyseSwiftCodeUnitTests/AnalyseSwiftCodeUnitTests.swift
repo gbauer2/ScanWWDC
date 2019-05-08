@@ -136,109 +136,105 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
 
     //TODO: test TripleQuote xxx = """
     //11 CodeLineDetails.swift
-    func testStripCommentAndQuote() {
+    func testCodeLineDetailInit() {
         var line = ""
         var codeLineDetail = CodeLineDetail()
-        var inBlockComment = false
-        var inBlockMarkup = false
-        var inTripleQuote  = false
-        /*
-         ##"xxx\(myVar)yyy"##
-         print(#"xxx\#(myVar)yyy"#)
-         */
+        var prevCodeLineDetail = CodeLineDetail()
 
-        inBlockComment = false
+        prevCodeLineDetail.inBlockComment = false
         line = ##" i = #"xxx\#"## + ##"(myVar)yyy"#"##
-        codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
+        codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
+        //stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
         XCTAssertEqual(codeLineDetail.codeLine, ##"i = #"~~~~~ myVar ~~~"#"##)
 
-        inBlockComment = false
+        prevCodeLineDetail.inBlockComment = false
         line = ##" i = "xxx\(myVar)yyy""##
-        codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
+        codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
+        //stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
         XCTAssertEqual(codeLineDetail.codeLine, #"i = "~~~~ myVar ~~~""#)
 
-        inBlockComment = false
+        prevCodeLineDetail.inBlockComment = false
         line = #"""
         print("\"") //ok
         """#
-        codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
+        codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
         XCTAssertEqual(codeLineDetail.codeLine, #"print("~~")"#)
 
-        inBlockComment = false
+        codeLineDetail.inBlockComment = false
         line = ##"a=#"1\"2"#"##
-        codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
+        codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
         XCTAssertEqual(codeLineDetail.codeLine,##"a=#"~~~~"#"##)
 
         line = ##"a="1\"2""##
-        codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
+        codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
         XCTAssertEqual(codeLineDetail.codeLine,##"a="~~~~""##)
 
         line = #"print("s\(s)")"#
-        codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
+        codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
         XCTAssertEqual(codeLineDetail.codeLine, #"print("~~ s ")"#)
         XCTAssertFalse(codeLineDetail.hasTrailingComment)
         XCTAssertFalse(codeLineDetail.hasEmbeddedComment)
-        XCTAssertFalse(inBlockComment)
+        XCTAssertFalse(codeLineDetail.inBlockComment)
 
         line = #"a="\n""#
-        codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
+        codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
         XCTAssertEqual(codeLineDetail.codeLine, #"a="~~""#)
 
         line = "//"
-        codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
+        codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
         XCTAssertEqual(codeLineDetail.codeLine, "")
         XCTAssertFalse(codeLineDetail.hasTrailingComment)
         XCTAssertFalse(codeLineDetail.hasEmbeddedComment)
 
         line = "// My Comments"
-        codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
+        codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
         XCTAssertEqual(codeLineDetail.codeLine, "")
         XCTAssertFalse(codeLineDetail.hasTrailingComment)
         XCTAssertFalse(codeLineDetail.hasEmbeddedComment)
         
         line = "myVar = false"
-        codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
+        codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
         XCTAssertEqual(codeLineDetail.codeLine, line.trim)
         XCTAssertFalse(codeLineDetail.hasTrailingComment)
         XCTAssertFalse(codeLineDetail.hasEmbeddedComment)
 
         line = "myVar = false    // Comment"
-        codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
+        codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
         XCTAssertEqual(codeLineDetail.codeLine, "myVar = false")
         XCTAssertTrue(codeLineDetail.hasTrailingComment)
         XCTAssertFalse(codeLineDetail.hasEmbeddedComment)
 
         line = #"myVar = "test""#
-        codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
+        codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
         XCTAssertEqual(codeLineDetail.codeLine, #"myVar = "~~~~""#)
         XCTAssertFalse(codeLineDetail.hasTrailingComment)
         XCTAssertFalse(codeLineDetail.hasEmbeddedComment)
 
         line = "myVar = /*embed*/ test"
-        codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
+        codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
         XCTAssertEqual(codeLineDetail.codeLine, "myVar =  test")
         XCTAssertFalse(codeLineDetail.hasTrailingComment)
         XCTAssertTrue(codeLineDetail.hasEmbeddedComment)
 
         line = "#\"You can use \" and \"\\\" in a raw string. Interpolating as \\#(var).\"#"
         line = "#\"123\"#"
-        codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
+        codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
         XCTAssertEqual(codeLineDetail.codeLine, "#\"~~~\"#")
 
-        inBlockComment = true
+        prevCodeLineDetail.inBlockComment = true
         line = "myVar = false    // Comment"
-        codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
+        codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
         XCTAssertEqual(codeLineDetail.codeLine, "")
         XCTAssertFalse(codeLineDetail.hasTrailingComment)
         XCTAssertFalse(codeLineDetail.hasEmbeddedComment)
-        XCTAssertTrue(inBlockComment)
+        XCTAssertTrue(codeLineDetail.inBlockComment)
 
         line = "comment*/myVar = false    // Comment"
-        codeLineDetail = stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
+        codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
         XCTAssertEqual(codeLineDetail.codeLine, "myVar = false")
         XCTAssertTrue(codeLineDetail.hasTrailingComment)
         XCTAssertFalse(codeLineDetail.hasEmbeddedComment)
-        XCTAssertFalse(inBlockComment)
+        XCTAssertFalse(codeLineDetail.inBlockComment)
     }
 
     //186 AnalyseSwift.swift
