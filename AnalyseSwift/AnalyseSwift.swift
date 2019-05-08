@@ -58,9 +58,9 @@ public struct SwiftSummary {
     // issues
     var nonCamelVars    = [LineItem]()
     var forceUnwraps    = [LineItem]()
-    var vbCompatCalls   = [String]()
     var massiveFuncs    = [FuncInfo]()
     var massiveFile     = 0
+    var vbCompatCalls   = [String]()
     var nVBwords        = 0
     var nUniqueVBWords  = 0
 
@@ -275,7 +275,6 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         let lineItem = LineItem(lineNum: lineNum, name: name, extra: "")
         if deBug {print("➡️ \(lineItem.lineNum) Non-CamelCased \(lineItem.name)")}
         swiftSummary.nonCamelVars.append(lineItem)
-        //swiftSummary.nonCamelCases.append(lineItem.name)
     }
 
     // MARK: Main Loop 282-616 = 334-lines
@@ -412,13 +411,13 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         let words = wordsWithEmpty.filter { !$0.isEmpty }                   // Use filter to eliminate empty strings.
         let firstWord = words.first ?? ""
 
-        // Find Forced Unwraps
+        // Find Force Unwraps
         for word in words {
             if word.hasSuffix("!") && firstWord != "@IBOutlet" {
-                let p = codeLine.firstIntIndexOf(word)                         // p is pointer to word
-                let isForce = word.count > 1 || p == 0 || codeLine[p-1] != " "    // must not have whitespace before "!"
+                let idx = codeLine.firstIntIndexOf(word)                         // idx is pointer to word
+                let isForce = word.count > 1 || idx == 0 || codeLine[idx-1] != " "    // must not have whitespace before "!"
                 if isForce {
-                    let extra = getExtraForForceUnwrap(codeLineClean: codeLine, word: word, p: p)
+                    let extra = getExtraForForceUnwrap(codeLineClean: codeLine, word: word, idx: idx)
                     if deBug {
                         print("line \(lineNum): \(word)")
                         print(codeLine)
@@ -645,10 +644,10 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
     return swiftSummary
 }//end func analyseSwiftFile
 
-private func getExtraForForceUnwrap(codeLineClean: String, word: String, p: Int) -> String {
+private func getExtraForForceUnwrap(codeLineClean: String, word: String, idx: Int) -> String {
     let maxPrefixLen = 44
     let maxSuffixLen = 22
-    var prefix = codeLineClean.substring(begin: 0, length: p)   // prefix is stuff before word
+    var prefix = codeLineClean.substring(begin: 0, length: idx)   // prefix is stuff before word
 
     prefix = prefix.replacingOccurrences(of: "~~~~", with: "~") // remove excess garbage
     prefix = prefix.replacingOccurrences(of: "~~~~", with: "~")
@@ -660,7 +659,7 @@ private func getExtraForForceUnwrap(codeLineClean: String, word: String, p: Int)
         prefix = "..." + prefix.suffix(maxPrefixLen)
     }
 
-    let pTrail = p + word.count
+    let pTrail = idx + word.count
     var suffix = codeLineClean.substring(begin: pTrail)
     if suffix.count > maxSuffixLen {
         suffix = suffix.prefix(maxSuffixLen - 3) + "..."

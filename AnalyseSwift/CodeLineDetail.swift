@@ -8,6 +8,10 @@
 
 import Foundation
 
+enum QuoteStatus {
+    case inRegular, inRawString, notInQuotes
+}
+
 public struct CodeLineDetail {
     var codeLine = ""
     var hasTrailingComment = false
@@ -35,7 +39,6 @@ func stripCommentAndQuote(fullLine: String, lineNum: Int,
                         , inBlockMarkup:  inout Bool) -> CodeLineDetail {   //32-213 = 181-lines
     //TODO: Raw-string delimiters with more than 1 asterisk **"..."**
     //TODO: Raw-triple-quote    *"""
-    //TODO: Interpolation       \(var)
     //TODO: Mark-up detection   ///     /**.../*
     //TODO: Add return isMarkup (struct?)
     let trimLine = fullLine.trim
@@ -57,7 +60,7 @@ func stripCommentAndQuote(fullLine: String, lineNum: Int,
         return codeLineDetail                        // No comment or quote
     }
     if trimLine.hasPrefix("\"\"\"") || trimLine.hasSuffix("\"\"\"") {
-        inTripleQuote = !inTripleQuote
+        inTripleQuote.toggle()
     }
     if !inBlockCommentOrMarkup && trimLine.hasPrefix("//") {
         if trimLine.hasPrefix("///") {
@@ -185,12 +188,14 @@ func stripCommentAndQuote(fullLine: String, lineNum: Int,
                 preserveQuote = false
             } else if inInterpolate {
                 if char == "(" {
-                    chars[p] = " "
+                    if interpolateParenDepth == 0 { chars[p] = " " }
                     interpolateParenDepth += 1
                 } else if char == ")" {
-                    chars[p] = " "
                     interpolateParenDepth -= 1
-                    if interpolateParenDepth == 0 { inInterpolate = false }
+                    if interpolateParenDepth == 0 {
+                        chars[p] = " "
+                        inInterpolate = false
+                    }
                 }
             } else {
                 chars[p] = dummyChar
@@ -211,7 +216,3 @@ func stripCommentAndQuote(fullLine: String, lineNum: Int,
     codeLineDetail.codeLine = codeLine.trim
     return codeLineDetail
 }//end func stripCommentAndQuote
-
-enum QuoteStatus {
-    case inRegular, inRawString, notInQuotes
-}

@@ -16,8 +16,8 @@ import Cocoa    /* ????? partial-line Block Comment does not work.*/
 private func doNothing() { print("Do Nothing") }
 
 private func interpolate() {
-    let myVar = 14
-    print("xxx\(myVar)yyy")
+    let myVar = "14"
+    print("xxx\(Int(myVar)!)yyy")
     print(#"xxx\#(myVar)yyy"#)
 }
 

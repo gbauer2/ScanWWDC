@@ -17,6 +17,7 @@
 // Error Handler
 // Single Click for analyse & change dir - no double Click
 // if newly opened folder has a single xcodeproj: analyse it
+// Display AnalyseSwift as expandable tree, with option for printable
 
 // Code:
 // change state storage to userDefaults
@@ -37,13 +38,12 @@
 
 //AnalyseSwift:
 // Bug: Handle "var ee: Int=0, ff = 0, gg: Int" vs "var hh = kk.substring(start: 1, length:2)"
+// Bug: Handle Raw String with multiple asterisks (***"..."*** )
 // dependency
 // computed variables, var observer
 // show commentLinesCount(dead code?) vs MarkupLineCount (///) (/**)
 // organize by MARK: or by extension
 // allow extensions other than class
-// Display as expandable tree, with option for printable
-// remove display code (tx=, txt=, etc.) from analyseSwiftFile()
 
 //MenuRulesVC:
 // Refresh analysis when user changes rules
@@ -60,6 +60,7 @@
 //   Type-Names must Start with Uppercase
 
 //Done:
+// Fix: Force-Unwrap inside interpolation now detected
 
 import Cocoa    /* partial-line Block Comment does work.*/
 /* single-line Block Comment does work. */
