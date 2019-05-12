@@ -11,30 +11,31 @@ import Foundation
 enum QuoteStatus {
     case inRegular, inRawString, notInQuotes
 }
-
+enum InMultiLine {
+    case none, tripleQuote, blockComment, blockMarkup
+}
 public struct CodeLineDetail {
-    var trimLine = ""               // The entire line - trimmed
-    var codeLine = ""               // The Code portion (clean of comments & quotes
-    var hasTrailingComment = false
-    var hasEmbeddedComment = false
-    var hasInterpolation   = false  // not used
+    var trimLine = ""               // The entire original line - trimmed
+    var codeLine = ""               // The Code portion (clean of comments & quotes)
+    var lineNum  = 0                // Original Source Line Number
+    var hasTrailingComment = false  // Has code followed by "//"
+    var hasEmbeddedComment = false  // Has /*...*/
     var isComment          = false  // Entire line is Comment
     var isMarkup           = false  // Entire line is Mark-up
-    var parenMismatch      = 0      // Flags for Line-Continuation
-    var bracketMismatch    = 0
-    var inTripleQuote      = false  // Multi-line state
-    var inBlockComment     = false
-    var inBlockMarkup      = false
-    init() {}
+    var parenMismatch      = 0      // Flag for Line-Continuation ()
+    var bracketMismatch    = 0      // Flag for Line-Continuation []
+    var inMultiLine: InMultiLine = .none    // tripleQuote, blockComment, blockMarkup
+
+    init() {}       // replace the default initializer
 
     /// Strip comments & neutralize quotes from trimmed sourcecode line
     ///
     /// - Parameters:
     ///   - fullLine: Swift source code line
     ///   - lineNum: Swift source line number
-    ///   - prevCodeLineDetail: provides: inTripleQuote: inside multi-line string literal?  inBlockComment: inside block comment (/*.../*)?  inBlockMarkup: inside a block markup  (/**.../*)?
+    ///   - prevCodeLineDetail: provides: inMultiLine: none, tripleQuote, blockComment, or blockMarkup
     /// - Returns: CodeLineDetail
-    init(fullLine: String, prevCodeLineDetail: CodeLineDetail, lineNum: Int) { //37-216 = 179-lines
+    init(fullLine: String, prevCodeLineDetail: CodeLineDetail, lineNum: Int) { //38-219 = 181-lines
         //TODO: Raw-string delimiters with more than 1 asterisk **"..."**
         //TODO: Raw-triple-quote    *"""
         //TODO: Mark-up detection   ///     /**.../*
@@ -43,27 +44,31 @@ public struct CodeLineDetail {
         let dummyChar: Character = "~"
 
         self = CodeLineDetail()
-        self.trimLine       = trimLine
-        self.inBlockComment = prevCodeLineDetail.inBlockComment
-        self.inBlockMarkup  = prevCodeLineDetail.inBlockMarkup
-        self.inTripleQuote  = prevCodeLineDetail.inTripleQuote
-        var inBlockCommentOrMarkup = self.inBlockComment || self.inBlockMarkup
+        self.trimLine    = trimLine
+        self.lineNum     = lineNum
+        self.inMultiLine = prevCodeLineDetail.inMultiLine
+        var inBlockCommentOrMarkup = self.inMultiLine == .blockComment || self.inMultiLine == .blockMarkup
 
         // inBlockCommentOrMarkup with no end in sight
         if (inBlockCommentOrMarkup) && !trimLine.contains("*/") {
-            if self.inBlockComment { self.isComment = true }
-            if self.inBlockMarkup  { self.isMarkup  = true }
-            return                          // Whole line is in BlockComment or BlockMarkup
+            if self.inMultiLine == .blockComment { self.isComment = true }
+            if self.inMultiLine == .blockMarkup  { self.isMarkup  = true }
+            return                      // Whole line is in BlockComment or BlockMarkup
         }
 
         // All code & nothing to see here
         if !trimLine.contains("//") && !trimLine.contains("\"") && !trimLine.contains("/*")  && !trimLine.contains("*/")
             && !trimLine.contains("(") && !trimLine.contains("[") {
             self.codeLine = trimLine
-            return                        // No comment or quote
+            return                      // No comment or quote
         }
         if trimLine.hasPrefix("\"\"\"") || trimLine.hasSuffix("\"\"\"") {
-            self.inTripleQuote.toggle()
+//            self.inTripleQuote.toggle()
+            if self.inMultiLine == .tripleQuote {
+                self.inMultiLine = .none
+            } else if self.inMultiLine == .none {
+                self.inMultiLine = .tripleQuote
+            }
         }
         if !inBlockCommentOrMarkup && trimLine.hasPrefix("//") {
             if trimLine.hasPrefix("///") {
@@ -92,7 +97,6 @@ public struct CodeLineDetail {
 
         for (p, char) in chars.enumerated() {
 
-            //if char == "(" { isEscaped = false }
             if !isEscaped && !inBlockCommentOrMarkup {      //--- Not Escaped & Not inBlockComment & Not inBlockMarkup
 
                 if quoteStatus == .notInQuotes {                // ------------ NOT in quotes
@@ -110,9 +114,9 @@ public struct CodeLineDetail {
                             chars[p-1] = blockCommentChar
                             self.hasEmbeddedComment = true
                             if p >= chars.count || chars[p+1] != "*" {
-                                self.inBlockComment = true
+                                self.inMultiLine = .blockComment
                             } else {
-                                self.inBlockMarkup = true
+                                self.inMultiLine = .blockMarkup
                             }
                             inBlockCommentOrMarkup = true
                         }
@@ -174,8 +178,7 @@ public struct CodeLineDetail {
             // Mark Comment Char & Check for End of Block
             if inBlockCommentOrMarkup {
                 if char == "/" && prevChar == "*" {         // "*/"
-                    self.inBlockComment = false
-                    self.inBlockMarkup = false
+                    self.inMultiLine = .none
                     inBlockCommentOrMarkup = false
                 }
                 chars[p] = blockCommentChar
@@ -214,4 +217,4 @@ public struct CodeLineDetail {
         }
         self.codeLine = codeLine.trim
     }//end init
-}//end struct
+}//end struct CodeLineDetail

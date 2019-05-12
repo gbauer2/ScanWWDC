@@ -16,6 +16,12 @@ extension ViewController {
         let color: NSColor
     }
 
+    func setMonospacedDigitSystemFont(ofSize: CGFloat) {
+        _ = NSFont.monospacedDigitSystemFont(ofSize: 42.0, weight: NSFont.Weight.medium)
+    }
+
+    // Used by Source-Listing
+
     //---- setFontSizeAttribute - Set NSAttributedString to systemFont(ofSize: size)
     func setFontSizeAttribute(size: CGFloat) -> [NSAttributedString.Key: Any] {
         let textAttributes: [NSAttributedString.Key: Any] = [

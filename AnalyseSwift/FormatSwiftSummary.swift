@@ -8,8 +8,9 @@
 
 import Cocoa
 
-public func formatSwiftSummary(swiftSummary: SwiftSummary, selecFileInfo: FileAttributes, deBug: Bool = true) ->  NSAttributedString  {
-
+public func formatSwiftSummary(swiftSummary: SwiftSummary,
+                               fileInfo:     FileAttributes,
+                               deBug:        Bool = true)    -> NSAttributedString  {
     var tx: NSMutableAttributedString = NSMutableAttributedString(string: "")
     let txt:NSMutableAttributedString = NSMutableAttributedString(string: "")
 
@@ -19,68 +20,83 @@ public func formatSwiftSummary(swiftSummary: SwiftSummary, selecFileInfo: FileAt
     let tabInterval: CGFloat = 100.0
     var tabStop0 = NSTextTab(textAlignment: .left, location: 0)
     paragraphStyleA1.tabStops = [ tabStop0 ]
-    for i in 1...8 {
+    for i in 0...7 {
         tabStop0 = NSTextTab(textAlignment: .left, location: tabInterval * CGFloat(i))
         paragraphStyleA1.addTabStop(tabStop0)
     }
 
     // Set the Fonts
-    let attributesLargeFont  = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 20), NSAttributedString.Key.paragraphStyle: paragraphStyleA1]
-    let attributesMediumFont = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 16), NSAttributedString.Key.paragraphStyle: paragraphStyleA1]
-    let attributesSmallFont  = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 12), NSAttributedString.Key.paragraphStyle: paragraphStyleA1]
+    let attributesLargeFont  = [
+        NSAttributedString.Key.font: NSFont.monospacedDigitSystemFont(ofSize: 18, weight: NSFont.Weight.medium)]
+    let attributesMediumFont = [
+        NSAttributedString.Key.font: NSFont.monospacedDigitSystemFont(ofSize: 15, weight: NSFont.Weight.medium)]
+    let attributesSmallFont  = [
+        NSAttributedString.Key.font: NSFont.systemFont(ofSize: 12),
+        NSAttributedString.Key.paragraphStyle: paragraphStyleA1]
+
+    var str = ""
 
     // Test the Tabs
-    tx  = NSMutableAttributedString(string: "\t1\t2\t3\t4\t5\n", attributes: attributesSmallFont)
-    txt.append(tx)
+    str  = "|0\t|100\t|200\t|300\t|400\t|500\n"
+    txt.append(NSMutableAttributedString(string: str, attributes: attributesSmallFont))
 
-    // Print the OS
+    // Print the OS LargeFont
     if swiftSummary.projectType == ProjectType.OSX {
-        tx = NSMutableAttributedString(string: "Mac OSX  ", attributes: attributesLargeFont)
-        txt.append(tx)
+        str = "Mac OSX  "
     } else if swiftSummary.projectType == ProjectType.iOS {
-        tx = NSMutableAttributedString(string: "iOS    ", attributes: attributesLargeFont)
-        txt.append(tx)
+        str = "iOS    "
     }
+    txt.append(NSMutableAttributedString(string: str, attributes: attributesMediumFont))
 
-    // Print File Name
-    tx  = NSMutableAttributedString(string: "\(selecFileInfo.name)   \(swiftSummary.viewController)\n", attributes: attributesLargeFont)
-    txt.append(tx)
+    // Print File Name LargeFont
+    str = "\(fileInfo.name)   \(swiftSummary.viewController)\n"
+    txt.append(NSMutableAttributedString(string: str, attributes: attributesLargeFont))
 
-    // Print dateCreated, dateModified, createdBy, copyright, version
+    // Print dateCreated, dateModified, createdBy, copyright, version SmallFont
     let dateFormatter = DateFormatter()
     dateFormatter.dateStyle = .medium
     dateFormatter.timeStyle = .none
-    let dateCreated = dateFormatter.string(from: (selecFileInfo.creationDate ?? Date.distantPast))
+    let dateCreated = dateFormatter.string(from: (fileInfo.creationDate ?? Date.distantPast))
 
     dateFormatter.timeStyle = .short
-    let dateModified = dateFormatter.string(from: (selecFileInfo.modificationDate ?? Date.distantPast))
+    let dateModified = dateFormatter.string(from: (fileInfo.modificationDate ?? Date.distantPast))
 
-    tx  = NSMutableAttributedString(string: "created: \(dateCreated)     modified: \(dateModified)\n", attributes: attributesSmallFont)
-    txt.append(tx)
-    tx  = NSMutableAttributedString(string: "\(swiftSummary.createdBy)\n\(swiftSummary.copyright)\n\(swiftSummary.version)\n", attributes: attributesSmallFont)
-    txt.append(tx)
+    str = "created: \(dateCreated)     modified: \(dateModified)\n"
+    txt.append(NSMutableAttributedString(string: str, attributes: attributesSmallFont))
+    str = "\(swiftSummary.createdBy)\n\(swiftSummary.copyright)\n\(swiftSummary.version)\n"
+    txt.append(NSMutableAttributedString(string: str, attributes: attributesSmallFont))
 
     // Print FileSize & various line counts.
     let numberFormatter = NumberFormatter()
     numberFormatter.numberStyle = .decimal
-    let sizeStr = numberFormatter.string(from: selecFileInfo.size as NSNumber) ?? ""
+    let sizeStr = numberFormatter.string(from: fileInfo.size as NSNumber) ?? "???"
+    str = "\(sizeStr) bytes.\n"
+    txt.append(NSMutableAttributedString(string: str, attributes: attributesMediumFont))
 
-    tx  = NSMutableAttributedString(string: "\(sizeStr) bytes.\n", attributes: attributesMediumFont)
-    txt.append(tx)
+    let ww = 5
+    str = "\(swiftSummary.totalLineCount.rtj(ww)) lines total.  "
+    txt.append(NSMutableAttributedString(string: str, attributes: attributesMediumFont))
+    str = "\(swiftSummary.commentLineCount) comment lines.  "
+    txt.append(NSMutableAttributedString(string: str, attributes: attributesSmallFont))
+    str = "\(swiftSummary.blankLineCount) blank lines.\n"
+    txt.append(NSMutableAttributedString(string: str, attributes: attributesSmallFont))
 
-    tx  = NSMutableAttributedString(string: "\(swiftSummary.totalLineCount) lines total.  ", attributes: attributesMediumFont)
-    txt.append(tx)
-    tx  = NSMutableAttributedString(string: "\(swiftSummary.nCommentLine) comment lines.  ", attributes: attributesSmallFont)
-    txt.append(tx)
-    tx  = NSMutableAttributedString(string: "\(swiftSummary.nBlankLine) blank lines.\n", attributes: attributesSmallFont)
-    txt.append(tx)
-    tx  = NSMutableAttributedString(string: "\(swiftSummary.nCodeLine) lines of code.  ", attributes: attributesMediumFont)
-    txt.append(tx)
-    tx  = NSMutableAttributedString(string: "\(swiftSummary.nTrailing) with trailing comments.  ", attributes: attributesSmallFont)
-    txt.append(tx)
-    tx  = NSMutableAttributedString(string: "\(swiftSummary.nEmbedded) with embedded comments.\n", attributes: attributesSmallFont)
-    txt.append(tx)
-    //if deBug {print()}
+    str = "\(swiftSummary.codeLineCount.rtj(ww)) lines of code.  "
+    txt.append(NSMutableAttributedString(string: str, attributes: attributesMediumFont))
+    str = "\(swiftSummary.nTrailing) with trailing comments.  "
+    txt.append(NSMutableAttributedString(string: str, attributes: attributesSmallFont))
+    str = "\(swiftSummary.nEmbedded) with embedded comments.\n"
+    txt.append(NSMutableAttributedString(string: str, attributes: attributesSmallFont))
+
+    if swiftSummary.continueLineCount > 0 {
+        str = "\(swiftSummary.continueLineCount.rtj(ww)) continuation lines.\n"
+        txt.append(NSMutableAttributedString(string: str, attributes: attributesMediumFont))
+    }
+    if swiftSummary.compoundLineCount > 0 {
+        let negCompound = -swiftSummary.compoundLineCount
+        str = "\(negCompound.rtj(ww)) from compound lines.\n"
+        txt.append(NSMutableAttributedString(string: str, attributes: attributesMediumFont))
+    }
 
     // Print Imports
     //swiftSummary.importNames = swiftSummary.imports.map { $0.name }
@@ -98,41 +114,46 @@ public func formatSwiftSummary(swiftSummary: SwiftSummary, selecFileInfo: FileAt
                       BlockType.None.rawValue]
 
     if blockTypes.count != printOrder.count {           // Error Check
-        print("⛔️ Error AnalyseSwift.swift #\(#line) - \(blockTypes.count) blockTypes,  but \(printOrder.count) items in printOrder")
+        print("⛔️ Error formatSwiftSummary #\(#line) - \(blockTypes.count) blockTypes,  but \(printOrder.count) items in printOrder")
     }
 
     // foreach named blockType, show the list of blocks in printOrder
     for i in 0..<blockTypes.count - 1 {
         let blkType = blockTypes[printOrder[i]]
-        tx = showNamedBlock(name: blkType.displayName, blockType: blkType.blockType, list: codeElements)
-        if deBug {print(tx.string)}
-        if blkType.showNone || blkType.count > 0 {txt.append(tx)}
+        if blkType.showNone || blkType.count > 0 {
+            tx = showNamedBlock(name: blkType.displayName, blockType: blkType.blockType, list: codeElements)
+            if deBug { print(tx.string) }
+            txt.append(tx)
+        }
     }
 
     //MARK: Show Issues
 
     let issuesTitle: String
     let totalIssueCount = swiftSummary.nonCamelVars.count + swiftSummary.forceUnwraps.count +
-        swiftSummary.nVBwords + swiftSummary.massiveFile + swiftSummary.massiveFuncs.count
+                        swiftSummary.totalVbCount + swiftSummary.massiveFile + swiftSummary.massiveFuncs.count
     if totalIssueCount == 0 {
-        issuesTitle = selecFileInfo.name + " - No Issues"
+        issuesTitle = fileInfo.name + " - No Issues"
     } else {
-        issuesTitle = "\(selecFileInfo.name) - \(totalIssueCount) Possible Issues"
+        issuesTitle = "\(fileInfo.name) - \(totalIssueCount) Possible Issues"
     }
+
     tx = showDivider(title: issuesTitle)
     txt.append(tx)
 
+    // print File too big
     if swiftSummary.massiveFile > 0 {
         tx = showIssue("\(swiftSummary.fileName) at \(swiftSummary.codeLineCount) code lines, is too big. (>\(CodeRule.maxFileCodeLines))")
         txt.append(tx)
     }
 
+    // print funcs too big
     for massiveFunc in swiftSummary.massiveFuncs {
         tx = showIssue("func \"\(massiveFunc.name)()\" at \(massiveFunc.codeLineCount) code lines, is too big. (>\(CodeRule.maxFuncCodeLines))")
         txt.append(tx)
     }
     // print non-camelCased variables
-    if deBug {print("\n\n😡 \(selecFileInfo.name)\t\t\(selecFileInfo.modificationDate!.ToString("MM-dd-yyyy hh:mm"))")}
+    if deBug {print("\n\n😡 \(fileInfo.name)\t\t\(fileInfo.modificationDate!.ToString("MM-dd-yyyy hh:mm"))")}
     if swiftSummary.nonCamelVars.count > 0 {
         if deBug {print("\n😡 \(swiftSummary.nonCamelVars.count) non-CamelCased variables")}
         for nonCamel in swiftSummary.nonCamelVars {
@@ -144,7 +165,7 @@ public func formatSwiftSummary(swiftSummary: SwiftSummary, selecFileInfo: FileAt
     }
 
     // print forced unwraps
-    if deBug {print("\n\n😡 \(selecFileInfo.name)\t\t\(selecFileInfo.modificationDate!.ToString("MM-dd-yyyy hh:mm"))")}
+    if deBug { print("\n\n😡 \(fileInfo.name)\t\t\(fileInfo.modificationDate!.ToString("MM-dd-yyyy hh:mm"))") }
     if swiftSummary.forceUnwraps.count > 0 {
         if deBug {print("\n😡 \(swiftSummary.forceUnwraps.count) non-forceCased variables")}
         for forceUnwrap in swiftSummary.forceUnwraps {
@@ -156,21 +177,10 @@ public func formatSwiftSummary(swiftSummary: SwiftSummary, selecFileInfo: FileAt
     }
 
     // print VBCompatability stuff
-    if swiftSummary.nVBwords > 0 {
-        var vbLineItems = [LineItem]()
-        if deBug {print("😡 \(swiftSummary.nUniqueVBWords) unique VBCompatability calls, for a total of \(swiftSummary.nVBwords).")}
-        for (key,value) in gDictVBwords.sorted(by: {$0.key < $1.key}) {
-            if value > 0 {
-                let extra = "\(showCount(count: value, name: "time"))"
-                if deBug {print("😡   \(key.PadRight(12)) \(extra)")}
-                vbLineItems.append(LineItem(lineNum: 0, name: key, extra: extra))
-            }
-        }
-        if deBug {print("\n")}
-        tx = showLineItems(name: "VBCompatability call", items: vbLineItems)
+    if swiftSummary.totalVbCount > 0 {
+        tx = showBadCalls(name: "VBCompatability", total: swiftSummary.totalVbCount, calls: swiftSummary.vbCompatCalls)
         txt.append(tx)
     }
-
 
     return (txt)
 }
@@ -180,63 +190,121 @@ public func formatSwiftSummary(swiftSummary: SwiftSummary, selecFileInfo: FileAt
 let paragraphStyleA1 = NSMutableParagraphStyle()    //accessed from showLineItems, showNamedBlock, analyseSwiftFile
 
 public func showDivider(title: String) -> NSMutableAttributedString {
-    let txt = "\n------------------- \(title) -------------------\n"
-    let nsAttTxt = NSMutableAttributedString(string: txt, attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 15), NSAttributedString.Key.paragraphStyle: paragraphStyleA1])
+    let str = "\n------------------- \(title) -------------------\n"
+    let atts = [NSAttributedString.Key.font: NSFont.monospacedDigitSystemFont(ofSize: 15, weight: NSFont.Weight.medium)]
+    let nsAttTxt = NSMutableAttributedString(string: str, attributes: atts)
     return nsAttTxt
 }
 
 public func showIssue(_ text: String) -> NSMutableAttributedString {
-    let txt = "\(text)\n"
-    let nsAttTxt = NSMutableAttributedString(string: txt, attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 15), NSAttributedString.Key.paragraphStyle: paragraphStyleA1])
+    let str = "\(text)\n"
+    let atts =  [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 15)]
+    let nsAttTxt = NSMutableAttributedString(string: str, attributes: atts)
+    return nsAttTxt
+}
+
+// Returns NSMutableAttributedString showing name as a title, followed by list of items (line#, name, extra)
+public func showBadCalls(name: String, total: Int, calls: [String: Int]) -> NSMutableAttributedString {
+    let paragraphStyleA2 = NSMutableParagraphStyle()
+    paragraphStyleA2.tabStops = [
+        NSTextTab(textAlignment: .left,  location: 0),
+        NSTextTab(textAlignment: .left,  location: 40),     // func name
+        NSTextTab(textAlignment: .right, location: 170),    // rt edge of LineNumber
+        NSTextTab(textAlignment: .left,  location: 175),    // name
+        NSTextTab(textAlignment: .left,  location: 225),    // start of xtra column
+        NSTextTab(textAlignment: .left,  location: 275),    // start of xtra column
+        NSTextTab(textAlignment: .left,  location: 325)     // start of xtra column
+    ]
+    let headerAtts = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 17)]
+
+    // 10 VBCompatability funcs called for a total of 24 calls
+    let txt1 = showCount(count: calls.count, name: name + " func", ifZero: "No")
+    let txt2 = showCount(count: total, name: "call", ifZero: "No")
+    let txt = "\n" + txt1 + " called, for a total of " + txt2 + ":\n"
+    let nsAttTxt = NSMutableAttributedString(string: txt, attributes: headerAtts)
+
+    for call in calls.sorted(by: {$0.key < $1.key}) {
+        let ess = call.value == 1 ? " " : "s"
+        let str = "\t\(call.key)\t\(call.value)\ttime\(ess)\n"
+        let nsAttTx = NSAttributedString(string: str, attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 14), NSAttributedString.Key.paragraphStyle: paragraphStyleA2])
+        nsAttTxt.append(nsAttTx)
+    }
     return nsAttTxt
 }
 
 // Returns NSMutableAttributedString showing name as a title, followed by list of items (line#, name, extra)
 public func showLineItems(name: String, items: [LineItem]) -> NSMutableAttributedString {
+    let paragraphStyleA2 = NSMutableParagraphStyle()
+    paragraphStyleA2.tabStops = [
+        NSTextTab(textAlignment: .left,  location: 0),
+        NSTextTab(textAlignment: .left,  location: 52),     // "@ line #"
+        NSTextTab(textAlignment: .right, location: 150),    // rt edge of LineNumber
+        NSTextTab(textAlignment: .left,  location: 170),    // name
+        NSTextTab(textAlignment: .left,  location: 250),    // start of xtra column
+        NSTextTab(textAlignment: .left,  location: 290),    // start of xtra column
+        NSTextTab(textAlignment: .left,  location: 330)     // start of xtra column
+    ]
+    let headerAtts = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 17)]
 
     let txt = "\n" + showCount(count: items.count, name: name, ifZero: "No") + ":\n"
-    let nsAttTxt = NSMutableAttributedString(string: txt, attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 18), NSAttributedString.Key.paragraphStyle: paragraphStyleA1])
+    let nsAttTxt = NSMutableAttributedString(string: txt, attributes: headerAtts)
+
     for item in items {
-        var tx = ""
+        var str = ""
         if item.lineNum != 0 {
-            tx = "         @ line #\t\(formatInt(item.lineNum, wid: 8))    \t\(item.name)"
+            str = "\t@ line #\t\(formatInt(item.lineNum, wid: 8))\t\(item.name)"
         } else {
-            tx = "                 \t        \t\(item.name)"
+            str = "\t\(item.name)"
         }
         if !item.extra.isEmpty {
-            let nSpaces = max(12 - item.name.count, 0) + 2
-            let spaces: String = String(repeating: " ", count: nSpaces)
-            tx += "\(spaces)\t\(item.extra)"
+            str += "\t\(item.extra)"
         }
-        tx += "\n"
-        let nsAttTx = NSAttributedString(string: tx, attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 14), NSAttributedString.Key.paragraphStyle: paragraphStyleA1])
+        str += "\n"
+        let nsAttTx = NSAttributedString(string: str, attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 14), NSAttributedString.Key.paragraphStyle: paragraphStyleA2])
         nsAttTxt.append(nsAttTx)
     }
     return nsAttTxt
 }
 
-// Returns NSMutableAttributedString showing name as a title, followed by list of items (line#, name, extra)
+// Returns NSMutableAttributedString showing name as a title, followed by list of items (codelineCount,line#, name, extra)
 public func showNamedBlock(name: String, blockType: BlockType, list: [BlockInfo]) -> NSMutableAttributedString {
-    let items = list.filter { $0.blockType == blockType}
+    let items = list.filter { $0.blockType == blockType }   // Filter for only this blockType
     let paragraphStyleA2 = NSMutableParagraphStyle()
-    var tabStop0 = NSTextTab(textAlignment: .left, location: 0)
-    paragraphStyleA2.tabStops = [ tabStop0 ]
-    tabStop0 = NSTextTab(textAlignment: .right, location: 50)   //rt edge of 1st number
-    paragraphStyleA2.addTabStop(tabStop0)
-    tabStop0 = NSTextTab(textAlignment: .right, location: 52)    //lines @
-    paragraphStyleA2.addTabStop(tabStop0)
-    tabStop0 = NSTextTab(textAlignment: .right, location: 150)
-    paragraphStyleA2.addTabStop(tabStop0)
-    tabStop0 = NSTextTab(textAlignment: .left,  location: 200)
-    paragraphStyleA2.addTabStop(tabStop0)
+    paragraphStyleA2.tabStops = [
+        NSTextTab(textAlignment: .left,  location: 0),
+        NSTextTab(textAlignment: .right, location: 50),     // rt edge of 1st number (# of lines)
+        NSTextTab(textAlignment: .left,  location: 52),     // "lines @"
+        NSTextTab(textAlignment: .right, location: 150),    // rt edge of 2nd number (LineNum)
+        NSTextTab(textAlignment: .left,  location: 170),    // start of last column
+    ]
+
+    let headerAtts = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 18),
+                      NSAttributedString.Key.paragraphStyle: paragraphStyleA1]
     let txt = "\n" + showCount(count: items.count, name: name, ifZero: "No") + ":\n"
-    let nsAttTxt = NSMutableAttributedString(string: txt, attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 18), NSAttributedString.Key.paragraphStyle: paragraphStyleA1])
+    let nsAttTxt = NSMutableAttributedString(string: txt, attributes: headerAtts)
+
+    let bodyAtts = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 14),
+                NSAttributedString.Key.paragraphStyle: paragraphStyleA2]
     for item in items {
-        var tx = "\t\(formatInt(item.codeLineCount, wid: 5))\t lines @\t\(item.lineNum) \t\(item.name)"
-        if !item.extra.isEmpty {tx += "  (\(item.extra) )"}
-        tx += "\n"
-        let nsAttTx = NSAttributedString(string: tx, attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 14), NSAttributedString.Key.paragraphStyle: paragraphStyleA2])
+        let ess = item.codeLineCount == 1 ? " " : "s"
+        var str = "\t\(item.codeLineCount)\t line\(ess) @\t\(item.lineNum) \t\(item.name)"
+        if !item.extra.isEmpty { str += "  (\(item.extra) )" }
+        str += "\n"
+        let nsAttTx = NSAttributedString(string: str, attributes: bodyAtts)
         nsAttTxt.append(nsAttTx)
     }
     return nsAttTxt
 }
+
+extension Int {
+    // right-justify Int - see showNamedBlock to see how it should be done
+    func rtj(_ width: Int, zero: String = "0" ) -> String {
+        let str: String
+        if self == 0 {
+            str = zero
+        } else {
+            str = String(self)
+        }
+        return str.PadLeft(width)
+    }//end func
+}//end extension Int

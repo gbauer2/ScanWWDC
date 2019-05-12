@@ -118,7 +118,7 @@ func pbxToXcodeProj(_ xcodeprojRaw: String, deBug: Bool = true) {        //104-3
     bufrs.append("")
 
     // Go through file char by char
-    for ptrChar in 0..<chars.count {    //133-165 = 32-lines
+    for ptrChar in 0..<chars.count {    //121-153 = 32-lines
         let char = chars[ptrChar]
 
         if char == "{" {                                    // ------ "{"

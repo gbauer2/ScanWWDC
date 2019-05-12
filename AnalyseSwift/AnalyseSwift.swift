@@ -37,9 +37,17 @@ public struct SwiftSummary {
     var createdBy       = ""
     var version         = ""
     var projectType     = ProjectType.unknown
-    var codeLineCount   = 0
     var byteCount       = 0
-    var totalLineCount  = 0
+
+    var codeLineCount     = 0
+    var continueLineCount = 0
+    var blankLineCount    = 0
+    var commentLineCount  = 0
+    var quoteLineCount    = 0
+    var markupLineCount   = 0
+    var compoundLineCount = 0
+    var totalLineCount    = 0
+
     var funcs           = [FuncInfo]()
     var ibActionFuncs   = [FuncInfo]()
     var overrideFuncs   = [FuncInfo]()
@@ -49,8 +57,6 @@ public struct SwiftSummary {
     var protocolNames   = [String]()
     var extensionNames  = [String]()
     var enumNames       = [String]()
-    var nCommentLine = 0
-    var nBlankLine   = 0
     var nCodeLine    = 0
     var nTrailing    = 0
     var nEmbedded    = 0
@@ -60,9 +66,8 @@ public struct SwiftSummary {
     var forceUnwraps    = [LineItem]()
     var massiveFuncs    = [FuncInfo]()
     var massiveFile     = 0
-    var vbCompatCalls   = [String]()
-    var nVBwords        = 0
-    var nUniqueVBWords  = 0
+    var vbCompatCalls   = [String: Int]()
+    var totalVbCount    = 0
 
     var url = FileManager.default.homeDirectoryForCurrentUser
 }
@@ -91,12 +96,12 @@ internal enum ProjectType {
 }
 
 internal struct BlockAggregate {
-    let blockType:  BlockType
-    let subType:    BlockType
-    let codeName:   String
+    let blockType:   BlockType
+    let subType:     BlockType
+    let codeName:    String
     let displayName: String
-    let showNone:   Bool
-    var count       = 0
+    let showNone:    Bool
+    var count = 0
 }
 
 public struct BlockInfo {
@@ -110,8 +115,8 @@ public struct BlockInfo {
 
 public struct LineItem {
     let lineNum: Int
-    let name:  String
-    let extra: String
+    let name:    String
+    let extra:   String
 }
 
 // MARK: - Helper funcs
@@ -141,7 +146,7 @@ private func gotCloseCurly(lineNum: Int, nCodeLine: Int, deBug: Bool = false) {
 internal func isCamelCase(_ word: String) -> Bool {
 
     //TODO: Change minimum name length to IssuePreference
-    if word == "_" { return true }
+    if word == "_"    { return true }
     if word.count < 2 { return false }
 
     //Allow AllCaps
@@ -198,44 +203,55 @@ internal func getParamNames(line: String) -> [String] {
 }
 
 internal func needsContinuation(codeLineDetail: CodeLineDetail, nextLine: String, lineNum: Int = 0) -> Bool {
-    if codeLineDetail.codeLine.isEmpty { return false }
-    let lastChar = codeLineDetail.codeLine.suffix(1)
-    let firstChar = nextLine.prefix(1)
+    let codeLine = codeLineDetail.codeLine
+    if codeLine.isEmpty { return false }
+    let lastChar = codeLine.suffix(1)
+    let firstCharNextLine = nextLine.prefix(1)
 
-    if lastChar == "=" || firstChar == "=" {return false}
+    if lastChar == "=" || firstCharNextLine == "=" {return true}
 
     if codeLineDetail.bracketMismatch > 0 || codeLineDetail.parenMismatch > 0 {
         if ",()[]".contains(lastChar) {
-            //print("\(lineNum)⬇️ needsContinuation: \(codeLineDetail.parenMismatch) \(codeLineDetail.bracketMismatch) \(codeLineDetail.codeLine)" )
+            //print("\(lineNum)⬇️ needsContinuation: \(codeLineDetail.parenMismatch) \(codeLineDetail.bracketMismatch) \(codeLine)" )
             return true
         }
-        if ",()[]".contains(firstChar) {
-            //print("\(lineNum)⬇️ needsContinuation: \(codeLineDetail.parenMismatch) \(codeLineDetail.bracketMismatch) \(codeLineDetail.codeLine)" )
+        if ",()[]".contains(firstCharNextLine) {
+            //print("\(lineNum)⬇️ needsContinuation: \(codeLineDetail.parenMismatch) \(codeLineDetail.bracketMismatch) \(codeLine)" )
             return true
         }
         print("⛔️ Error AnalyseSwift.swift #\(#line) - from needsContinuation(): OpenClose Mismatch: Paren excess = \(codeLineDetail.parenMismatch) Bracket exess = \(codeLineDetail.bracketMismatch)" )
-        print("  \(lineNum) \(codeLineDetail.codeLine)\n  \(lineNum+1) \(nextLine)" )
+        print("  \(lineNum) \(codeLine)\n  \(lineNum+1) \(nextLine)" )
         print()
-    }
+    }//endif mismatch
 
     let hangers = "=+-*&|"      // "/" does not work - might be "//" or "/*"
     for hanger in hangers {
         let str = String(hanger)
-        if firstChar == str || lastChar == str {
+        if firstCharNextLine == str || lastChar == str {
             return true
         }
     }
-    if firstChar == "/" && nextLine.count >= 2 {
+    if firstCharNextLine == "/" && nextLine.count >= 2 {
         let char2 = nextLine[1]
         if char2 != "/" && char2 != "*" {
             return true
         }
     }
+    for bt in blockTypes {
+        let name = bt.codeName
+        if name.isEmpty || name.contains(" ") { continue }
+        if name.suffix(4) == codeLine.suffix(4) {
+            print(name, codeLine, nextLine)
+            if codeLine == name || codeLine.hasSuffix(" " + name) {
+                return true
+            }
+        }
+    }
     return false
 }
 
-// MARK: - the main event 407-lines
-// called from analyseContentsButtonClicked         //239-646 = 407-lines
+// MARK: - the main event 444-lines
+// called from analyseContentsButtonClicked         //260-704 = 444-lines
 public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, deBug: Bool = true) -> (SwiftSummary) {
     print("🔷 AnalyseSwift.swift #\(#line) Enter AnalyseSwiftFile(\(selecFileInfo.name))")
 
@@ -276,7 +292,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
 
     var codeLineDetail = CodeLineDetail()
 
-    // MARK: Main Loop 282-616 = 334-lines
+    // MARK: Main Loop 300-671 = 371-lines
     while iLine < lines.count {
         //        // Multitasking Check
         //        if selecFileInfo.url != ViewController.latestUrl {
@@ -292,13 +308,14 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             iLine += 1
             lineNum += 1
             if line.isEmpty {
-                swiftSummary.nBlankLine += 1
+                swiftSummary.blankLineCount += 1
                 continue
             }
         } else {                        // Still working in a compound line
             line = fromPrevLine.trim
             fromPrevLine = ""
             if line.isEmpty { continue }
+            swiftSummary.compoundLineCount += 1
         }
 
         // Line Continution
@@ -307,17 +324,38 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             partialLine = ""
         }
 
+        //------------------------
+        if iLine != lineNum {
+            print()
+        }
+        let sum = swiftSummary.blankLineCount + swiftSummary.continueLineCount - swiftSummary.compoundLineCount + swiftSummary.commentLineCount + swiftSummary.markupLineCount + swiftSummary.quoteLineCount + swiftSummary.nCodeLine + 1
+        if sum != lineNum {
+            print(lineNum, sum, swiftSummary.blankLineCount, swiftSummary.continueLineCount, -swiftSummary.compoundLineCount, swiftSummary.commentLineCount, swiftSummary.markupLineCount, swiftSummary.quoteLineCount, swiftSummary.nCodeLine )
+        } else {
+            //print(sum)
+        }
+        //--------------------------
+
         var netCurlys = 0
 
         if line.hasPrefix("/*") {                             // "/*"
-            codeLineDetail.inBlockComment = true
+            if line.hasPrefix("/**") {
+                codeLineDetail.inMultiLine = .blockMarkup
+            } else {
+                codeLineDetail.inMultiLine = .blockComment
+            }
         } else if line.hasPrefix("*/") {                      // "*/"
-            codeLineDetail.inBlockComment = false
+            if codeLineDetail.inMultiLine != .tripleQuote {
+                codeLineDetail.inMultiLine = .none
+            }
         }
-        if codeLineDetail.inBlockComment && line.contains("*/") { codeLineDetail.inBlockComment = false }
-
-        if line.hasPrefix("//") || codeLineDetail.inBlockComment {   // "//"
-            swiftSummary.nCommentLine += 1
+        if codeLineDetail.inMultiLine == .blockComment && line.contains("*/") {
+            codeLineDetail.inMultiLine = .blockComment
+        }
+        if line.hasPrefix("///") || codeLineDetail.inMultiLine == .blockMarkup {   // "///"
+            swiftSummary.markupLineCount += 1
+        } else if line.hasPrefix("//") || codeLineDetail.inMultiLine == .blockComment {   // "//"
+            swiftSummary.commentLineCount += 1
             if swiftSummary.nCodeLine == 0 {
                 if line.contains("Copyright") {
                     swiftSummary.copyright = line
@@ -329,16 +367,18 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             }
             continue
         } else if line.count == 1 {
-            swiftSummary.nBlankLine += 1 //???
-            if line == "{" { gotOpenCurly(lineNum: lineNum) }                                 // single "{" on line
-            if line == "}" { gotCloseCurly(lineNum: lineNum, nCodeLine: swiftSummary.nCodeLine) }          // single "}" on line
+            swiftSummary.blankLineCount += 1 //???
+            if line == "{" { gotOpenCurly(lineNum: lineNum) }                                       // single "{" on line
+            if line == "}" { gotCloseCurly(lineNum: lineNum, nCodeLine: swiftSummary.nCodeLine) }   // single "}" on line
             continue                                                // bypass further processing
-        } else if codeLineDetail.inTripleQuote && !line.contains("\"\"\"") {
+        } else if codeLineDetail.inMultiLine == .tripleQuote && !line.contains("\"\"\"") {
+            swiftSummary.quoteLineCount += 1    //5/10/2019
             continue                                                // bypass further processing???
         }
 
-        // MARK: Code!  343-616 = 273-lines
+        // MARK: Code!  387-671 = 284-lines
 
+        // Call CodeLineDetail.init
         codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: codeLineDetail, lineNum: lineNum)
 
         let codeLineFull = codeLineDetail.codeLine
@@ -349,16 +389,25 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                 swiftSummary.nEmbedded += 1
             }
             if codeLineFull.count <= 1 {
-                if codeLineFull == "{" { gotOpenCurly(lineNum: lineNum) }                                       // single "{" on line
-                if codeLineFull == "}" { gotCloseCurly(lineNum: lineNum, nCodeLine: swiftSummary.nCodeLine) }   // single "}" on line
-                continue                                                // bypass further processing
+                if codeLineFull == "{" {                                    // single "{" plus comment
+                    gotOpenCurly(lineNum: lineNum)
+                    swiftSummary.commentLineCount += 1
+                }   // single "{" plus comment on line
+                if codeLineFull == "}" {                                    // single "}" plus comment
+                    gotCloseCurly(lineNum: lineNum, nCodeLine: swiftSummary.nCodeLine)
+                    swiftSummary.commentLineCount += 1
+                }   // single "}" on line
+                continue                                                    // bypass further processing
             }
         }
         if codeLineFull.isEmpty {
-            continue
+            if !codeLineDetail.isMarkup {
+                print()
+            }
+            continue                                                    // bypass further processing
         }
 
-        //Split compound line
+        // Split compound line
         let codeLine: String
         if  codeLineFull.contains(";") {
             //print("Compound line \"\(codeLineFull)\"")
@@ -375,6 +424,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         if needsContinuation(codeLineDetail: codeLineDetail, nextLine: nextLine, lineNum: lineNum) {
             //print("\(lineNum) Partial line? \"\(line)\" -> \"\(codeLine)\" from #\(#line)")
             partialLine = codeLine
+            swiftSummary.continueLineCount += 1
             continue
         }
 
@@ -408,8 +458,10 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         let words = wordsWithEmpty.filter { !$0.isEmpty }                   // Use filter to eliminate empty strings.
         let firstWord = words.first ?? ""
 
-        // Find Force Unwraps
+        // Check each word
         for word in words {
+
+            // Find Force Unwraps
             if word.hasSuffix("!") && firstWord != "@IBOutlet" {
                 let idx = codeLine.firstIntIndexOf(word)                         // idx is pointer to word
                 let isForce = word.count > 1 || idx == 0 || codeLine[idx-1] != " "    // must not have whitespace before "!"
@@ -430,11 +482,13 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             }
 
             // Find VBCompatability calls
+            //TODO: use default value
             if let count = gDictVBwords[word] {
-                swiftSummary.nVBwords += 1
-                if count == 0 {
-                    swiftSummary.nUniqueVBWords += 1
-                    swiftSummary.vbCompatCalls.append(word)
+                swiftSummary.totalVbCount += 1
+                if swiftSummary.vbCompatCalls[word] == nil {
+                    swiftSummary.vbCompatCalls[word] = 1
+                } else {
+                    swiftSummary.vbCompatCalls[word] = swiftSummary.vbCompatCalls[word]!  + 1
                 }
                 gDictVBwords[word] = count + 1
             }
@@ -502,7 +556,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         }//endif func
 
         //FIXME: THIS IS NUTS
-        while true {//for index in 4...8 {        // containers: 4)Struct, 5)Enum, 6)Extension, 7)Class, 8)isProtocol
+        while true {        //for index in 4...8  containers: 4)Struct, 5)Enum, 6)Extension, 7)Class, 8)Protocol
             if foundNamedBlock { break }
             if words.count < 2 { break }
             let iMax = min(3, words.count)
@@ -621,11 +675,14 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
     swiftSummary.codeLineCount = swiftSummary.nCodeLine
     if swiftSummary.nCodeLine > CodeRule.maxFileCodeLines { swiftSummary.massiveFile = 1 }
 
-    if deBug { print(codeElements.count, " named blocks") }         // Sanity Check
+    if deBug { print("\n\(codeElements.count) named blocks") }         // Sanity Check
     for c in codeElements {
-        let iBT = Int(c.blockType.rawValue)
-        let cType = ("\(c.blockType)" + "        ").left(14)
-        if deBug {print("# \(c.lineNum),\t\(c.codeLineCount) lines, \t\(cType)\t\(c.name)  \(c.extra)  \(iBT)")}
+
+        if deBug {
+            let iBT = Int(c.blockType.rawValue)
+            let cType = "\(c.blockType)".PadRight(14)
+            print("# \(c.lineNum),\t\(c.codeLineCount) lines, \t\(cType)\t\(c.name)  \(c.extra)  \(iBT)")
+        }
 
         switch c.blockType {
         case .Func:

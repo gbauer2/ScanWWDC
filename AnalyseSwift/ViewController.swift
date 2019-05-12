@@ -21,6 +21,7 @@
 
 // Code:
 // change state storage to userDefaults
+// Unit-Test CodeLineDetail for tripleQuote
 
 // showContents - Swift file:
 //  Fix namesColor to include:  classNames, funcNames, InstanceVars, Globals, & library names (MK- for MapKit,  etc.)
@@ -40,6 +41,8 @@
 // Bug: Handle "var ee: Int=0, ff = 0, gg: Int" vs "var hh = kk.substring(start: 1, length:2)"
 // Bug: Handle Raw String with multiple asterisks (***"..."*** )
 // Bug: Does not show "init" as a func
+// Bug: Continuation Line on let, var, etc
+// Show Continuation-Line count; Compound-Line count; verify total
 // dependency
 // computed variables, var observer
 // show commentLinesCount(dead code?) vs MarkupLineCount (///) (/**)
@@ -59,9 +62,7 @@
 //   CodeLine too long
 //   Missing Unit-Test
 //   Type-Names must Start with Uppercase
-
-//Done:
-// Fix: Force-Unwrap inside interpolation now detected
+//   Compound lines
 
 import Cocoa    /* partial-line Block Comment does work.*/
 /* single-line Block Comment does work. */
@@ -156,14 +157,14 @@ class ViewController: NSViewController, NSWindowDelegate {
 
             } else if selecFileInfo.isDir {                     // isDir
                 if selectedUrl.pathExtension == "xcodeproj" {
-                    readContentsButton.isEnabled = false
                     analyseMode = .xcodeproj                    //  3) analyse FileName.xcodeproj
+                    readContentsButton.isEnabled    = false
                     analyseContentsButton.isEnabled = true
                     print("🔷 ViewController #\(#line) selectedItemUrl is xcodeproj File: \(selectedUrl.lastPathComponent)")
                     analyseContentsButtonClicked(self)
 
                 } else {                                        //  4) show dir contents
-                    readContentsButton.isEnabled = false
+                    readContentsButton.isEnabled    = false
                     analyseContentsButton.isEnabled = false
                     let tempFilesList = myContentsOf(folder: selectedUrl)
                     var tempStr = ""
@@ -243,7 +244,7 @@ class ViewController: NSViewController, NSWindowDelegate {
     }
 
     // Recursive func to find .xcodeproj files & list them in Global var xcodprojURLs
-    public func findAllXcodeprojFiles(_ folder: URL) {
+    func findAllXcodeprojFiles(_ folder: URL) {
         do {
             let contents = try FileManager.default.contentsOfDirectory(atPath: folder.path) // fileNames
             let urls = contents
@@ -576,7 +577,7 @@ extension ViewController {
                         if  self.analyseMode == .swift {
                             //var swiftSummary = SwiftSummary()
                             let swiftSummary = analyseSwiftFile(contentFromFile: contentFromFile, selecFileInfo: self.selecFileInfo, deBug: true )
-                            txt = formatSwiftSummary(swiftSummary: swiftSummary, selecFileInfo: self.selecFileInfo, deBug: true)
+                            txt = formatSwiftSummary(swiftSummary: swiftSummary, fileInfo: self.selecFileInfo, deBug: true)
                         } else if self.analyseMode == .WWDC {
                             txt = analyseWWDC(contentFromFile, selecFileInfo: self.selecFileInfo)
                         } else {
@@ -837,6 +838,7 @@ extension ViewController {
         xxx =
         """
         3rd triple quote
+        with more tha 1 line
         """
         print(xxx)
     }//end func test

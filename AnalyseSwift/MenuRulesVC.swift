@@ -24,7 +24,7 @@ public struct CR {
     var msgError      = ""      // 6 msg displayed in not valid           "Enter Number beween 200 and 1000"
     var type:ValType  = .text   // 7 .text, .int, .bool                   .int
     var defaultStr    = ""      // 8 textVal before any user changes      1000
-    var textVal       = ""  {    // 9 Value as Text                        "1000"
+    var textVal       = "" {    // 9 Value as Text                        "1000"
         didSet {
             print("🍎 didSet textVal = \(textVal)")
             print()
@@ -84,13 +84,13 @@ public struct CR {
     //MARK: Helper funcs
 
     mutating func initHelper(tag: Int, idx: Int, name: String, key: String, helpMsg: String, dfault: String) {
-        controlTag  = tag                               // 1 =
-        self.name   = name                              // 2 =
-        let i = idx % 64
-        bitVal      = UInt64(pow(2.0, Double(i))+0.5)   // 3 =
-        keyUsrDefault = makeKey(name: name, key: key)   // 4 =
-        msgHelp     = helpMsg                           // 5 =*
-        defaultStr  = dfault                            // 8 =
+        controlTag    = tag                                     // 1 =
+        self.name     = name                                    // 2 =
+        let idxMod64  = idx % 64    // 64 bits available
+        bitVal        = UInt64(pow(2.0, Double(idxMod64))+0.5)  // 3 =
+        keyUsrDefault = makeKey(name: name, key: key)           // 4 =
+        msgHelp       = helpMsg                                 // 5 =*
+        defaultStr    = dfault                                  // 8 =
     }
 
     internal func makeKey(name: String, key: String) -> String {

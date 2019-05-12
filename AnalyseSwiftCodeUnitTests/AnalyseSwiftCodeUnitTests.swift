@@ -138,29 +138,29 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
     //11 CodeLineDetails.swift
     func testCodeLineDetailInit() {
         var line = ""
-        var codeLineDetail = CodeLineDetail()
+        var codeLineDetail     = CodeLineDetail()
         var prevCodeLineDetail = CodeLineDetail()
 
-        prevCodeLineDetail.inBlockComment = false
+        prevCodeLineDetail.inMultiLine = .none
         line = ##" i = #"xxx\#"## + ##"(myVar)yyy"#"##
         codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
         //stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
         XCTAssertEqual(codeLineDetail.codeLine, ##"i = #"~~~~~ myVar ~~~"#"##)
 
-        prevCodeLineDetail.inBlockComment = false
+        prevCodeLineDetail.inMultiLine = .none
         line = ##" i = "xxx\(myVar)yyy""##
         codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
         //stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
         XCTAssertEqual(codeLineDetail.codeLine, #"i = "~~~~ myVar ~~~""#)
 
-        prevCodeLineDetail.inBlockComment = false
+        prevCodeLineDetail.inMultiLine = .none
         line = #"""
         print("\"") //ok
         """#
         codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
         XCTAssertEqual(codeLineDetail.codeLine, #"print("~~")"#)
 
-        codeLineDetail.inBlockComment = false
+        prevCodeLineDetail.inMultiLine = .none
         line = ##"a=#"1\"2"#"##
         codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
         XCTAssertEqual(codeLineDetail.codeLine,##"a=#"~~~~"#"##)
@@ -174,7 +174,7 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         XCTAssertEqual(codeLineDetail.codeLine, #"print("~~ s ")"#)
         XCTAssertFalse(codeLineDetail.hasTrailingComment)
         XCTAssertFalse(codeLineDetail.hasEmbeddedComment)
-        XCTAssertFalse(codeLineDetail.inBlockComment)
+        XCTAssertEqual(codeLineDetail.inMultiLine, InMultiLine.none)    //(codeLineDetail.inBlockComment)
 
         line = #"a="\n""#
         codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
@@ -221,20 +221,22 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
         XCTAssertEqual(codeLineDetail.codeLine, "#\"~~~\"#")
 
-        prevCodeLineDetail.inBlockComment = true
+        prevCodeLineDetail.inMultiLine = .blockComment
         line = "myVar = false    // Comment"
         codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
         XCTAssertEqual(codeLineDetail.codeLine, "")
         XCTAssertFalse(codeLineDetail.hasTrailingComment)
         XCTAssertFalse(codeLineDetail.hasEmbeddedComment)
-        XCTAssertTrue(codeLineDetail.inBlockComment)
+        XCTAssertEqual(codeLineDetail.inMultiLine, InMultiLine.blockComment)
+        //XCTAssertTrue(codeLineDetail.inBlockComment)
 
+        prevCodeLineDetail.inMultiLine = .blockComment
         line = "comment*/myVar = false    // Comment"
         codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
         XCTAssertEqual(codeLineDetail.codeLine, "myVar = false")
         XCTAssertTrue(codeLineDetail.hasTrailingComment)
         XCTAssertFalse(codeLineDetail.hasEmbeddedComment)
-        XCTAssertFalse(codeLineDetail.inBlockComment)
+        XCTAssertEqual(codeLineDetail.inMultiLine, InMultiLine.none)
     }
 
     //186 AnalyseSwift.swift
@@ -247,7 +249,7 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
      line 5
  */
     func testNeedsContinuation() {
-        let lineNum = 0
+        //let lineNum = 0
         var codeLineDetail = CodeLineDetail()
         var codeLine = ""
         var nextLine = ""
@@ -256,13 +258,13 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         codeLine = "test"
         nextLine = ",next"
         codeLineDetail.codeLine = codeLine
-        result = needsContinuation(codeLineDetail: codeLineDetail, nextLine: nextLine, lineNum: lineNum)
+        result = needsContinuation(codeLineDetail: codeLineDetail, nextLine: nextLine, lineNum: 1001)
         XCTAssertFalse(result)
 
         codeLine = "test"
         nextLine = ",next"
         codeLineDetail.codeLine = codeLine
-        result = needsContinuation(codeLineDetail: codeLineDetail, nextLine: nextLine, lineNum: lineNum)
+        result = needsContinuation(codeLineDetail: codeLineDetail, nextLine: nextLine, lineNum: 2001)
         XCTAssertFalse(result)
 
         codeLineDetail.bracketMismatch = 1
@@ -270,25 +272,37 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         codeLine = "[test"
         nextLine = "next"
         codeLineDetail.codeLine = codeLine
-        result = needsContinuation(codeLineDetail: codeLineDetail, nextLine: nextLine, lineNum: lineNum)
+        result = needsContinuation(codeLineDetail: codeLineDetail, nextLine: nextLine, lineNum: 3001)
         XCTAssertFalse(result)
 
         codeLine = "[test,"
         nextLine = "next"
         codeLineDetail.codeLine = codeLine
-        result = needsContinuation(codeLineDetail: codeLineDetail, nextLine: nextLine, lineNum: lineNum)
+        result = needsContinuation(codeLineDetail: codeLineDetail, nextLine: nextLine, lineNum: 4001)
         XCTAssertTrue(result)
 
         codeLine = "[test"
         nextLine = ",next"
         codeLineDetail.codeLine = codeLine
-        result = needsContinuation(codeLineDetail: codeLineDetail, nextLine: nextLine, lineNum: lineNum)
+        result = needsContinuation(codeLineDetail: codeLineDetail, nextLine: nextLine, lineNum: 5001)
         XCTAssertTrue(result)
 
         codeLine = "test["
         nextLine = "next"
         codeLineDetail.codeLine = codeLine
-        result = needsContinuation(codeLineDetail: codeLineDetail, nextLine: nextLine, lineNum: lineNum)
+        result = needsContinuation(codeLineDetail: codeLineDetail, nextLine: nextLine, lineNum: 6001)
+        XCTAssertTrue(result)
+
+        codeLine = "func"
+        nextLine = "myFunc() {}"
+        codeLineDetail.codeLine = codeLine
+        result = needsContinuation(codeLineDetail: codeLineDetail, nextLine: nextLine, lineNum: 7001)
+        XCTAssertTrue(result)
+
+        codeLine = "class"
+        nextLine = "ViewController {}"
+        codeLineDetail.codeLine = codeLine
+        result = needsContinuation(codeLineDetail: codeLineDetail, nextLine: nextLine, lineNum: 7001)
         XCTAssertTrue(result)
     }
 
