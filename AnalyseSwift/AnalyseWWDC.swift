@@ -14,9 +14,8 @@ func analyseWWDC(_ str: String, selecFileInfo: FileAttributes) -> NSAttributedSt
     let lines = str.components(separatedBy: "\n")
     var attTx: NSMutableAttributedString = NSMutableAttributedString(string: "")
     let attTxt:NSMutableAttributedString = NSMutableAttributedString(string: "")
-    let attributesLargeFont   = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 20), NSAttributedString.Key.paragraphStyle: paragraphStyleA1]
-    //let attributesMediumFont = [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 16), NSAttributedStringKey.paragraphStyle: paragraphStyleA1]
-    let attributesSmallFont   = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 12), NSAttributedString.Key.paragraphStyle: paragraphStyleA1]
+    let attributesLargeFont   = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 20)]
+    let attributesSmallFont   = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 12)]
 
     var year = ""
     for i in 0...2 {

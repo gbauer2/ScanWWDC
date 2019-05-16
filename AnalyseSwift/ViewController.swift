@@ -42,12 +42,13 @@
 // Bug: Handle Raw String with multiple asterisks (***"..."*** )
 // Bug: Does not show "init" as a func
 // Bug: Continuation Line on let, var, etc
-// Show Continuation-Line count; Compound-Line count; verify total
+// Show massive files/funcs in proper format
 // dependency
 // computed variables, var observer
 // show commentLinesCount(dead code?) vs MarkupLineCount (///) (/**)
 // organize by MARK: or by extension
-// allow extensions other than class
+// allow extensions other than class - esp protocols & structs
+// make Issues-first display optional
 
 //MenuRulesVC:
 // Refresh analysis when user changes rules
@@ -56,13 +57,18 @@
 // More Issues to Flag:
 //   Global vars, singletons (dependency injection?)
 //   Free functions vs methods
+//   Public func without markup
 //   Var name too short or too long
 //   //TODO: //FIXME:
-//   Multiple declarations on a line
+//   Compound lines (;) and Multiple declarations on a line (,)
 //   CodeLine too long
 //   Missing Unit-Test
 //   Type-Names must Start with Uppercase
-//   Compound lines
+//   Find "NS..." or "UI..." to check OS
+
+//  Done:
+// Show Continuation-Line count; Compound-Line count; verify total using monospacedDigitSystemFont
+//  Show Issues first for SwiftSummary
 
 import Cocoa    /* partial-line Block Comment does work.*/
 /* single-line Block Comment does work. */
@@ -70,6 +76,16 @@ import Cocoa    /* partial-line Block Comment does work.*/
 /* To generate compiler warnings:
  #warning("This code is incomplete.")
 */
+
+public enum DebugLevel {
+    case errorOnly, warningAlso, all
+}
+public enum TraceLevel {
+    case none, major, all
+}
+public let gDebug: DebugLevel = .warningAlso
+public let gTrace: TraceLevel = .major
+
 class ViewController: NSViewController, NSWindowDelegate {
 
     enum AnalyseMode {
@@ -146,21 +162,26 @@ class ViewController: NSViewController, NSWindowDelegate {
                 analyseMode = .swift                            //  1) analyse Swift
                 readContentsButton.isEnabled    = true
                 analyseContentsButton.isEnabled = true
-                print("🔷 ViewController #\(#line) selectedItemUrl is Swift File: \(selectedUrl.lastPathComponent)")
-                analyseContentsButtonClicked(self)
+                if gTrace != .none {
+                    print("🔷 ViewController #\(#line) selectedItemUrl is Swift File: \(selectedUrl.lastPathComponent)")
+                }
+                    analyseContentsButtonClicked(self)
 
             } else if selectedUrl.lastPathComponent.hasPrefix("WWDC-20") && selectedUrl.pathExtension == "txt" {
                 readContentsButton.isEnabled = true
                 analyseMode = .WWDC                             //  2) analyse WWDC-20xx.txt
                 analyseContentsButton.isEnabled = true
-                print("🔷 ViewController #\(#line) selectedItemUrl is WWDC20xx.txt File: \(selectedUrl.lastPathComponent)")
-
+                if gTrace != .none {
+                    print("🔷 ViewController #\(#line) selectedItemUrl is WWDC20xx.txt File: \(selectedUrl.lastPathComponent)")
+                }
             } else if selecFileInfo.isDir {                     // isDir
                 if selectedUrl.pathExtension == "xcodeproj" {
                     analyseMode = .xcodeproj                    //  3) analyse FileName.xcodeproj
                     readContentsButton.isEnabled    = false
                     analyseContentsButton.isEnabled = true
-                    print("🔷 ViewController #\(#line) selectedItemUrl is xcodeproj File: \(selectedUrl.lastPathComponent)")
+                    if gTrace != .none {
+                        print("🔷 ViewController #\(#line) selectedItemUrl is xcodeproj File: \(selectedUrl.lastPathComponent)")
+                        }
                     analyseContentsButtonClicked(self)
 
                 } else {                                        //  4) show dir contents
@@ -577,7 +598,8 @@ extension ViewController {
                         if  self.analyseMode == .swift {
                             //var swiftSummary = SwiftSummary()
                             let swiftSummary = analyseSwiftFile(contentFromFile: contentFromFile, selecFileInfo: self.selecFileInfo, deBug: true )
-                            txt = formatSwiftSummary(swiftSummary: swiftSummary, fileInfo: self.selecFileInfo, deBug: true)
+                            let attStr = SwiftSumAttStr(swiftSummary: swiftSummary, fileInfo: self.selecFileInfo, showWhat: .summaryFirst)
+                            txt = attStr.completeAttText
                         } else if self.analyseMode == .WWDC {
                             txt = analyseWWDC(contentFromFile, selecFileInfo: self.selecFileInfo)
                         } else {

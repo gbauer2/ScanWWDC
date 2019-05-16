@@ -324,8 +324,8 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
 
     //284 AnalyseSwift.swift
     func testAnalyseSwiftFileLong() {
-        let fileAtt = FileAttributes(url: URL(fileURLWithPath: "/????"), name: "????", creationDate: Date(), modificationDate: Date(), size: 1234, isDir: false)
-        let sw = analyseSwiftFile(contentFromFile: sampleCode, selecFileInfo: fileAtt, deBug: true)
+        let fileAtt = FileAttributes(url: URL(fileURLWithPath: "/????"), name: "sampleCodeLong", creationDate: Date(), modificationDate: Date(), size: 1234, isDir: false)
+        let sw = analyseSwiftFile(contentFromFile: sampleCodeLong, selecFileInfo: fileAtt, deBug: true)
         XCTAssertEqual(sw.byteCount,   1234, "")
         XCTAssertEqual(sw.classNames.count,   1, "")
         if !sw.classNames.isEmpty { XCTAssertEqual(sw.classNames[0], "MySampleClass", "")}
@@ -333,7 +333,7 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         //XCTAssertEqual(sw.enumNames[0], "SortType", "")
         XCTAssertEqual(sw.extensionNames.count,   0, "")
         //XCTAssertEqual(sw.extensionNames[0], "ViewController", "")
-        XCTAssertEqual(sw.fileName, "????", "")
+        XCTAssertEqual(sw.fileName, "sampleCodeLong", "")
         XCTAssertEqual(sw.funcs.count,    5, "")
         XCTAssertEqual(sw.codeLineCount, 73, "")
         XCTAssertEqual(sw.nonCamelVars.count, 14, "")
@@ -345,7 +345,7 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
 
     //284 AnalyseSwift.swift
     func testAnalyseSwiftFileShort() {
-        let fileAtt = FileAttributes(url: URL(fileURLWithPath: "/????"), name: "????", creationDate: Date(), modificationDate: Date(), size: 1234, isDir: false)
+        let fileAtt = FileAttributes(url: URL(fileURLWithPath: "/????"), name: "sampleCodeShort", creationDate: Date(), modificationDate: Date(), size: 1234, isDir: false)
         let sw = analyseSwiftFile(contentFromFile: sampleCodeShort, selecFileInfo: fileAtt, deBug: true)
         XCTAssertEqual(sw.byteCount,   1234, "")
 
@@ -460,7 +460,7 @@ RawString
     ARKit provides a cutting-edge platform for developing augmented reality (AR) apps for iPhone and...
     """
 
-    let sampleCode = #"""
+    let sampleCodeLong = #"""
 //
 //  SampleCode.swift
 //  AnalyseSwiftCode

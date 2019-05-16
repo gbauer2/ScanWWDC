@@ -122,20 +122,20 @@ public struct LineItem {
 // MARK: - Helper funcs
 
 //---- gotOpenCurly - push "ondeck" onto stack, clear ondeck,  stackedCounter = nCodeLines
-private func gotOpenCurly(lineNum: Int, deBug: Bool = false) {
-    //if deBug { print("\(lineNum) got open curly; depth \(curlyDepth) -> \(curlyDepth+1)") }
+private func gotOpenCurly(lineNum: Int) {
+    if gTrace == .all { print("\(lineNum) got open curly; depth \(curlyDepth) -> \(curlyDepth+1)") }
     blockStack.insert(blockOnDeck, at: 0)
     blockOnDeck = BlockInfo()
     curlyDepth += 1
 }
 
 //---- gotCloseCurly - pop stackedCounter lines4item = nCodeLines - stackedCounter
-private func gotCloseCurly(lineNum: Int, nCodeLine: Int, deBug: Bool = false) {
-    //if deBug {print("\(lineNum) got close curly; depth \(curlyDepth) -> \(curlyDepth-1)")}
+private func gotCloseCurly(lineNum: Int, nCodeLine: Int) {
+    if gTrace == .all {print("\(lineNum) got close curly; depth \(curlyDepth) -> \(curlyDepth-1)")}
     curlyDepth -= 1
     var block = blockStack.remove(at: 0)
     if block.blockType != .None {
-        //if deBug {print("\(block.name)")}
+        if gDebug == .all {print("\(block.name)")}
         block.codeLineCount = nCodeLine - block.codeLinesAtStart // lineNum - block.lineNum
         codeElements.append(block)
     }
@@ -145,7 +145,7 @@ private func gotCloseCurly(lineNum: Int, nCodeLine: Int, deBug: Bool = false) {
 // Uses CodeRule
 internal func isCamelCase(_ word: String) -> Bool {
 
-    //TODO: Change minimum name length to IssuePreference
+    //TODO: Make minimum name length an IssuePreference
     if word == "_"    { return true }
     if word.count < 2 { return false }
 
@@ -252,10 +252,11 @@ internal func needsContinuation(codeLineDetail: CodeLineDetail, nextLine: String
 
 // MARK: - the main event 444-lines
 // called from analyseContentsButtonClicked         //260-704 = 444-lines
-public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, deBug: Bool = true) -> (SwiftSummary) {
-    print("🔷 AnalyseSwift.swift #\(#line) Enter AnalyseSwiftFile(\(selecFileInfo.name))")
-
+public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, deBug: Bool) -> (SwiftSummary) {
     let lines = contentFromFile.components(separatedBy: "\n")
+    if gTrace != .none {
+        print("🔷 AnalyseSwift.swift #\(#line) Enter AnalyseSwiftFile (\(selecFileInfo.name) \(lines.count) lines)")
+    }
 
     resetVBwords()
 
@@ -286,7 +287,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
 
     func recordNonCamelcase(_ name: String) {
         let lineItem = LineItem(lineNum: lineNum, name: name, extra: "")
-        if deBug {print("➡️ \(lineItem.lineNum) Non-CamelCased \(lineItem.name)")}
+        if deBug && gDebug == .all {print("➡️ \(lineItem.lineNum) Non-CamelCased \(lineItem.name)")}
         swiftSummary.nonCamelVars.append(lineItem)
     }
 
@@ -402,7 +403,9 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         }
         if codeLineFull.isEmpty {
             if !codeLineDetail.isMarkup {
-                print()
+                if deBug {
+                    print("⛔️ Empty CodeLine \(codeLineDetail.lineNum): \"\(codeLineDetail.trimLine)\"")
+                }
             }
             continue                                                    // bypass further processing
         }
@@ -467,7 +470,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                 let isForce = word.count > 1 || idx == 0 || codeLine[idx-1] != " "    // must not have whitespace before "!"
                 if isForce {
                     let extra = getExtraForForceUnwrap(codeLineClean: codeLine, word: word, idx: idx)
-                    if deBug {
+                    if deBug && gDebug == .all {
                         print("line \(lineNum): \(word)")
                         print(codeLine)
                     }
@@ -482,16 +485,11 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             }
 
             // Find VBCompatability calls
-            //TODO: use default value
-            if let count = gDictVBwords[word] {
+            if gDictVBwords[word] != nil {
                 swiftSummary.totalVbCount += 1
-                if swiftSummary.vbCompatCalls[word] == nil {
-                    swiftSummary.vbCompatCalls[word] = 1
-                } else {
-                    swiftSummary.vbCompatCalls[word] = swiftSummary.vbCompatCalls[word]!  + 1
-                }
-                gDictVBwords[word] = count + 1
+                swiftSummary.vbCompatCalls[word, default: 0] += 1
             }
+
         }//next word
 
         var codeName = "import"
@@ -622,7 +620,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             }
         }
 
-        //if deBug {print("➡️ \(codeLineClean)")}
+        //if deBug && gDebug == .all {print("➡️ \(codeLineClean)")}
 
         // problems
         // let ee,ff:Int
@@ -675,10 +673,10 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
     swiftSummary.codeLineCount = swiftSummary.nCodeLine
     if swiftSummary.nCodeLine > CodeRule.maxFileCodeLines { swiftSummary.massiveFile = 1 }
 
-    if deBug { print("\n\(codeElements.count) named blocks") }         // Sanity Check
+    if deBug && gDebug == .all { print("\n\(codeElements.count) named blocks") }         // Sanity Check
     for c in codeElements {
 
-        if deBug {
+        if deBug && gDebug == .all {
             let iBT = Int(c.blockType.rawValue)
             let cType = "\(c.blockType)".PadRight(14)
             print("# \(c.lineNum),\t\(c.codeLineCount) lines, \t\(cType)\t\(c.name)  \(c.extra)  \(iBT)")
