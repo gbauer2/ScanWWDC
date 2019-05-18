@@ -69,6 +69,9 @@ public struct SwiftSummary {
     var vbCompatCalls   = [String: Int]()
     var totalVbCount    = 0
 
+    var issueCatsCount  = 0
+    var totalIssues     = 0
+
     var url = FileManager.default.homeDirectoryForCurrentUser
 }
 
@@ -288,6 +291,8 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
     func recordNonCamelcase(_ name: String) {
         let lineItem = LineItem(lineNum: lineNum, name: name, extra: "")
         if deBug && gDebug == .all {print("➡️ \(lineItem.lineNum) Non-CamelCased \(lineItem.name)")}
+        if swiftSummary.nonCamelVars.isEmpty { swiftSummary.issueCatsCount += 1 }
+        swiftSummary.totalIssues += 1
         swiftSummary.nonCamelVars.append(lineItem)
     }
 
@@ -479,13 +484,16 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                         let comps = word.components(separatedBy: ".")
                         xword = "." + (comps.last ?? "")
                     }
+                    if swiftSummary.forceUnwraps.isEmpty { swiftSummary.issueCatsCount += 1 }
+                    swiftSummary.totalIssues += 1
                     swiftSummary.forceUnwraps.append(LineItem(lineNum: lineNum, name: xword, extra: extra))
-                    //forceUnwraps.append(xword)
                 }
             }
 
             // Find VBCompatability calls
             if gDictVBwords[word] != nil {
+                if swiftSummary.vbCompatCalls[word] == nil { swiftSummary.issueCatsCount += 1 }
+                swiftSummary.totalIssues += 1
                 swiftSummary.totalVbCount += 1
                 swiftSummary.vbCompatCalls[word, default: 0] += 1
             }
@@ -554,8 +562,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         }//endif func
 
         //FIXME: THIS IS NUTS
-        while true {        //for index in 4...8  containers: 4)Struct, 5)Enum, 6)Extension, 7)Class, 8)Protocol
-            if foundNamedBlock { break }
+        while !foundNamedBlock {    //for index in 4...8  containers: 4)Struct, 5)Enum, 6)Extension, 7)Class, 8)Protocol
             if words.count < 2 { break }
             let iMax = min(3, words.count)
             var index = -1
@@ -671,7 +678,11 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
     swiftSummary.byteCount = selecFileInfo.size
     swiftSummary.totalLineCount = lineNum
     swiftSummary.codeLineCount = swiftSummary.nCodeLine
-    if swiftSummary.nCodeLine > CodeRule.maxFileCodeLines { swiftSummary.massiveFile = 1 }
+    if swiftSummary.nCodeLine > CodeRule.maxFileCodeLines {
+        if swiftSummary.massiveFile == 0 { swiftSummary.issueCatsCount += 1 }
+        swiftSummary.totalIssues += 1
+        swiftSummary.massiveFile = 1
+    }
 
     if deBug && gDebug == .all { print("\n\(codeElements.count) named blocks") }         // Sanity Check
     for c in codeElements {
@@ -686,6 +697,8 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         case .Func:
             swiftSummary.funcs.append(FuncInfo(name: c.name, codeLineCount: c.codeLineCount))
             if c.codeLineCount > CodeRule.maxFuncCodeLines {
+                if swiftSummary.massiveFuncs.isEmpty { swiftSummary.issueCatsCount += 1 }
+                swiftSummary.totalIssues += 1
                 swiftSummary.massiveFuncs.append(FuncInfo(name: c.name, codeLineCount: c.codeLineCount))
             }
         case .IBActionFunc: swiftSummary.ibActionFuncs.append(FuncInfo(name: c.name, codeLineCount: c.codeLineCount))

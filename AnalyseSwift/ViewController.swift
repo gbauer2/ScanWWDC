@@ -7,7 +7,6 @@
 //
 
 // User Interface:
-// Make ">" companion to "< Up" or maybe a "< back"
 // When in full screen mode - Show file-path above window
 // make btnFindAllxcodeproj the default if popup touched.
 // toggle btnFindAllxcodeproj to "Abort" when running, (and disable other buttons).
@@ -67,8 +66,7 @@
 //   Find "NS..." or "UI..." to check OS
 
 //  Done:
-// Show Continuation-Line count; Compound-Line count; verify total using monospacedDigitSystemFont
-//  Show Issues first for SwiftSummary
+// Make "<" & ">" companions to "↑ Up"
 
 import Cocoa    /* partial-line Block Comment does work.*/
 /* single-line Block Comment does work. */
@@ -101,9 +99,12 @@ class ViewController: NSViewController, NSWindowDelegate {
     @IBOutlet weak var infoTextView: NSTextView!
     @IBOutlet weak var saveInfoButton:          NSButton!
     @IBOutlet weak var moveUpButton:            NSButton!
+    @IBOutlet weak var btnBack:                 NSButton!
+    @IBOutlet weak var btnForward:              NSButton!
     @IBOutlet weak var readContentsButton:      NSButton!
     @IBOutlet weak var analyseContentsButton:   NSButton!
     @IBOutlet weak var btnFindAllxcodeproj:     NSButton!
+    @IBOutlet weak var chkIssuesFirst:          NSButton!
     @IBOutlet weak var popupBaseDir:            NSPopUpButton!
 
     // MARK: - Properties
@@ -123,6 +124,8 @@ class ViewController: NSViewController, NSWindowDelegate {
     var analyseMode = AnalyseMode.none      // .WWDC, .swift, or .xcodeproj
     var xcodeprojFileCount = 0
 
+    var stackDirBackUrls = [URL]()
+    var stackDirForwardUrls = [URL]()
     var xcodeprojURLs = [URL]()
     let baseURL = URL(fileURLWithPath: "~")
 
@@ -489,6 +492,8 @@ extension ViewController {
 
         panel.beginSheetModal(for: window) { (result) in
             if result.rawValue == NSFileHandlingPanelOKButton {
+                //clearForwardStack, pushBackStack
+                self.pushDirBackStack()
                 self.selectedFolderUrl = panel.urls[0]
                 //print(self.selectedFolderUrl)
             }
@@ -531,17 +536,68 @@ extension ViewController {
         let selectedItem = filesList[tableView.selectedRow]
 
         if selectedItem.hasDirectoryPath {
+            //clearForwardStack, pushBackStack
+            self.pushDirBackStack()
             selectedFolderUrl = selectedItem
         } else {
             //showFileContents(url: selectedItem)
         }
     }//end func
 
+    func pushDirBackStack() {
+        //clearForwardStack, pushBackStack
+        self.stackDirForwardUrls = []
+        self.stackDirBackUrls.append(self.selectedFolderUrl!)
+        self.btnBack.isEnabled = true
+    }
+
+    func popDirBackStack() -> URL? {
+        if !self.stackDirBackUrls.isEmpty {
+            let url = self.stackDirBackUrls.removeLast()
+            self.stackDirForwardUrls.append(self.selectedFolderUrl!)
+            self.btnForward.isEnabled = true
+            if self.stackDirBackUrls.isEmpty {
+                self.btnBack.isEnabled = false
+            }
+            return url
+        }
+        return nil
+    }
+
+    func popDirForwardStack() -> URL? {
+        if !self.stackDirForwardUrls.isEmpty {
+            let url = self.stackDirForwardUrls.removeLast()
+            self.stackDirBackUrls.append(self.selectedFolderUrl!)
+            self.btnBack.isEnabled = true
+            if self.stackDirForwardUrls.isEmpty {
+                self.btnForward.isEnabled = false
+            }
+            return url
+        }
+        return nil
+    }
+
+    @IBAction func btnBackClicked( _ sender: Any) {
+        //print("Back Button Clicked")
+        self.selectedFolderUrl = popDirBackStack()
+    }
+
+     @IBAction func btnForwardClicked( _ sender: Any) {
+     //print("Forward Button Clicked")
+        self.selectedFolderUrl = popDirForwardStack()
+     }
+
     // user clicked on UpOneLevel button, so select parent
     @IBAction func moveUpClicked(_ sender: Any) {
         if selectedFolderUrl?.path == "/" { return }
+        //clearForwardStack, pushBackStack
+        self.pushDirBackStack()
         selectedFolderUrl = selectedFolderUrl?.deletingLastPathComponent()
     }
+
+     @IBAction func chkIssuesFirstClicked(_ sender: Any) {
+        //TODO: Add logic to reload analysis
+     }
 
     // saveInfo Clicked
     @IBAction func saveInfoClicked(_ sender: Any) {
@@ -592,13 +648,14 @@ extension ViewController {
                     if analyseFuncLocked { return }                  // because analyseSwiftFile() is not thread-save
                     analyseFuncLocked = true                         // Lock the button
                     analyseContentsButton.isEnabled = false
+                    let issuesFirst = self.chkIssuesFirst.state == .on
                     infoTextView.string = "Analysing..."
                     DispatchQueue.global(qos: .userInitiated).async {
                         var txt: NSAttributedString
                         if  self.analyseMode == .swift {
                             //var swiftSummary = SwiftSummary()
                             let swiftSummary = analyseSwiftFile(contentFromFile: contentFromFile, selecFileInfo: self.selecFileInfo, deBug: true )
-                            let attStr = SwiftSumAttStr(swiftSummary: swiftSummary, fileInfo: self.selecFileInfo, showWhat: .summaryFirst)
+                            let attStr = SwiftSumAttStr(swiftSummary: swiftSummary, fileInfo: self.selecFileInfo, issuesFirst: issuesFirst)
                             txt = attStr.completeAttText
                         } else if self.analyseMode == .WWDC {
                             txt = analyseWWDC(contentFromFile, selecFileInfo: self.selecFileInfo)
@@ -685,7 +742,8 @@ extension ViewController {
 
         let parentForStorage = selectedFolderUrl?.path ?? ""
         let fileForStorage = selectedItemUrl?.path ?? ""
-        let completeData = "\(parentForStorage)\n\(fileForStorage)\n"
+        let issuesFirstTxt = chkIssuesFirst.state == .on ? "true" : "false"
+        let completeData = "\(parentForStorage)\n\(fileForStorage)\n\(issuesFirstTxt)\n"
 
         try? completeData.write(to: dataFileUrl, atomically: true, encoding: .utf8)
     }//end func
@@ -701,6 +759,15 @@ extension ViewController {
             let storedData = try String(contentsOf: dataFileUrl)
             let storedDataComponents = storedData.components(separatedBy: .newlines)
             if storedDataComponents.count >= 2 {
+
+                if storedDataComponents.count >= 3 {
+                    if storedDataComponents[2] == "true" {
+                        chkIssuesFirst.state = .on
+                    } else {
+                        chkIssuesFirst.state = .off
+                    }
+                }//endif >=3
+
                 if !storedDataComponents[0].isEmpty {
                     selectedFolderUrl = URL(fileURLWithPath: storedDataComponents[0])
                     if !storedDataComponents[1].isEmpty {
@@ -708,7 +775,7 @@ extension ViewController {
                         selectUrlInTable(selectedItemUrl)
                     }
                 }
-            }
+            }//endif >=2
         } catch {
             print("😡 #\(#line): restoreCurrentSelections error: \(error)")
         }

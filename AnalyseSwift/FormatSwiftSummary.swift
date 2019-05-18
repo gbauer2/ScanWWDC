@@ -8,8 +8,6 @@
 
 import Cocoa
 
-public enum SwiftToShow { case summaryFirst, issuesFirst }
-
 struct SwiftSumAttStr {
     var completeAttText = NSMutableAttributedString()
     let fontMonoDigitLarge  = NSFont.monospacedDigitSystemFont(ofSize: 18, weight: NSFont.Weight.medium)
@@ -18,7 +16,7 @@ struct SwiftSumAttStr {
     let fontNormal          = NSFont.systemFont(ofSize: 14)
     let fontSmall           = NSFont.systemFont(ofSize: 12)
 
-    init(swiftSummary: SwiftSummary, fileInfo: FileAttributes, showWhat: SwiftToShow) {   // 21-51 = 40-lines
+    init(swiftSummary: SwiftSummary, fileInfo: FileAttributes, issuesFirst: Bool) {   // 21-51 = 40-lines
         completeAttText = NSMutableAttributedString(string: "")
 
         // Display Tab-stop ruler & fonts
@@ -46,10 +44,19 @@ struct SwiftSumAttStr {
             txt.append(NSMutableAttributedString(string: str, attributes: atts))
             self.completeAttText.append(txt)
         }
+        if issuesFirst {
+            self.completeAttText.append(showIssues(swiftSummary: swiftSummary, fileInfo: fileInfo))
 
-        self.completeAttText.append(showIssues(swiftSummary: swiftSummary, fileInfo: fileInfo))
-        self.completeAttText.append(showSummary(swiftSummary: swiftSummary, fileInfo: fileInfo))
-    }
+            let blankLines = max(0, 25 - swiftSummary.totalIssues - swiftSummary.issueCatsCount)
+            let str = String.init(repeating: "\n", count: blankLines) + "-------------------------------------------------------------------------\n"
+            self.completeAttText.append(NSMutableAttributedString(string: str, attributes: [NSAttributedString.Key.font: fontMonoDigitMedium]))
+
+            self.completeAttText.append(showSummary(swiftSummary: swiftSummary, fileInfo: fileInfo))
+        } else {
+            self.completeAttText.append(showSummary(swiftSummary: swiftSummary, fileInfo: fileInfo))
+            self.completeAttText.append(showIssues(swiftSummary: swiftSummary, fileInfo: fileInfo))
+        }
+    }//end init
 
     func showSummary(swiftSummary: SwiftSummary, fileInfo: FileAttributes) -> NSMutableAttributedString { // 54-163 = 109-lines
         var tx: NSMutableAttributedString = NSMutableAttributedString(string: "")
@@ -168,12 +175,10 @@ struct SwiftSumAttStr {
         var tx: NSMutableAttributedString = NSMutableAttributedString(string: "")
         let txt:NSMutableAttributedString = NSMutableAttributedString(string: "")
         let issuesTitle: String
-        let totalIssueCount = swiftSummary.nonCamelVars.count + swiftSummary.forceUnwraps.count +
-            swiftSummary.totalVbCount + swiftSummary.massiveFile + swiftSummary.massiveFuncs.count
-        if totalIssueCount == 0 {
+        if swiftSummary.totalIssues == 0 {
             issuesTitle = fileInfo.name + " - No Issues"
         } else {
-            issuesTitle = "\(fileInfo.name) - \(totalIssueCount) Possible Issues"
+            issuesTitle = "\(fileInfo.name) - \(swiftSummary.totalIssues) Possible Issues"
         }
 
         tx = showDivider(title: issuesTitle, font: fontMonoDigitMedium)
@@ -183,7 +188,6 @@ struct SwiftSumAttStr {
         if swiftSummary.massiveFile > 0 {
             tx = showIssue("\(swiftSummary.fileName) at \(swiftSummary.codeLineCount) code lines, is too big. (>\(CodeRule.maxFileCodeLines))")
             txt.append(tx)
-
         }
 
         // MARK: Funcs too big.
@@ -221,8 +225,6 @@ struct SwiftSumAttStr {
             tx = showBadCalls(title: "VBCompatability", total: swiftSummary.totalVbCount, calls: swiftSummary.vbCompatCalls)
             txt.append(tx)
         }
-        let str = "-------------------------------------------------------------------------\n\n\n\n"
-        txt.append(NSMutableAttributedString(string: str, attributes: [NSAttributedString.Key.font: fontMonoDigitMedium]))
 
         return (txt)
     }
