@@ -15,15 +15,15 @@ fileprivate var blockStack      = [BlockInfo]()         //accessed from gotOpenC
 public      var codeElements    = [BlockInfo]()         //accessed from               gotCloseCurly, analyseSwiftFile
 
 var blockTypes = [
-BlockAggregate(blockType: .None,        subType: .None, codeName: "",             displayName: "unNamed",      showNone: false,count: 0),
-BlockAggregate(blockType: .Func,        subType: .Func, codeName: "func",         displayName: "Regular func", showNone: true, count: 0),
-BlockAggregate(blockType: .IBActionFunc,subType: .Func, codeName: "IBAction func",displayName: "IBAction func",showNone: false,count: 0),
-BlockAggregate(blockType: .OverrideFunc,subType: .Func, codeName: "override func",displayName: "Override func",showNone: false,count: 0),
-BlockAggregate(blockType: .Struct,      subType: .Struct,codeName:"struct",       displayName: "Struct",       showNone: false,count: 0),
-BlockAggregate(blockType: .Enum,        subType: .Enum, codeName: "enum",         displayName: "Enum",         showNone: false,count: 0),
-BlockAggregate(blockType: .Extension,   subType: .Class,codeName: "extension",    displayName: "Extension",    showNone: false,count: 0),
-BlockAggregate(blockType: .Class,       subType: .Class,codeName: "class",        displayName: "Class",        showNone: true, count: 0),
-BlockAggregate(blockType: .isProtocol,  subType: .isProtocol,codeName: "protocol",displayName: "Protocol",     showNone: false,count: 0)
+BlockAggregate(blockType: .None,       codeName: "",          displayName: "unNamed",       showNone: false, total: 0),
+BlockAggregate(blockType: .Func,       codeName: "func",      displayName: "Regular func",  showNone: true,  total: 0),
+BlockAggregate(blockType: .IBAction,   codeName: "IBAction",  displayName: "IBAction func", showNone: false, total: 0),
+BlockAggregate(blockType: .isOverride, codeName: "override",  displayName: "Override func", showNone: false, total: 0),
+BlockAggregate(blockType: .Struct,     codeName: "struct",    displayName: "Struct",        showNone: false, total: 0),
+BlockAggregate(blockType: .Enum,       codeName: "enum",      displayName: "Enum",          showNone: false, total: 0),
+BlockAggregate(blockType: .Extension,  codeName: "extension", displayName: "Extension",     showNone: false, total: 0),
+BlockAggregate(blockType: .Class,      codeName: "class",     displayName: "Class",         showNone: true,  total: 0),
+BlockAggregate(blockType: .isProtocol, codeName: "protocol",  displayName: "Protocol",      showNone: false, total: 0)
 ]
 
 
@@ -49,9 +49,8 @@ public struct SwiftSummary {
     var totalLineCount    = 0
 
     var imports         = [LineItem]()
-    var nCodeLine    = 0
-    var nTrailing    = 0
-    var nEmbedded    = 0
+    var nTrailing       = 0
+    var nEmbedded       = 0
 
     // issues
     var nonCamelVars    = [LineItem]()      // "@ line #   51   TestTargetID"
@@ -64,39 +63,33 @@ public struct SwiftSummary {
     var issueCatsCount  = 0
     var totalIssues     = 0
 
-    var url = FileManager.default.homeDirectoryForCurrentUser
+    var url             = FileManager.default.homeDirectoryForCurrentUser
 }//end struct SwiftSummary
 
 internal struct FuncInfo {
-    var name = ""
+    var name          = ""
     var codeLineCount = 0
 }
 
 public enum BlockType: Int {
-    case None           = 0
-    case Func           = 1
-    case IBActionFunc   = 2
-    case OverrideFunc   = 3
-    case Struct         = 4
-    case Enum           = 5
-    case Extension      = 6
-    case Class          = 7
-    case isProtocol     = 8
+    case None       = 0
+    case Func       = 1
+    case IBAction   = 2
+    case isOverride = 3
+    case Struct     = 4
+    case Enum       = 5
+    case Extension  = 6
+    case Class      = 7
+    case isProtocol = 8
 }
 
-internal enum ProjectType {
-    case unknown
-    case OSX
-    case iOS
-}
-
+// Search words, Display directives, Total Count(for display)
 internal struct BlockAggregate {
     let blockType:   BlockType
-    let subType:     BlockType
     let codeName:    String
     let displayName: String
     let showNone:    Bool
-    var count = 0
+    var total        = 0
 }
 
 // for use in "139 lines@ 104 pbxToXcodeProj xtra"
@@ -116,6 +109,12 @@ public struct LineItem {
     var timesUsed   = 0
     var codeLineCt  = 0
     var extra       = ""
+}
+
+internal enum ProjectType {
+    case unknown
+    case OSX
+    case iOS
 }
 
 // MARK: - Helper funcs
@@ -201,20 +200,32 @@ internal func getParamNames(line: String) -> [String] {
     return paramNames
 }
 
+// Returns true if we need to append the next line onto this line
 internal func needsContinuation(codeLineDetail: CodeLineDetail, nextLine: String, lineNum: Int = 0) -> Bool {
     let codeLine = codeLineDetail.codeLine
     if codeLine.isEmpty { return false }
     let lastChar = codeLine.suffix(1)
     let firstCharNextLine = nextLine.prefix(1)
 
-    if lastChar == "=" || firstCharNextLine == "=" {return true}
+    // Lines ending (or nextline starting) with certain punctuation
+    let hangers = ",=+-*&|"      // "/" does not work - might be "//" or "/*"
+    if  hangers.contains(lastChar)          { return true }
+    if  hangers.contains(firstCharNextLine) { return true }
 
+    if firstCharNextLine == "/" && nextLine.count >= 2 {
+        let char2 = nextLine[1]
+        if char2 != "/" && char2 != "*" {
+            return true
+        }
+    }
+
+    // Lines with bracketMismatch or parenMismatch
     if codeLineDetail.bracketMismatch > 0 || codeLineDetail.parenMismatch > 0 {
-        if ",()[]".contains(lastChar) {
+        if "()[]".contains(lastChar) {
             //print("\(lineNum)⬇️ needsContinuation: \(codeLineDetail.parenMismatch) \(codeLineDetail.bracketMismatch) \(codeLine)" )
             return true
         }
-        if ",()[]".contains(firstCharNextLine) {
+        if "()[]".contains(firstCharNextLine) {
             //print("\(lineNum)⬇️ needsContinuation: \(codeLineDetail.parenMismatch) \(codeLineDetail.bracketMismatch) \(codeLine)" )
             return true
         }
@@ -223,22 +234,10 @@ internal func needsContinuation(codeLineDetail: CodeLineDetail, nextLine: String
         print()
     }//endif mismatch
 
-    let hangers = "=+-*&|"      // "/" does not work - might be "//" or "/*"
-    for hanger in hangers {
-        let str = String(hanger)
-        if firstCharNextLine == str || lastChar == str {
-            return true
-        }
-    }
-    if firstCharNextLine == "/" && nextLine.count >= 2 {
-        let char2 = nextLine[1]
-        if char2 != "/" && char2 != "*" {
-            return true
-        }
-    }
+    // Lines ending in certain keywords
     for bt in blockTypes {
         let name = bt.codeName
-        if name.isEmpty || name.contains(" ") { continue } // ignore "none", "IBAction func", "override func"
+        if name.isEmpty { continue } // ignore "none"
         if name.suffix(4) == codeLine.suffix(4) {
             if codeLine == name || codeLine.hasSuffix(" " + name) {
                 print("#\(#line) needsContinuation, source line \(lineNum) \n\(name) \(codeLine) \n\(nextLine)")
@@ -246,6 +245,9 @@ internal func needsContinuation(codeLineDetail: CodeLineDetail, nextLine: String
             }
         }
     }
+//    if !"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789{}[]()!\"?:;".contains(lastChar) {
+//        print("\(codeLine)")
+//    }
     return false
 }
 
@@ -265,7 +267,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
 
     var blockLookup = [String : Int]()
     for (i, bkTyp) in blockTypes.enumerated() {
-        blockTypes[i].count = 0                 // Reset Counter
+        blockTypes[i].total = 0                 // Reset Counter
         blockLookup[bkTyp.codeName] = i         // Set Lookup Name
     }
 
@@ -326,17 +328,12 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             partialLine = ""
         }
 
-        //------------------------
-        if iLine != lineNum {
-            print()
+        //------- Sanity Check ------
+        let sum = swiftSummary.blankLineCount + swiftSummary.continueLineCount - swiftSummary.compoundLineCount + swiftSummary.commentLineCount + swiftSummary.markupLineCount + swiftSummary.quoteLineCount + swiftSummary.codeLineCount + 1
+        if sum != lineNum || iLine != lineNum {
+            print(lineNum, sum, swiftSummary.blankLineCount, swiftSummary.continueLineCount, -swiftSummary.compoundLineCount, swiftSummary.commentLineCount, swiftSummary.markupLineCount, swiftSummary.quoteLineCount, swiftSummary.codeLineCount )
         }
-        let sum = swiftSummary.blankLineCount + swiftSummary.continueLineCount - swiftSummary.compoundLineCount + swiftSummary.commentLineCount + swiftSummary.markupLineCount + swiftSummary.quoteLineCount + swiftSummary.nCodeLine + 1
-        if sum != lineNum {
-            print(lineNum, sum, swiftSummary.blankLineCount, swiftSummary.continueLineCount, -swiftSummary.compoundLineCount, swiftSummary.commentLineCount, swiftSummary.markupLineCount, swiftSummary.quoteLineCount, swiftSummary.nCodeLine )
-        } else {
-            //print(sum)
-        }
-        //--------------------------
+        //---------------------------
 
         var netCurlys = 0
 
@@ -358,7 +355,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             swiftSummary.markupLineCount += 1
         } else if line.hasPrefix("//") || codeLineDetail.inMultiLine == .blockComment {   // "//"
             swiftSummary.commentLineCount += 1
-            if swiftSummary.nCodeLine == 0 {
+            if swiftSummary.codeLineCount == 0 {
                 if line.contains("Copyright") {
                     swiftSummary.copyright = line
                 } else if line.contains("Created by ") {
@@ -371,7 +368,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         } else if line.count == 1 {
             swiftSummary.blankLineCount += 1 //???
             if line == "{" { gotOpenCurly(lineNum: lineNum) }                                       // single "{" on line
-            if line == "}" { gotCloseCurly(lineNum: lineNum, nCodeLine: swiftSummary.nCodeLine) }   // single "}" on line
+            if line == "}" { gotCloseCurly(lineNum: lineNum, nCodeLine: swiftSummary.codeLineCount) }   // single "}" on line
             continue                                                // bypass further processing
         } else if codeLineDetail.inMultiLine == .tripleQuote && !line.contains("\"\"\"") {
             swiftSummary.quoteLineCount += 1    //5/10/2019
@@ -396,7 +393,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                     swiftSummary.commentLineCount += 1
                 }   // single "{" plus comment on line
                 if codeLineFull == "}" {                                    // single "}" plus comment
-                    gotCloseCurly(lineNum: lineNum, nCodeLine: swiftSummary.nCodeLine)
+                    gotCloseCurly(lineNum: lineNum, nCodeLine: swiftSummary.codeLineCount)
                     swiftSummary.commentLineCount += 1
                 }   // single "}" on line
                 continue                                                    // bypass further processing
@@ -432,7 +429,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             continue
         }
 
-        swiftSummary.nCodeLine += 1
+        swiftSummary.codeLineCount += 1
 
         var pOpenCurlyF  = codeLine.firstIntIndexOf("{")
         var pOpenCurlyR  = codeLine.lastIntIndexOf("{")
@@ -534,18 +531,18 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                 print("⛔️ AnalyseSwift.swift #\(#line) Probable line-continuation (end with 'func')")
             }
 
-            blockOnDeck = BlockInfo(blockType: .Func, lineNum: lineNum, codeLinesAtStart: swiftSummary.nCodeLine, name: funcName, extra: "", codeLineCount: 0)
+            blockOnDeck = BlockInfo(blockType: .Func, lineNum: lineNum, codeLinesAtStart: swiftSummary.codeLineCount, name: funcName, extra: "", codeLineCount: 0)
             if posFunc > 0 {
                 if firstWord == "override" {
-                    index = BlockType.OverrideFunc.rawValue                                // OverrideFunc
-                    blockOnDeck.blockType = .OverrideFunc
-                    blockTypes[index].count += 1
+                    index = BlockType.isOverride.rawValue                               // isOverride
+                    blockOnDeck.blockType = .isOverride
+                    blockTypes[index].total += 1
                 } else if firstWord == "@IBAction" {
-                    index = BlockType.IBActionFunc.rawValue                                // IBActionFunc
-                    blockOnDeck.blockType = .IBActionFunc
-                    blockTypes[index].count += 1
-                } else {                            //private, internal, fileprivate, public
-                    index = BlockType.Func.rawValue                                         // Func
+                    index = BlockType.IBAction.rawValue                                 // IBAction
+                    blockOnDeck.blockType = .IBAction
+                    blockTypes[index].total += 1
+                } else {                // private, internal, fileprivate, public
+                    index = BlockType.Func.rawValue                                     // Func
                     containerName = ""
                     if blockStack.count > 0 {
                         containerName = (blockStack.last!.name)
@@ -553,7 +550,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                     } else {
                         print("⚠️ Free func: \(blockOnDeck.name)")
                     }
-                    blockTypes[index].count += 1
+                    blockTypes[index].total += 1
                 }
             }
             foundNamedBlock = true
@@ -562,7 +559,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         //FIXME: THIS IS NUTS
         while !foundNamedBlock {    //for index in 4...8  containers: 4)Struct, 5)Enum, 6)Extension, 7)Class, 8)Protocol
             if words.count < 2 { break }
-            let iMax = min(3, words.count)
+            let iMax = min(4, words.count)
             var index = -1
             for i in 0..<iMax {     // see if Block-Type appeaer in 1st 4 words
                 if let idx = blockLookup[words[i]] {
@@ -586,9 +583,9 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                 if codeName == "class" && words.count >= 3 && words[2].contains("ViewController") {
                     swiftSummary.viewController = words[2]
                 }
-                blockOnDeck = BlockInfo(blockType: blockTypes[index].blockType, lineNum: lineNum, codeLinesAtStart: swiftSummary.nCodeLine, name: itemName, extra: extra, codeLineCount: 0)
+                blockOnDeck = BlockInfo(blockType: blockTypes[index].blockType, lineNum: lineNum, codeLinesAtStart: swiftSummary.codeLineCount, name: itemName, extra: extra, codeLineCount: 0)
 
-                blockTypes[index].count += 1
+                blockTypes[index].total += 1
                 foundNamedBlock = true
                 break
             }//endif codeLine.contains
@@ -602,7 +599,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             netCurlys -= 1
         }
         if pCloseCurlyF >= 0 && (pOpenCurlyF < 0 || pCloseCurlyF < pOpenCurlyF) {       // starts with }
-            gotCloseCurly(lineNum: lineNum, nCodeLine: swiftSummary.nCodeLine)
+            gotCloseCurly(lineNum: lineNum, nCodeLine: swiftSummary.codeLineCount)
             netCurlys += 1
         }
 
@@ -611,7 +608,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                 gotOpenCurly(lineNum: lineNum)
                 netCurlys -= 1
             } else if netCurlys < 0 {
-                gotCloseCurly(lineNum: lineNum, nCodeLine: swiftSummary.nCodeLine)
+                gotCloseCurly(lineNum: lineNum, nCodeLine: swiftSummary.codeLineCount)
                 netCurlys += 1
             }
         }
@@ -658,8 +655,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             }//next assignee
         } else { // "let " or "var " not at beginning if line ?????
             if codeLine.contains(" let ") || codeLine.contains(" var ") {
-                print(codeLine)
-                print()
+                print("⛔️ #\(#line) Missed a declaration in \"\(codeLine)\"")
             }
         }
     }//next line
@@ -671,8 +667,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
 
     swiftSummary.byteCount = selecFileInfo.size
     swiftSummary.totalLineCount = lineNum
-    swiftSummary.codeLineCount = swiftSummary.nCodeLine
-    if swiftSummary.nCodeLine > CodeRule.maxFileCodeLines {
+    if swiftSummary.codeLineCount > CodeRule.maxFileCodeLines {
         if swiftSummary.massiveFile == 0 { swiftSummary.issueCatsCount += 1 }
         swiftSummary.totalIssues += 1
         swiftSummary.massiveFile = 1

@@ -147,8 +147,8 @@ struct SwiftSumAttStr {
                           BlockType.isProtocol.rawValue,
                           BlockType.Class.rawValue,
                           BlockType.Extension.rawValue,
-                          BlockType.OverrideFunc.rawValue,
-                          BlockType.IBActionFunc.rawValue,
+                          BlockType.isOverride.rawValue,
+                          BlockType.IBAction.rawValue,
                           BlockType.Func.rawValue,
                           BlockType.None.rawValue]
 
@@ -159,7 +159,7 @@ struct SwiftSumAttStr {
         // foreach named blockType, show the list of blocks in printOrder
         for i in 0..<blockTypes.count - 1 {
             let blkType = blockTypes[printOrder[i]]
-            if blkType.showNone || blkType.count > 0 {
+            if blkType.showNone || blkType.total > 0 {
                 tx = showNamedBlock(title: blkType.displayName, blockType: blkType.blockType, list: codeElements)
                 if gDebug == .all { print(tx.string) }
                 txt.append(tx)

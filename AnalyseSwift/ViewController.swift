@@ -41,6 +41,7 @@
 // Bug: Handle Raw String with multiple asterisks (***"..."*** )
 // Bug: Does not show "init" as a func
 // Bug: Continuation Line on let, var, etc
+// Bug: "*/" comes through as a codeline
 // Show massive files/funcs in proper format
 // dependency
 // computed variables, var observer
