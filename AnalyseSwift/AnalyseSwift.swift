@@ -48,32 +48,24 @@ public struct SwiftSummary {
     var compoundLineCount = 0
     var totalLineCount    = 0
 
-    var funcs           = [FuncInfo]()
-    var ibActionFuncs   = [FuncInfo]()
-    var overrideFuncs   = [FuncInfo]()
     var imports         = [LineItem]()
-    var classNames      = [String]()
-    var structNames     = [String]()
-    var protocolNames   = [String]()
-    var extensionNames  = [String]()
-    var enumNames       = [String]()
     var nCodeLine    = 0
     var nTrailing    = 0
     var nEmbedded    = 0
 
     // issues
-    var nonCamelVars    = [LineItem]()
-    var forceUnwraps    = [LineItem]()
+    var nonCamelVars    = [LineItem]()      // "@ line #   51   TestTargetID"
+    var forceUnwraps    = [LineItem]()      // "@ line #   59   .first!   print(comps.first!)"
     var massiveFuncs    = [FuncInfo]()
     var massiveFile     = 0
-    var vbCompatCalls   = [String: Int]()
+    var vbCompatCalls   = [String: Int]()   // "VB.Left     3    times"
     var totalVbCount    = 0
 
     var issueCatsCount  = 0
     var totalIssues     = 0
 
     var url = FileManager.default.homeDirectoryForCurrentUser
-}
+}//end struct SwiftSummary
 
 internal struct FuncInfo {
     var name = ""
@@ -107,6 +99,7 @@ internal struct BlockAggregate {
     var count = 0
 }
 
+// for use in "139 lines@ 104 pbxToXcodeProj xtra"
 public struct BlockInfo {
     var blockType        = BlockType.None
     var lineNum          = 0
@@ -116,10 +109,13 @@ public struct BlockInfo {
     var codeLineCount    = 0
 }
 
+// for use in "@line# 51 TestTargetID xtra"
 public struct LineItem {
-    let lineNum: Int
-    let name:    String
-    let extra:   String
+    let name:       String
+    let lineNum:    Int
+    var timesUsed   = 0
+    var codeLineCt  = 0
+    var extra       = ""
 }
 
 // MARK: - Helper funcs
@@ -138,7 +134,7 @@ private func gotCloseCurly(lineNum: Int, nCodeLine: Int) {
     curlyDepth -= 1
     var block = blockStack.remove(at: 0)
     if block.blockType != .None {
-        if gDebug == .all {print("\(block.name)")}
+        if gDebug == .all {print("#\(#line) \(block.name)")}
         block.codeLineCount = nCodeLine - block.codeLinesAtStart // lineNum - block.lineNum
         codeElements.append(block)
     }
@@ -149,7 +145,7 @@ private func gotCloseCurly(lineNum: Int, nCodeLine: Int) {
 internal func isCamelCase(_ word: String) -> Bool {
 
     //TODO: Make minimum name length an IssuePreference
-    if word == "_"    { return true }
+    if word == "_"    { return true  }
     if word.count < 2 { return false }
 
     //Allow AllCaps
@@ -242,10 +238,10 @@ internal func needsContinuation(codeLineDetail: CodeLineDetail, nextLine: String
     }
     for bt in blockTypes {
         let name = bt.codeName
-        if name.isEmpty || name.contains(" ") { continue }
+        if name.isEmpty || name.contains(" ") { continue } // ignore "none", "IBAction func", "override func"
         if name.suffix(4) == codeLine.suffix(4) {
-            print(name, codeLine, nextLine)
             if codeLine == name || codeLine.hasSuffix(" " + name) {
+                print("#\(#line) needsContinuation, source line \(lineNum) \n\(name) \(codeLine) \n\(nextLine)")
                 return true
             }
         }
@@ -289,7 +285,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
     var iLine           = 0
 
     func recordNonCamelcase(_ name: String) {
-        let lineItem = LineItem(lineNum: lineNum, name: name, extra: "")
+        let lineItem = LineItem(name: name, lineNum: lineNum,timesUsed: 1, codeLineCt: 0, extra: "")
         if deBug && gDebug == .all {print("➡️ \(lineItem.lineNum) Non-CamelCased \(lineItem.name)")}
         if swiftSummary.nonCamelVars.isEmpty { swiftSummary.issueCatsCount += 1 }
         swiftSummary.totalIssues += 1
@@ -486,7 +482,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                     }
                     if swiftSummary.forceUnwraps.isEmpty { swiftSummary.issueCatsCount += 1 }
                     swiftSummary.totalIssues += 1
-                    swiftSummary.forceUnwraps.append(LineItem(lineNum: lineNum, name: xword, extra: extra))
+                    swiftSummary.forceUnwraps.append(LineItem(name: xword, lineNum: lineNum, timesUsed: 0, codeLineCt: 0, extra: extra))
                 }
             }
 
@@ -504,7 +500,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         if firstWord == codeName {
             let itemName: String
             if words.count > 1 { itemName = words[1] } else { itemName = "?" }
-            let lineItem = LineItem(lineNum: lineNum, name: itemName, extra: "")
+            let lineItem = LineItem(name: itemName, lineNum: lineNum, timesUsed: 1, codeLineCt: 0, extra: "")
             swiftSummary.imports.append(lineItem)
             if itemName == "Cocoa" {
                 swiftSummary.projectType = ProjectType.OSX
@@ -554,6 +550,8 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                     if blockStack.count > 0 {
                         containerName = (blockStack.last!.name)
                         blockOnDeck.name = "\(containerName).\(blockOnDeck.name)"
+                    } else {
+                        print("⚠️ Free func: \(blockOnDeck.name)")
                     }
                     blockTypes[index].count += 1
                 }
@@ -589,15 +587,6 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                     swiftSummary.viewController = words[2]
                 }
                 blockOnDeck = BlockInfo(blockType: blockTypes[index].blockType, lineNum: lineNum, codeLinesAtStart: swiftSummary.nCodeLine, name: itemName, extra: extra, codeLineCount: 0)
-
-                switch index {
-                case 4 :  swiftSummary.structNames.append(itemName)
-                case 5 :  swiftSummary.enumNames.append(itemName)
-                case 6 :  swiftSummary.extensionNames.append(itemName)
-                case 7 :  swiftSummary.classNames.append(itemName)
-                case 8 :  swiftSummary.protocolNames.append(itemName)
-                default: break
-                }
 
                 blockTypes[index].count += 1
                 foundNamedBlock = true
@@ -648,8 +637,10 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             var assigneeList = comps1[0]                                // Strip off right side of "="
             let comps2 = assigneeList.components(separatedBy: ":")
             assigneeList = comps2[0]                                    // Strip off right side of ":"
-            let assignees = assigneeList.components(separatedBy: ",")
+            let assignees = assigneeList.components(separatedBy: ",").map { $0.trim }
             //if deBug {print(codeLineTrunc, assignees)}
+            let isGlobal = blockStack.isEmpty ? true : false
+
             for assignee in assignees {
                 var name = assignee.trim
                 if name.hasPrefix("(") {
@@ -657,6 +648,9 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                 }
                 if name.hasSuffix(")") {
                     name = String(name.dropLast()).trim
+                }
+                if isGlobal {
+                    print("⚠️ global: \(assignees)")
                 }
                 if !isCamelCase(name) {
                     recordNonCamelcase(name)
@@ -695,14 +689,11 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
 
         switch c.blockType {
         case .Func:
-            swiftSummary.funcs.append(FuncInfo(name: c.name, codeLineCount: c.codeLineCount))
             if c.codeLineCount > CodeRule.maxFuncCodeLines {
                 if swiftSummary.massiveFuncs.isEmpty { swiftSummary.issueCatsCount += 1 }
                 swiftSummary.totalIssues += 1
                 swiftSummary.massiveFuncs.append(FuncInfo(name: c.name, codeLineCount: c.codeLineCount))
             }
-        case .IBActionFunc: swiftSummary.ibActionFuncs.append(FuncInfo(name: c.name, codeLineCount: c.codeLineCount))
-        case .OverrideFunc: swiftSummary.overrideFuncs.append(FuncInfo(name: c.name, codeLineCount: c.codeLineCount))
         default: break
         }
     }

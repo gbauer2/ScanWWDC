@@ -23,7 +23,7 @@
 // Unit-Test CodeLineDetail for tripleQuote
 
 // showContents - Swift file:
-//  Fix namesColor to include:  classNames, funcNames, InstanceVars, Globals, & library names (MK- for MapKit,  etc.)
+//  Fix namesColor to include:  ClassNames, funcNames, InstanceVars, Globals, & library names (MK- for MapKit,  etc.)
 //     e.g. NSColor, URL, false
 //  User chooses colors & truncation
 
@@ -66,7 +66,6 @@
 //   Find "NS..." or "UI..." to check OS
 
 //  Done:
-// Make "<" & ">" companions to "↑ Up"
 
 import Cocoa    /* partial-line Block Comment does work.*/
 /* single-line Block Comment does work. */
@@ -113,7 +112,7 @@ class ViewController: NSViewController, NSWindowDelegate {
     let quoteColor   = NSColor.red
     let keywordColor = NSColor.blue
     let namesColor   = NSColor(calibratedRed: 43/256, green: 131/256, blue: 159/256, alpha: 1)  //BlueGreen
-    //(43 131,159) classNames, funcNames, InstanceVars, Globals
+    //(43 131,159) ClassNames, funcNames, InstanceVars, Globals
 
     var filesList:[URL] = []                // selectedFolder{didSet}, toggleshowAllFiles, tableViewDoubleClicked, tableView stuff, etc
     var showAllFiles    = false             // toggleshowAllFiles, myContentsOf(folder: URL)
@@ -124,8 +123,8 @@ class ViewController: NSViewController, NSWindowDelegate {
     var analyseMode = AnalyseMode.none      // .WWDC, .swift, or .xcodeproj
     var xcodeprojFileCount = 0
 
-    var stackDirBackUrls = [URL]()
-    var stackDirForwardUrls = [URL]()
+    var stackDirBackUrls = [URL?]()
+    var stackDirForwardUrls = [URL?]()
     var xcodeprojURLs = [URL]()
     let baseURL = URL(fileURLWithPath: "~")
 
@@ -547,14 +546,14 @@ extension ViewController {
     func pushDirBackStack() {
         //clearForwardStack, pushBackStack
         self.stackDirForwardUrls = []
-        self.stackDirBackUrls.append(self.selectedFolderUrl!)
+        self.stackDirBackUrls.append(self.selectedFolderUrl)
         self.btnBack.isEnabled = true
     }
 
     func popDirBackStack() -> URL? {
         if !self.stackDirBackUrls.isEmpty {
             let url = self.stackDirBackUrls.removeLast()
-            self.stackDirForwardUrls.append(self.selectedFolderUrl!)
+            self.stackDirForwardUrls.append(self.selectedFolderUrl)
             self.btnForward.isEnabled = true
             if self.stackDirBackUrls.isEmpty {
                 self.btnBack.isEnabled = false
@@ -567,7 +566,7 @@ extension ViewController {
     func popDirForwardStack() -> URL? {
         if !self.stackDirForwardUrls.isEmpty {
             let url = self.stackDirForwardUrls.removeLast()
-            self.stackDirBackUrls.append(self.selectedFolderUrl!)
+            self.stackDirBackUrls.append(self.selectedFolderUrl)
             self.btnBack.isEnabled = true
             if self.stackDirForwardUrls.isEmpty {
                 self.btnForward.isEnabled = false
@@ -597,6 +596,9 @@ extension ViewController {
 
      @IBAction func chkIssuesFirstClicked(_ sender: Any) {
         //TODO: Add logic to reload analysis
+        let url = selectedItemUrl
+        selectedItemUrl = nil           // Force a "didSet" for selectedItemUrl
+        selectedItemUrl = url
      }
 
     // saveInfo Clicked

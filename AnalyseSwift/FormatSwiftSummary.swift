@@ -191,6 +191,13 @@ struct SwiftSumAttStr {
         }
 
         // MARK: Funcs too big.
+        if swiftSummary.massiveFuncs.count > 0 {
+            let title = "Massive funcs"
+            //tx = showNamedBlock(title: title, blockType: blkType.blockType, list: codeElements)
+            if gDebug == .all { print(tx.string) }
+            //txt.append(tx)
+        }
+
         for massiveFunc in swiftSummary.massiveFuncs {
             tx = showIssue("func \"\(massiveFunc.name)()\" at \(massiveFunc.codeLineCount) code lines, is too big. (>\(CodeRule.maxFuncCodeLines))")
             txt.append(tx)
