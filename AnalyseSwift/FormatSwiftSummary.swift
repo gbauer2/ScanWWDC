@@ -59,7 +59,6 @@ struct SwiftSumAttStr {
     }//end init
 
     func showSummary(swiftSummary: SwiftSummary, fileInfo: FileAttributes) -> NSMutableAttributedString { // 54-163 = 109-lines
-        var tx: NSMutableAttributedString = NSMutableAttributedString(string: "")
         let txt:NSMutableAttributedString = NSMutableAttributedString(string: "")
         let attributesSmallFont = [NSAttributedString.Key.font: fontSmall]
         if gTrace != .none {
@@ -138,7 +137,7 @@ struct SwiftSumAttStr {
         // MARK: Imports
         // Print Imports
         //swiftSummary.importNames = swiftSummary.imports.map { $0.name }
-        tx = showLineItems(title: "Import", items: swiftSummary.imports)
+        let tx = showLineItems(title: "Import", items: swiftSummary.imports)
         txt.append(tx)
 
         // MARK: Blocks
@@ -160,9 +159,9 @@ struct SwiftSumAttStr {
         for i in 0..<blockTypes.count - 1 {
             let blkType = blockTypes[printOrder[i]]
             if blkType.showNone || blkType.total > 0 {
-                tx = showNamedBlock(title: blkType.displayName, blockType: blkType.blockType, list: namedBlocks)
-                if gDebug == .all { print(tx.string) }
+                let tx = showNamedBlock(title: blkType.displayName, blockType: blkType.blockType, list: namedBlocks)
                 txt.append(tx)
+                if gDebug == .all { print(tx.string) }
             }
         }
 
@@ -172,8 +171,10 @@ struct SwiftSumAttStr {
     //MARK:- --- Show Issues ---
 
     func showIssues(swiftSummary: SwiftSummary, fileInfo: FileAttributes) -> NSMutableAttributedString  { //167-225 = 58-lines
-        var tx: NSMutableAttributedString = NSMutableAttributedString(string: "")
+        var tx: NSAttributedString = NSMutableAttributedString(string: "")
         let txt:NSMutableAttributedString = NSMutableAttributedString(string: "")
+        var title = ""
+        var suffix = ""
         let issuesTitle: String
         if swiftSummary.totalIssues == 0 {
             issuesTitle = fileInfo.name + " - No Issues"
@@ -185,49 +186,29 @@ struct SwiftSumAttStr {
         txt.append(tx)
 
         // MARK: File too big.
-        if !swiftSummary.massiveFile.isEmpty {
-            let title = "Massive ( >\(CodeRule.maxFileCodeLines) lines ) file"
-            //tx = showIssue("\(swiftSummary.fileName) at \(swiftSummary.codeLineCount) code lines, is too big. (>\(CodeRule.maxFileCodeLines))")
-            tx = showLineItems(title: title, items: swiftSummary.massiveFile)
-            txt.append(tx)
-        }
+        title = "Massive file"
+        suffix = " ( >\(CodeRule.maxFileCodeLines) code-lines )"
+        txt.append(showLineItems(title: title, suffix: suffix, items: swiftSummary.massiveFile))
 
         // MARK: Funcs too big.
-        if !swiftSummary.massiveFuncs.isEmpty {
-            let title = "Massive ( >\(CodeRule.maxFuncCodeLines) lines ) func"
-            tx = showLineItems(title: title, items: swiftSummary.massiveFuncs)
-            txt.append(tx)
-        }
+        title = "Massive func"
+        suffix = " ( >\(CodeRule.maxFuncCodeLines) code-lines )"
+        txt.append(showLineItems(title: title, suffix: suffix, items: swiftSummary.massiveFuncs))
+
+        // MARK: Globals
+        txt.append(showLineItems(title: "Global", items: swiftSummary.globals))
+
+        // MARK: Free Funcs
+        txt.append(showLineItems(title: "Free Function", items: swiftSummary.freeFuncs))
 
         // MARK: non-camelCased variables
-        if gDebug == .all { print("\n\n😡 \(fileInfo.name)\t\t\(fileInfo.modificationDate!.ToString("MM-dd-yyyy hh:mm"))")}
-        if !swiftSummary.nonCamelVars.isEmpty {
-            if gDebug == .all { print("\n😡 \(swiftSummary.nonCamelVars.count) non-CamelCased variables")}
-            for nonCamel in swiftSummary.nonCamelVars {
-                if gDebug == .all { print("😡 line \(nonCamel.lineNum): \(nonCamel.name)")}
-            }
-            if gDebug == .all {print()}
-            tx = showLineItems(title: "Non-CamelCased Var", items: swiftSummary.nonCamelVars)
-            txt.append(tx)
-        }
+        txt.append(showLineItems(title: "Non-CamelCased Var", items: swiftSummary.nonCamelVars))
 
         // MARK: forced unwraps
-        if gDebug == .all { print("\n\n😡 \(fileInfo.name)\t\t\(fileInfo.modificationDate!.ToString("MM-dd-yyyy hh:mm"))") }
-        if !swiftSummary.forceUnwraps.isEmpty {
-            if gDebug == .all {print("\n😡 \(swiftSummary.forceUnwraps.count) non-forceCased variables")}
-            for forceUnwrap in swiftSummary.forceUnwraps {
-                if gDebug == .all {print("😡 line \(forceUnwrap.lineNum): \(forceUnwrap.name)")}
-            }
-            if gDebug == .all {print()}
-            tx = showLineItems(title: "Forced Unwrap", items: swiftSummary.forceUnwraps)
-            txt.append(tx)
-        }
+        txt.append(showLineItems(title: "Forced Unwrap", items: swiftSummary.forceUnwraps))
 
         // MARK: VBCompatability calls
-        if !swiftSummary.vbCompatCalls.isEmpty {
-            tx = showBadCalls(title: "VBCompatability", calls: swiftSummary.vbCompatCalls)
-            txt.append(tx)
-        }
+        txt.append(showBadCalls(title: "VBCompatability", calls: swiftSummary.vbCompatCalls))
 
         return (txt)
     }
@@ -276,7 +257,8 @@ struct SwiftSumAttStr {
     }
 
     // Returns NSMutableAttributedString showing title, followed by list of items (line#, name, extra)
-    public func showBadCalls(title: String, calls: [String: LineItem]) -> NSMutableAttributedString {
+    public func showBadCalls(title: String, calls: [String: LineItem]) -> NSAttributedString {
+        if calls.isEmpty { return NSAttributedString(string: "", attributes: [:]) }
         let paragraphStyleA2 = NSMutableParagraphStyle()
         paragraphStyleA2.tabStops = setLineItemTabs()
         let headerAtts = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 17)]
@@ -303,12 +285,13 @@ struct SwiftSumAttStr {
     }//end func
 
     // Returns NSMutableAttributedString showing title, followed by list ("@ line #", line#, name, extra)
-    public func showLineItems(title: String, items: [LineItem]) -> NSMutableAttributedString {
+    public func showLineItems(title: String, suffix: String = "", items: [LineItem]) -> NSAttributedString {
+        if items.isEmpty { return NSAttributedString(string: "", attributes: [:]) }
         let paragraphStyleA2 = NSMutableParagraphStyle()
         paragraphStyleA2.tabStops = setLineItemTabs()
         let headerAtts = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 17)]
 
-        let txt = "\n" + showCount(count: items.count, name: title, ifZero: "No") + ":\n"
+        let txt = "\n" + showCount(count: items.count, name: title, ifZero: "No") + suffix + ": \n"
         let nsAttTxt = NSMutableAttributedString(string: txt, attributes: headerAtts)
 
         for item in items {

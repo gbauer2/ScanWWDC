@@ -60,6 +60,8 @@ public struct SwiftSummary {
     var forceUnwraps    = [LineItem]()          // "@ line #   59   .first!   print(comps.first!)"
     var massiveFuncs    = [LineItem]()
     var massiveFile     = [LineItem]()
+    var freeFuncs       = [LineItem]()
+    var globals         = [LineItem]()
     var vbCompatCalls   = [String: LineItem]()  // "VB.Left     3    times"
 
     var issueCatsCount  = 0         // for display spacing when issuesFirst
@@ -602,6 +604,9 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                         blockOnDeck.name = "\(containerName).\(blockOnDeck.name)"
                     } else {
                         print("⚠️ Free func: \(blockOnDeck.name)")
+                        if swiftSummary.freeFuncs.isEmpty { swiftSummary.issueCatsCount += 1 }
+                        swiftSummary.totalIssues += swiftSummary.freeFuncs.count
+                        swiftSummary.freeFuncs.append(LineItem(name: blockOnDeck.name, lineNum: lineNum))
                     }
                     blockTypes[index].total += 1
                 }
@@ -700,7 +705,10 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                     name = String(name.dropLast()).trim
                 }
                 if isGlobal {
-                    print("⚠️ global: \(assignees)")
+                    print("⚠️ global: \(assignee)")
+                    if swiftSummary.globals.isEmpty { swiftSummary.issueCatsCount += 1 }
+                    swiftSummary.totalIssues += swiftSummary.globals.count
+                    swiftSummary.globals.append(LineItem(name: name, lineNum: lineNum))
                 }
                 if !isCamelCase(name) {
                     recordNonCamelcase(name)

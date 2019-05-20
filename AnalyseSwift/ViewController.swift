@@ -43,7 +43,6 @@
 // Bug: Continuation Line on let, var, etc
 // Bug: "*/" comes through as a codeline
 // BUG: enum cases not tested for camelCode
-// Show massive files/funcs in proper format
 // dependency
 // computed variables, var observer
 // show commentLinesCount(dead code?) vs MarkupLineCount (///) (/**)
@@ -56,8 +55,7 @@
 // Change MenuRulesVC to use a TableView
 // Bug: textfield not triggering "Change" when Save button clicked
 // More Issues to Flag:
-//   Global vars, singletons (dependency injection?)
-//   Free functions vs methods
+//   singletons (dependency injection?)
 //   Public func without markup
 //   Var name too short or too long
 //   //TODO: //FIXME:
@@ -66,6 +64,10 @@
 //   Missing Unit-Test
 //   Type-Names must Start with Uppercase
 //   Find "NS..." or "UI..." to check OS
+
+// Need User-Selected Rules for:
+//  Free functions
+//  Globals
 
 //  Done:
 

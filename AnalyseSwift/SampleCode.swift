@@ -13,6 +13,7 @@ import Cocoa    /* ????? partial-line Block Comment does not work.*/
  #warning("This code is incomplete.")
  */
 
+var myGlobalTestVar = 0
 private func doNothing() { print("Do Nothing") }
 
 private func interpolate() {
