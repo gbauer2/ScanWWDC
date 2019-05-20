@@ -9,11 +9,13 @@
 import Cocoa
 
 // MARK: - Properties of analyseSwiftFile (globals - change to instance vars)
-fileprivate var curlyDepth      = 0                     //accessed from gotOpenCurly, gotCloseCurly, getSelecFileInfo
-fileprivate var blockOnDeck     = BlockInfo()           //accessed from gotOpenCurly,                analyseSwiftFile
-fileprivate var blockStack      = [BlockInfo]()         //accessed from gotOpenCurly, gotCloseCurly, analyseSwiftFile
-public      var codeElements    = [BlockInfo]()         //accessed from               gotCloseCurly, analyseSwiftFile
+fileprivate var curlyDepth  = 0                     //accessed from gotOpenCurly, gotCloseCurly, getSelecFileInfo
 
+fileprivate var blockOnDeck = BlockInfo()       //accessed from analyseSwiftFile, gotOpenCurly,
+fileprivate var blockStack  = [BlockInfo]()     //accessed from analyseSwiftFile, gotOpenCurly, gotCloseCurly
+public      var namedBlocks = [BlockInfo]()     //accessed from analyseSwiftFile, gotCloseCurly,     FormatSwiftSummary
+
+// Holds the aggregate data for each BlockType  //accessed from analyseSwiftFile, needsContinuation, FormatSwiftSummary
 var blockTypes = [
 BlockAggregate(blockType: .None,       codeName: "",          displayName: "unNamed",       showNone: false, total: 0),
 BlockAggregate(blockType: .Func,       codeName: "func",      displayName: "Regular func",  showNone: true,  total: 0),
@@ -53,15 +55,14 @@ public struct SwiftSummary {
     var nEmbedded       = 0
 
     // issues
-    var nonCamelVars    = [LineItem]()      // "@ line #   51   TestTargetID"
-    var forceUnwraps    = [LineItem]()      // "@ line #   59   .first!   print(comps.first!)"
+    var nonCamelVars    = [LineItem]()          // "@ line #   51   TestTargetID"
+    var forceUnwraps    = [LineItem]()          // "@ line #   59   .first!   print(comps.first!)"
     var massiveFuncs    = [FuncInfo]()
     var massiveFile     = 0
-    var vbCompatCalls   = [String: Int]()   // "VB.Left     3    times"
-    var totalVbCount    = 0
+    var vbCompatCalls   = [String: LineItem]()  // "VB.Left     3    times"
 
-    var issueCatsCount  = 0
-    var totalIssues     = 0
+    var issueCatsCount  = 0         // for display spacing when issuesFirst
+    var totalIssues     = 0         // for display spacing when issuesFirst
 
     var url             = FileManager.default.homeDirectoryForCurrentUser
 }//end struct SwiftSummary
@@ -71,6 +72,7 @@ internal struct FuncInfo {
     var codeLineCount = 0
 }
 
+// List of BlockTypes & their index
 public enum BlockType: Int {
     case None       = 0
     case Func       = 1
@@ -93,6 +95,7 @@ internal struct BlockAggregate {
 }
 
 // for use in "139 lines@ 104 pbxToXcodeProj xtra"
+//Holds Block info for each Block in Stack
 public struct BlockInfo {
     var blockType        = BlockType.None
     var lineNum          = 0
@@ -107,8 +110,42 @@ public struct LineItem {
     let name:       String
     let lineNum:    Int
     var timesUsed   = 0
-    var codeLineCt  = 0
+    var codeLineCt  = -1
     var extra       = ""
+    init(name: String, lineNum: Int) {
+        self.name    = name
+        self.lineNum = lineNum
+    }
+    init(name: String, lineNum: Int, extra: String) {
+        self.name    = name
+        self.lineNum = lineNum
+        self.extra   = extra
+    }
+}
+
+//   |  <codeLineCt>|" line(s) @"|  <lineNum>|  <name>  |  <extra>      // codeLineCt >= 0
+//   |            ""|"@ line #"  |  <lineNum>|  <name>  |  <extra>      // codeLineCt <  0, timesUsed == 0
+//   |   <timesUsed>|" times"    |         ""|  <name>  |  <extra>      // timesUsed  > 1
+//   |             1|" time @"   |  <lineNum>|  <name>  |  <extra>      // timesUsed == 1
+//     Mid    2    times
+
+extension LineItem: CustomStringConvertible {
+    public var description: String {
+        var str = ""
+        if timesUsed == 0 {
+            str = "\t  \t@ line #\t\(lineNum)\t\(name)"
+        } else if timesUsed == 1 {
+            str = "\t\(timesUsed)\t time  @\t\(lineNum)\t\(name)"
+        } else {
+            str = "\t\(timesUsed)\t times\t \t\(name)"
+        }
+
+        if !extra.isEmpty {
+            str += "\t\(extra)"
+        }
+        //str += "\n"
+        return str
+    }
 }
 
 internal enum ProjectType {
@@ -135,7 +172,7 @@ private func gotCloseCurly(lineNum: Int, nCodeLine: Int) {
     if block.blockType != .None {
         if gDebug == .all {print("#\(#line) \(block.name)")}
         block.codeLineCount = nCodeLine - block.codeLinesAtStart // lineNum - block.lineNum
-        codeElements.append(block)
+        namedBlocks.append(block)
     }
 }//end func
 
@@ -274,7 +311,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
     curlyDepth   = 0
     blockOnDeck  = BlockInfo()
     blockStack   = []
-    codeElements = []
+    namedBlocks = []
 
     var containerName = ""
     var index        = 0
@@ -287,7 +324,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
     var iLine           = 0
 
     func recordNonCamelcase(_ name: String) {
-        let lineItem = LineItem(name: name, lineNum: lineNum,timesUsed: 1, codeLineCt: 0, extra: "")
+        let lineItem = LineItem(name: name, lineNum: lineNum)
         if deBug && gDebug == .all {print("➡️ \(lineItem.lineNum) Non-CamelCased \(lineItem.name)")}
         if swiftSummary.nonCamelVars.isEmpty { swiftSummary.issueCatsCount += 1 }
         swiftSummary.totalIssues += 1
@@ -331,7 +368,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         //------- Sanity Check ------
         let sum = swiftSummary.blankLineCount + swiftSummary.continueLineCount - swiftSummary.compoundLineCount + swiftSummary.commentLineCount + swiftSummary.markupLineCount + swiftSummary.quoteLineCount + swiftSummary.codeLineCount + 1
         if sum != lineNum || iLine != lineNum {
-            print(lineNum, sum, swiftSummary.blankLineCount, swiftSummary.continueLineCount, -swiftSummary.compoundLineCount, swiftSummary.commentLineCount, swiftSummary.markupLineCount, swiftSummary.quoteLineCount, swiftSummary.codeLineCount )
+            print("⛔️", lineNum, sum, swiftSummary.blankLineCount, swiftSummary.continueLineCount, -swiftSummary.compoundLineCount, swiftSummary.commentLineCount, swiftSummary.markupLineCount, swiftSummary.quoteLineCount, swiftSummary.codeLineCount )
         }
         //---------------------------
 
@@ -463,7 +500,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         for word in words {
 
             // Find Force Unwraps
-            if word.hasSuffix("!") && firstWord != "@IBOutlet" {
+            if (word.hasSuffix("!") && firstWord != "@IBOutlet") || word.contains("!.") {
                 let idx = codeLine.firstIntIndexOf(word)                         // idx is pointer to word
                 let isForce = word.count > 1 || idx == 0 || codeLine[idx-1] != " "    // must not have whitespace before "!"
                 if isForce {
@@ -475,20 +512,27 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                     var xword = word
                     if word.contains(".") {
                         let comps = word.components(separatedBy: ".")
-                        xword = "." + (comps.last ?? "")
+                        for comp in comps {
+                            if comp.hasSuffix("!") {
+                                xword = comp
+                                break
+                            }
+                        }
+                        //xword = "." + (comps.last ?? "")
                     }
                     if swiftSummary.forceUnwraps.isEmpty { swiftSummary.issueCatsCount += 1 }
                     swiftSummary.totalIssues += 1
-                    swiftSummary.forceUnwraps.append(LineItem(name: xword, lineNum: lineNum, timesUsed: 0, codeLineCt: 0, extra: extra))
+                    swiftSummary.forceUnwraps.append(LineItem(name: xword, lineNum: lineNum, extra: extra))
                 }
+            } else if !word.hasPrefix("!") && word.contains("!") {
+                print()
             }
 
             // Find VBCompatability calls
             if gDictVBwords[word] != nil {
-                if swiftSummary.vbCompatCalls[word] == nil { swiftSummary.issueCatsCount += 1 }
-                swiftSummary.totalIssues += 1
-                swiftSummary.totalVbCount += 1
-                swiftSummary.vbCompatCalls[word, default: 0] += 1
+                if swiftSummary.vbCompatCalls.isEmpty       { swiftSummary.issueCatsCount += 1 }
+                if swiftSummary.vbCompatCalls[word] == nil  { swiftSummary.totalIssues    += 1 }
+                swiftSummary.vbCompatCalls[word, default: LineItem(name: word, lineNum: lineNum)].timesUsed += 1
             }
 
         }//next word
@@ -497,7 +541,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         if firstWord == codeName {
             let itemName: String
             if words.count > 1 { itemName = words[1] } else { itemName = "?" }
-            let lineItem = LineItem(name: itemName, lineNum: lineNum, timesUsed: 1, codeLineCt: 0, extra: "")
+            let lineItem = LineItem(name: itemName, lineNum: lineNum)
             swiftSummary.imports.append(lineItem)
             if itemName == "Cocoa" {
                 swiftSummary.projectType = ProjectType.OSX
@@ -673,8 +717,8 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         swiftSummary.massiveFile = 1
     }
 
-    if deBug && gDebug == .all { print("\n\(codeElements.count) named blocks") }         // Sanity Check
-    for c in codeElements {
+    if deBug && gDebug == .all { print("\n\(namedBlocks.count) named blocks") }         // Sanity Check
+    for c in namedBlocks {
 
         if deBug && gDebug == .all {
             let iBT = Int(c.blockType.rawValue)

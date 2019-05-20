@@ -255,17 +255,13 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         var nextLine = ""
         var result = false
 
-        codeLine = "test"
-        nextLine = ",next"
-        codeLineDetail.codeLine = codeLine
-        result = needsContinuation(codeLineDetail: codeLineDetail, nextLine: nextLine, lineNum: 1001)
-        XCTAssertFalse(result)
+        codeLineDetail.bracketMismatch = 0
 
         codeLine = "test"
         nextLine = ",next"
         codeLineDetail.codeLine = codeLine
-        result = needsContinuation(codeLineDetail: codeLineDetail, nextLine: nextLine, lineNum: 2001)
-        XCTAssertFalse(result)
+        result = needsContinuation(codeLineDetail: codeLineDetail, nextLine: nextLine, lineNum: 1001)
+        XCTAssertTrue(result)
 
         codeLineDetail.bracketMismatch = 1
 

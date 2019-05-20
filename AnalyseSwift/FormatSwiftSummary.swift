@@ -47,7 +47,7 @@ struct SwiftSumAttStr {
         if issuesFirst {
             self.completeAttText.append(showIssues(swiftSummary: swiftSummary, fileInfo: fileInfo))
 
-            let blankLines = max(0, 25 - swiftSummary.totalIssues - swiftSummary.issueCatsCount)
+            let blankLines = max(0, 25 - swiftSummary.totalIssues -  2 * swiftSummary.issueCatsCount)
             let str = String.init(repeating: "\n", count: blankLines) + "-------------------------------------------------------------------------\n"
             self.completeAttText.append(NSMutableAttributedString(string: str, attributes: [NSAttributedString.Key.font: fontMonoDigitMedium]))
 
@@ -160,7 +160,7 @@ struct SwiftSumAttStr {
         for i in 0..<blockTypes.count - 1 {
             let blkType = blockTypes[printOrder[i]]
             if blkType.showNone || blkType.total > 0 {
-                tx = showNamedBlock(title: blkType.displayName, blockType: blkType.blockType, list: codeElements)
+                tx = showNamedBlock(title: blkType.displayName, blockType: blkType.blockType, list: namedBlocks)
                 if gDebug == .all { print(tx.string) }
                 txt.append(tx)
             }
@@ -191,9 +191,9 @@ struct SwiftSumAttStr {
         }
 
         // MARK: Funcs too big.
-        if swiftSummary.massiveFuncs.count > 0 {
+        if !swiftSummary.massiveFuncs.isEmpty {
             let title = "Massive funcs"
-            //tx = showNamedBlock(title: title, blockType: blkType.blockType, list: codeElements)
+            //tx = showNamedBlock(title: title, blockType: blkType.blockType, list: namedBlocks)
             if gDebug == .all { print(tx.string) }
             //txt.append(tx)
         }
@@ -205,7 +205,7 @@ struct SwiftSumAttStr {
 
         // MARK: non-camelCased variables
         if gDebug == .all { print("\n\n😡 \(fileInfo.name)\t\t\(fileInfo.modificationDate!.ToString("MM-dd-yyyy hh:mm"))")}
-        if swiftSummary.nonCamelVars.count > 0 {
+        if !swiftSummary.nonCamelVars.isEmpty {
             if gDebug == .all { print("\n😡 \(swiftSummary.nonCamelVars.count) non-CamelCased variables")}
             for nonCamel in swiftSummary.nonCamelVars {
                 if gDebug == .all { print("😡 line \(nonCamel.lineNum): \(nonCamel.name)")}
@@ -217,7 +217,7 @@ struct SwiftSumAttStr {
 
         // MARK: forced unwraps
         if gDebug == .all { print("\n\n😡 \(fileInfo.name)\t\t\(fileInfo.modificationDate!.ToString("MM-dd-yyyy hh:mm"))") }
-        if swiftSummary.forceUnwraps.count > 0 {
+        if !swiftSummary.forceUnwraps.isEmpty {
             if gDebug == .all {print("\n😡 \(swiftSummary.forceUnwraps.count) non-forceCased variables")}
             for forceUnwrap in swiftSummary.forceUnwraps {
                 if gDebug == .all {print("😡 line \(forceUnwrap.lineNum): \(forceUnwrap.name)")}
@@ -228,8 +228,8 @@ struct SwiftSumAttStr {
         }
 
         // MARK: VBCompatability calls
-        if swiftSummary.totalVbCount > 0 {
-            tx = showBadCalls(title: "VBCompatability", total: swiftSummary.totalVbCount, calls: swiftSummary.vbCompatCalls)
+        if !swiftSummary.vbCompatCalls.isEmpty {
+            tx = showBadCalls(title: "VBCompatability", calls: swiftSummary.vbCompatCalls)
             txt.append(tx)
         }
 
@@ -265,19 +265,29 @@ struct SwiftSumAttStr {
         return nsAttTxt
     }
 
-    // Returns NSMutableAttributedString showing title, followed by list of items (line#, name, extra)
-    public func showBadCalls(title: String, total: Int, calls: [String: Int]) -> NSMutableAttributedString {
-        let paragraphStyleA2 = NSMutableParagraphStyle()
-        paragraphStyleA2.tabStops = [
+    func setLineItemTabs() -> [NSTextTab]{
+        return [
             NSTextTab(textAlignment: .left,  location: 0),
-            NSTextTab(textAlignment: .left,  location: 40),     // func name
-            NSTextTab(textAlignment: .right, location: 170),    // rt edge of LineNumber
-            NSTextTab(textAlignment: .left,  location: 175),    // name
-            NSTextTab(textAlignment: .left,  location: 225),    // start of xtra column
-            NSTextTab(textAlignment: .left,  location: 275),    // start of xtra column
-            NSTextTab(textAlignment: .left,  location: 325)     // start of xtra column
+            NSTextTab(textAlignment: .right, location: 50),     // rt edge of 1st number (# of lines)
+            NSTextTab(textAlignment: .left,  location: 52),     // "@ line #"
+            NSTextTab(textAlignment: .right, location: 150),    // rt edge of LineNumber
+            NSTextTab(textAlignment: .left,  location: 170),    // name
+            NSTextTab(textAlignment: .left,  location: 250),    // start of xtra column
+            NSTextTab(textAlignment: .left,  location: 290),    // start of xtra column
+            NSTextTab(textAlignment: .left,  location: 330)     // start of xtra column
         ]
+    }
+
+    // Returns NSMutableAttributedString showing title, followed by list of items (line#, name, extra)
+    public func showBadCalls(title: String, calls: [String: LineItem]) -> NSMutableAttributedString {
+        let paragraphStyleA2 = NSMutableParagraphStyle()
+        paragraphStyleA2.tabStops = setLineItemTabs()
         let headerAtts = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 17)]
+
+        var total = 0
+        for call in calls {
+            total += call.value.timesUsed
+        }//next call
 
         // 10 VBCompatability funcs called for a total of 24 calls
         let txt1 = showCount(count: calls.count, name: title + " func", ifZero: "No")
@@ -286,8 +296,7 @@ struct SwiftSumAttStr {
         let nsAttTxt = NSMutableAttributedString(string: txt, attributes: headerAtts)
 
         for call in calls.sorted(by: {$0.key < $1.key}) {
-            let ess = call.value == 1 ? " " : "s"
-            let str = "\t\(call.key)\t\(call.value)\ttime\(ess)\n"
+            let str = call.value.description + "\n"
             let nsAttTx = NSAttributedString(string: str, attributes: [NSAttributedString.Key.font: fontNormal, NSAttributedString.Key.paragraphStyle: paragraphStyleA2])
             nsAttTxt.append(nsAttTx)
         }//next call
@@ -297,31 +306,14 @@ struct SwiftSumAttStr {
     // Returns NSMutableAttributedString showing title, followed by list ("@ line #", line#, name, extra)
     public func showLineItems(title: String, items: [LineItem]) -> NSMutableAttributedString {
         let paragraphStyleA2 = NSMutableParagraphStyle()
-        paragraphStyleA2.tabStops = [
-            NSTextTab(textAlignment: .left,  location: 0),
-            NSTextTab(textAlignment: .left,  location: 52),     // "@ line #"
-            NSTextTab(textAlignment: .right, location: 150),    // rt edge of LineNumber
-            NSTextTab(textAlignment: .left,  location: 170),    // name
-            NSTextTab(textAlignment: .left,  location: 250),    // start of xtra column
-            NSTextTab(textAlignment: .left,  location: 290),    // start of xtra column
-            NSTextTab(textAlignment: .left,  location: 330)     // start of xtra column
-        ]
+        paragraphStyleA2.tabStops = setLineItemTabs()
         let headerAtts = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 17)]
 
         let txt = "\n" + showCount(count: items.count, name: title, ifZero: "No") + ":\n"
         let nsAttTxt = NSMutableAttributedString(string: txt, attributes: headerAtts)
 
         for item in items {
-            var str = ""
-            if item.lineNum != 0 {
-                str = "\t@ line #\t\(formatInt(item.lineNum, wid: 8))\t\(item.name)"
-            } else {
-                str = "\t\(item.name)"
-            }
-            if !item.extra.isEmpty {
-                str += "\t\(item.extra)"
-            }
-            str += "\n"
+            let str = item.description + "\n"
             let nsAttTx = NSAttributedString(string: str, attributes: [
                 NSAttributedString.Key.font: fontNormal,
                 NSAttributedString.Key.paragraphStyle: paragraphStyleA2])
@@ -334,13 +326,7 @@ struct SwiftSumAttStr {
     public func showNamedBlock(title: String, blockType: BlockType, list: [BlockInfo]) -> NSMutableAttributedString {
         let items = list.filter { $0.blockType == blockType }   // Filter for only this blockType
         let paragraphStyleA2 = NSMutableParagraphStyle()
-        paragraphStyleA2.tabStops = [
-            NSTextTab(textAlignment: .left,  location: 0),
-            NSTextTab(textAlignment: .right, location: 50),     // rt edge of 1st number (# of lines)
-            NSTextTab(textAlignment: .left,  location: 52),     // "lines @"
-            NSTextTab(textAlignment: .right, location: 150),    // rt edge of 2nd number (LineNum)
-            NSTextTab(textAlignment: .left,  location: 170),    // start of last column
-        ]
+        paragraphStyleA2.tabStops = setLineItemTabs()
 
         let headerAtts = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 18)]
         let txt = "\n" + showCount(count: items.count, name: title, ifZero: "No") + ":\n"
