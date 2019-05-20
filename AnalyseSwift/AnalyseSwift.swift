@@ -33,6 +33,7 @@ BlockAggregate(blockType: .isProtocol, codeName: "protocol",  displayName: "Prot
 
 // Stuff to be returned by AnalyseSwift
 public struct SwiftSummary {
+    var url             = FileManager.default.homeDirectoryForCurrentUser
     var fileName        = ""
     var copyright       = ""
     var viewController  = ""
@@ -57,20 +58,14 @@ public struct SwiftSummary {
     // issues
     var nonCamelVars    = [LineItem]()          // "@ line #   51   TestTargetID"
     var forceUnwraps    = [LineItem]()          // "@ line #   59   .first!   print(comps.first!)"
-    var massiveFuncs    = [FuncInfo]()
-    var massiveFile     = 0
+    var massiveFuncs    = [LineItem]()
+    var massiveFile     = [LineItem]()
     var vbCompatCalls   = [String: LineItem]()  // "VB.Left     3    times"
 
     var issueCatsCount  = 0         // for display spacing when issuesFirst
     var totalIssues     = 0         // for display spacing when issuesFirst
 
-    var url             = FileManager.default.homeDirectoryForCurrentUser
 }//end struct SwiftSummary
-
-internal struct FuncInfo {
-    var name          = ""
-    var codeLineCount = 0
-}
 
 // List of BlockTypes & their index
 public enum BlockType: Int {
@@ -112,14 +107,22 @@ public struct LineItem {
     var timesUsed   = 0
     var codeLineCt  = -1
     var extra       = ""
+    // Name, lineNum
     init(name: String, lineNum: Int) {
         self.name    = name
         self.lineNum = lineNum
     }
+    // Name, lineNum, extra
     init(name: String, lineNum: Int, extra: String) {
         self.name    = name
         self.lineNum = lineNum
         self.extra   = extra
+    }
+    // Name, lineNum, codeLineCt
+    init(name: String, lineNum: Int, codeLineCt: Int) {
+        self.name    = name
+        self.lineNum = lineNum
+        self.codeLineCt   = codeLineCt
     }
 }
 
@@ -133,7 +136,13 @@ extension LineItem: CustomStringConvertible {
     public var description: String {
         var str = ""
         if timesUsed == 0 {
-            str = "\t  \t@ line #\t\(lineNum)\t\(name)"
+            if codeLineCt < 0 {
+                str = "\t  \t@ line #\t\(lineNum)\t\(name)"
+            } else if lineNum > 0 {
+                str = "\t\(codeLineCt)\t lines @\t\(lineNum)\t\(name)"
+            } else {
+                str = "\t\(codeLineCt)\t lines\t \t\(name)"
+            }
         } else if timesUsed == 1 {
             str = "\t\(timesUsed)\t time  @\t\(lineNum)\t\(name)"
         } else {
@@ -712,9 +721,9 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
     swiftSummary.byteCount = selecFileInfo.size
     swiftSummary.totalLineCount = lineNum
     if swiftSummary.codeLineCount > CodeRule.maxFileCodeLines {
-        if swiftSummary.massiveFile == 0 { swiftSummary.issueCatsCount += 1 }
+        swiftSummary.issueCatsCount += 1
         swiftSummary.totalIssues += 1
-        swiftSummary.massiveFile = 1
+        swiftSummary.massiveFile.append(LineItem(name: swiftSummary.fileName, lineNum: 0, codeLineCt: swiftSummary.codeLineCount))
     }
 
     if deBug && gDebug == .all { print("\n\(namedBlocks.count) named blocks") }         // Sanity Check
@@ -731,7 +740,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             if c.codeLineCount > CodeRule.maxFuncCodeLines {
                 if swiftSummary.massiveFuncs.isEmpty { swiftSummary.issueCatsCount += 1 }
                 swiftSummary.totalIssues += 1
-                swiftSummary.massiveFuncs.append(FuncInfo(name: c.name, codeLineCount: c.codeLineCount))
+                swiftSummary.massiveFuncs.append(LineItem(name: c.name, lineNum: c.lineNum, codeLineCt: c.codeLineCount))
             }
         default: break
         }

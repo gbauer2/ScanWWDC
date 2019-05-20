@@ -185,21 +185,17 @@ struct SwiftSumAttStr {
         txt.append(tx)
 
         // MARK: File too big.
-        if swiftSummary.massiveFile > 0 {
-            tx = showIssue("\(swiftSummary.fileName) at \(swiftSummary.codeLineCount) code lines, is too big. (>\(CodeRule.maxFileCodeLines))")
+        if !swiftSummary.massiveFile.isEmpty {
+            let title = "Massive ( >\(CodeRule.maxFileCodeLines) lines ) file"
+            //tx = showIssue("\(swiftSummary.fileName) at \(swiftSummary.codeLineCount) code lines, is too big. (>\(CodeRule.maxFileCodeLines))")
+            tx = showLineItems(title: title, items: swiftSummary.massiveFile)
             txt.append(tx)
         }
 
         // MARK: Funcs too big.
         if !swiftSummary.massiveFuncs.isEmpty {
-            let title = "Massive funcs"
-            //tx = showNamedBlock(title: title, blockType: blkType.blockType, list: namedBlocks)
-            if gDebug == .all { print(tx.string) }
-            //txt.append(tx)
-        }
-
-        for massiveFunc in swiftSummary.massiveFuncs {
-            tx = showIssue("func \"\(massiveFunc.name)()\" at \(massiveFunc.codeLineCount) code lines, is too big. (>\(CodeRule.maxFuncCodeLines))")
+            let title = "Massive ( >\(CodeRule.maxFuncCodeLines) lines ) func"
+            tx = showLineItems(title: title, items: swiftSummary.massiveFuncs)
             txt.append(tx)
         }
 
@@ -265,6 +261,7 @@ struct SwiftSumAttStr {
         return nsAttTxt
     }
 
+    // Set standard LineItem Tab-Stops
     func setLineItemTabs() -> [NSTextTab]{
         return [
             NSTextTab(textAlignment: .left,  location: 0),
@@ -289,7 +286,7 @@ struct SwiftSumAttStr {
             total += call.value.timesUsed
         }//next call
 
-        // 10 VBCompatability funcs called for a total of 24 calls
+        // "<10> <VBCompatability> func<s> called for a total of <24> call<s>"
         let txt1 = showCount(count: calls.count, name: title + " func", ifZero: "No")
         let txt2 = showCount(count: total, name: "call", ifZero: "No")
         let txt = "\n" + txt1 + " called, for a total of " + txt2 + ":\n"
@@ -297,7 +294,9 @@ struct SwiftSumAttStr {
 
         for call in calls.sorted(by: {$0.key < $1.key}) {
             let str = call.value.description + "\n"
-            let nsAttTx = NSAttributedString(string: str, attributes: [NSAttributedString.Key.font: fontNormal, NSAttributedString.Key.paragraphStyle: paragraphStyleA2])
+            let nsAttTx = NSAttributedString(string: str, attributes: [
+                NSAttributedString.Key.font: fontNormal,
+                NSAttributedString.Key.paragraphStyle: paragraphStyleA2])
             nsAttTxt.append(nsAttTx)
         }//next call
         return nsAttTxt

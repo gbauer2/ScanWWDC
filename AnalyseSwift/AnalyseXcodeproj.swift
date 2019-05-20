@@ -704,9 +704,9 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
             totalForceUnwrap += fuCt
             let vbCt = swiftSummary.vbCompatCalls.count
             totalVbCompatCall += vbCt
-            let bigCt = swiftSummary.massiveFile + swiftSummary.massiveFuncs.count
+            let bigCt = swiftSummary.massiveFile.count + swiftSummary.massiveFuncs.count
             for afunc in swiftSummary.massiveFuncs {
-                issues.append("\"\(name)\" has a func \"\(afunc.name)\" with \(afunc.codeLineCount) code-lines (>\(CodeRule.maxFuncCodeLines)).")
+                issues.append("\"\(name)\" has a func \"\(afunc.name)\" with \(afunc.codeLineCt) code-lines (>\(CodeRule.maxFuncCodeLines)).")
             }
             totalBig += bigCt
             //text += "\(swiftSummary.url.lastPathComponent)  -  nonCamel \(swiftSummary.nonCamelCases.count)\n"

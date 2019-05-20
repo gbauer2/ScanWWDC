@@ -10,7 +10,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "AnalyseSwift/AnalyseXcodeproj.swift"
-            timestampString = "580063002.3211221"
+            timestampString = "580070444.544201"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "110"
@@ -74,11 +74,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "AnalyseSwift/AnalyseSwift.swift"
-            timestampString = "580063002.3216439"
+            timestampString = "580070444.544693"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "215"
-            endingLineNumber = "215"
+            startingLineNumber = "229"
+            endingLineNumber = "229"
             landmarkName = "getParamNames(line:)"
             landmarkType = "9">
          </BreakpointContent>
@@ -90,11 +90,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "AnalyseSwift/AnalyseSwift.swift"
-            timestampString = "580063002.32206"
+            timestampString = "580070444.545172"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "220"
-            endingLineNumber = "220"
+            startingLineNumber = "234"
+            endingLineNumber = "234"
             landmarkName = "getParamNames(line:)"
             landmarkType = "9">
          </BreakpointContent>
@@ -106,11 +106,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "AnalyseSwift/AnalyseSwift.swift"
-            timestampString = "580063002.322391"
+            timestampString = "580070444.545498"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "371"
-            endingLineNumber = "371"
+            startingLineNumber = "385"
+            endingLineNumber = "385"
             landmarkName = "analyseSwiftFile(contentFromFile:selecFileInfo:deBug:)"
             landmarkType = "9">
          </BreakpointContent>
@@ -122,11 +122,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "AnalyseSwift/AnalyseSwift.swift"
-            timestampString = "580063002.3227071"
+            timestampString = "580070444.545814"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "442"
-            endingLineNumber = "442"
+            startingLineNumber = "456"
+            endingLineNumber = "456"
             landmarkName = "analyseSwiftFile(contentFromFile:selecFileInfo:deBug:)"
             landmarkType = "9">
          </BreakpointContent>
@@ -170,11 +170,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "AnalyseSwift/AnalyseSwift.swift"
-            timestampString = "580063002.323046"
+            timestampString = "580070444.54615"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "351"
-            endingLineNumber = "351"
+            startingLineNumber = "365"
+            endingLineNumber = "365"
             landmarkName = "analyseSwiftFile(contentFromFile:selecFileInfo:deBug:)"
             landmarkType = "9">
          </BreakpointContent>
@@ -186,11 +186,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "AnalyseSwift/AnalyseSwift.swift"
-            timestampString = "580063002.3233531"
+            timestampString = "580070444.546461"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "358"
-            endingLineNumber = "358"
+            startingLineNumber = "372"
+            endingLineNumber = "372"
             landmarkName = "analyseSwiftFile(contentFromFile:selecFileInfo:deBug:)"
             landmarkType = "9">
          </BreakpointContent>
@@ -202,11 +202,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "AnalyseSwift/AnalyseSwift.swift"
-            timestampString = "580063002.323649"
+            timestampString = "580070444.546765"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "702"
-            endingLineNumber = "702"
+            startingLineNumber = "716"
+            endingLineNumber = "716"
             landmarkName = "analyseSwiftFile(contentFromFile:selecFileInfo:deBug:)"
             landmarkType = "9">
          </BreakpointContent>
@@ -266,11 +266,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "AnalyseSwift/AnalyseSwift.swift"
-            timestampString = "580063002.323995"
+            timestampString = "580070444.547106"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "595"
-            endingLineNumber = "595"
+            startingLineNumber = "609"
+            endingLineNumber = "609"
             landmarkName = "analyseSwiftFile(contentFromFile:selecFileInfo:deBug:)"
             landmarkType = "9">
          </BreakpointContent>
@@ -282,11 +282,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "AnalyseSwift/AnalyseSwift.swift"
-            timestampString = "580063002.324301"
+            timestampString = "580070444.547413"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "709"
-            endingLineNumber = "709"
+            startingLineNumber = "723"
+            endingLineNumber = "723"
             landmarkName = "analyseSwiftFile(contentFromFile:selecFileInfo:deBug:)"
             landmarkType = "9">
          </BreakpointContent>
@@ -298,11 +298,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "AnalyseSwift/AnalyseSwift.swift"
-            timestampString = "580063002.324598"
+            timestampString = "580070444.547734"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "575"
-            endingLineNumber = "575"
+            startingLineNumber = "589"
+            endingLineNumber = "589"
             landmarkName = "analyseSwiftFile(contentFromFile:selecFileInfo:deBug:)"
             landmarkType = "9">
          </BreakpointContent>
@@ -314,11 +314,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "AnalyseSwift/AnalyseSwift.swift"
-            timestampString = "580063002.324895"
+            timestampString = "580070444.548043"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "593"
-            endingLineNumber = "593"
+            startingLineNumber = "607"
+            endingLineNumber = "607"
             landmarkName = "analyseSwiftFile(contentFromFile:selecFileInfo:deBug:)"
             landmarkType = "9">
          </BreakpointContent>
@@ -330,13 +330,29 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "AnalyseSwift/AnalyseSwift.swift"
-            timestampString = "580063002.325186"
+            timestampString = "580070444.548352"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "528"
-            endingLineNumber = "528"
+            startingLineNumber = "542"
+            endingLineNumber = "542"
             landmarkName = "analyseSwiftFile(contentFromFile:selecFileInfo:deBug:)"
             landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "AnalyseSwift/FormatSwiftSummary.swift"
+            timestampString = "580070444.548649"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "198"
+            endingLineNumber = "198"
+            landmarkName = "showIssues(swiftSummary:fileInfo:)"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>
