@@ -13,6 +13,8 @@ import Cocoa    /* ????? partial-line Block Comment does not work.*/
  #warning("This code is incomplete.")
  */
 
+//FIXME: This is a test FixMe.
+//TODO: This is a test ToDo.
 var myGlobalTestVar = 0
 private func doNothing() { print("Do Nothing") }
 

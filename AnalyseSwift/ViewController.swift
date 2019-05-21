@@ -39,16 +39,15 @@
 //AnalyseSwift:
 // Bug: Handle "var ee: Int=0, ff = 0, gg: Int" vs "var hh = kk.substring(start: 1, length:2)"
 // Bug: Handle Raw String with multiple asterisks (***"..."*** )
-// Bug: Does not show "init" as a func
+// *Bug: Does not show "init" as a func
 // Bug: Continuation Line on let, var, etc
 // Bug: "*/" comes through as a codeline
-// BUG: enum cases not tested for camelCode
+// *BUG: enum cases not tested for camelCode
 // dependency
 // computed variables, var observer
 // show commentLinesCount(dead code?) vs MarkupLineCount (///) (/**)
 // organize by MARK: or by extension
 // allow extensions other than class - esp protocols & structs
-// make Issues-first display optional
 
 //MenuRulesVC:
 // Refresh analysis when user changes rules
@@ -58,7 +57,6 @@
 //   singletons (dependency injection?)
 //   Public func without markup
 //   Var name too short or too long
-//   //TODO: //FIXME:
 //   Compound lines (;) and Multiple declarations on a line (,)
 //   CodeLine too long
 //   Missing Unit-Test

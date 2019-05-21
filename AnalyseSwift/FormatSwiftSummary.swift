@@ -195,6 +195,9 @@ struct SwiftSumAttStr {
         suffix = " ( >\(CodeRule.maxFuncCodeLines) code-lines )"
         txt.append(showLineItems(title: title, suffix: suffix, items: swiftSummary.massiveFuncs))
 
+        // MARK: TODO's & FIXME's
+        txt.append(showLineItems(title: "ToDo & FixMe", items: swiftSummary.toDoFixMe))
+
         // MARK: Globals
         txt.append(showLineItems(title: "Global", items: swiftSummary.globals))
 

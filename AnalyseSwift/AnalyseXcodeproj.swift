@@ -100,7 +100,7 @@ public func analyseXcodeproj(url: URL, goDeep: Bool, deBug: Bool = true) -> (Str
 }//end func analyseXcodeproj
 
 //MARK: pbxToXcodeProj 223-lines
-//TODO: Needs to retrurn xcodeProj, errorMsg, pbxObjects, rootObjectKey
+//TODO: pbxToXcodeProj should return xcodeProj, errorMsg, pbxObjects, rootObjectKey
 func pbxToXcodeProj(_ xcodeprojRaw: String, deBug: Bool = true) {        //104-327 = 223-lines
     if deBug {
         print("Start pbxToXcodeProj")

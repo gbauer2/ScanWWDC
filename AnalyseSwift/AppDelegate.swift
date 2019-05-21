@@ -24,5 +24,4 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         print("Clicked mnuMyMenu")
     }
 
-
 }

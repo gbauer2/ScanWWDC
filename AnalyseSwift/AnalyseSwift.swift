@@ -62,6 +62,7 @@ public struct SwiftSummary {
     var massiveFile     = [LineItem]()
     var freeFuncs       = [LineItem]()
     var globals         = [LineItem]()
+    var toDoFixMe       = [LineItem]()
     var vbCompatCalls   = [String: LineItem]()  // "VB.Left     3    times"
 
     var issueCatsCount  = 0         // for display spacing when issuesFirst
@@ -300,7 +301,7 @@ internal func needsContinuation(codeLineDetail: CodeLineDetail, nextLine: String
 }
 
 // MARK: - the main event 444-lines
-// called from analyseContentsButtonClicked         //260-704 = 444-lines
+// called from analyseContentsButtonClicked         //305-769 = 464-lines
 public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, deBug: Bool) -> (SwiftSummary) {
     let lines = contentFromFile.components(separatedBy: "\n")
     if gTrace != .none {
@@ -322,7 +323,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
     curlyDepth   = 0
     blockOnDeck  = BlockInfo()
     blockStack   = []
-    namedBlocks = []
+    namedBlocks  = []
 
     var containerName = ""
     var index        = 0
@@ -344,7 +345,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
 
     var codeLineDetail = CodeLineDetail()
 
-    // MARK: Main Loop 300-671 = 371-lines
+    // MARK: Main Loop 349-734 = 385-lines
     while iLine < lines.count {
         //        // Multitasking Check
         //        if selecFileInfo.url != ViewController.latestUrl {
@@ -403,6 +404,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             swiftSummary.markupLineCount += 1
         } else if line.hasPrefix("//") || codeLineDetail.inMultiLine == .blockComment {   // "//"
             swiftSummary.commentLineCount += 1
+            // File Header
             if swiftSummary.codeLineCount == 0 {
                 if line.contains("Copyright") {
                     swiftSummary.copyright = line
@@ -410,6 +412,16 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                     swiftSummary.createdBy = line
                 } else if line.contains("Ver") {
                     swiftSummary.version = line
+                }
+            }
+            if line.count >= 7 {
+                let bareLine = String(line.dropFirst(2).trim)
+                if bareLine.hasPrefix("TODO:") ||  bareLine.hasPrefix("FIXME:") {
+                    if swiftSummary.toDoFixMe.isEmpty { swiftSummary.issueCatsCount += 1 }
+                    swiftSummary.totalIssues += 1
+                    swiftSummary.toDoFixMe.append(LineItem(name: bareLine, lineNum: lineNum))
+                    print(bareLine)
+                    print()
                 }
             }
             continue
@@ -423,7 +435,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             continue                                                // bypass further processing???
         }
 
-        // MARK: Code!  387-671 = 284-lines
+        // MARK: Code!  441-734 = 293-lines
 
         // Call CodeLineDetail.init
         codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: codeLineDetail, lineNum: lineNum)
@@ -535,8 +547,8 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                     swiftSummary.totalIssues += 1
                     swiftSummary.forceUnwraps.append(LineItem(name: xword, lineNum: lineNum, extra: extra))
                 }
-            } else if !word.hasPrefix("!") && word.contains("!") {
-                print()
+            } else if !word.hasPrefix("!") && word.contains("!") && firstWord != "@IBOutlet" {
+                print(" ⛔️ Error (#line) unexplained '!' in \(codeLine)")
             }
 
             // Find VBCompatability calls
@@ -605,7 +617,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                     } else {
                         print("⚠️ Free func: \(blockOnDeck.name)")
                         if swiftSummary.freeFuncs.isEmpty { swiftSummary.issueCatsCount += 1 }
-                        swiftSummary.totalIssues += swiftSummary.freeFuncs.count
+                        swiftSummary.totalIssues += 1
                         swiftSummary.freeFuncs.append(LineItem(name: blockOnDeck.name, lineNum: lineNum))
                     }
                     blockTypes[index].total += 1
@@ -707,7 +719,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                 if isGlobal {
                     print("⚠️ global: \(assignee)")
                     if swiftSummary.globals.isEmpty { swiftSummary.issueCatsCount += 1 }
-                    swiftSummary.totalIssues += swiftSummary.globals.count
+                    swiftSummary.totalIssues += 1
                     swiftSummary.globals.append(LineItem(name: name, lineNum: lineNum))
                 }
                 if !isCamelCase(name) {
