@@ -10,14 +10,13 @@
 		26ECD33B1E874B5C00380F56 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26ECD33A1E874B5C00380F56 /* AppDelegate.swift */; };
 		26ECD33D1E874B5C00380F56 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26ECD33C1E874B5C00380F56 /* ViewController.swift */; };
 		26ECD33F1E874B5C00380F56 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 26ECD33E1E874B5C00380F56 /* Assets.xcassets */; };
-		CE063B8F22160B5B000CACDF /* FindVBCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE063B8E22160B5B000CACDF /* FindVBCode.swift */; };
 		CE1D751421BDA90B00286967 /* AnalyseSwiftCodeUnitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE1D751321BDA90B00286967 /* AnalyseSwiftCodeUnitTests.swift */; };
 		CE410E93227D383B00D4B351 /* FormatSwiftSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE410E92227D383B00D4B351 /* FormatSwiftSummary.swift */; };
 		CE4194AE21BD8C22006808B1 /* AttributableStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE4194AD21BD8C22006808B1 /* AttributableStrings.swift */; };
 		CE510E2F2256F34700B53541 /* MenuRulesVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE510E2E2256F34700B53541 /* MenuRulesVC.swift */; };
 		CE67A6A41FFA066B00BD57BD /* StringExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE67A6A31FFA066B00BD57BD /* StringExtension.swift */; };
 		CE83F8BB1FFD329D00C39EC8 /* MyFuncs.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE83F8BA1FFD329C00C39EC8 /* MyFuncs.swift */; };
-		CE9BBFF72235598500DCE317 /* Keywords.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE9BBFF62235598500DCE317 /* Keywords.swift */; };
+		CE9BBFF72235598500DCE317 /* WordLookup.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE9BBFF62235598500DCE317 /* WordLookup.swift */; };
 		CEA1C5192291C6860033024B /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CEA1C5182291C6860033024B /* Main.storyboard */; };
 		CEA6263A20067DCA000F923D /* SampleCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEA6263920067DCA000F923D /* SampleCode.swift */; };
 		CEA6263D20068AA2000F923D /* AnalyseSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEA6263B20068AA2000F923D /* AnalyseSwift.swift */; };
@@ -44,7 +43,6 @@
 		26ECD33C1E874B5C00380F56 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		26ECD33E1E874B5C00380F56 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		26ECD3431E874B5C00380F56 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		CE063B8E22160B5B000CACDF /* FindVBCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FindVBCode.swift; sourceTree = "<group>"; };
 		CE1D751121BDA90B00286967 /* AnalyseSwiftCodeUnitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AnalyseSwiftCodeUnitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE1D751321BDA90B00286967 /* AnalyseSwiftCodeUnitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyseSwiftCodeUnitTests.swift; sourceTree = "<group>"; };
 		CE1D751521BDA90B00286967 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -53,7 +51,7 @@
 		CE510E2E2256F34700B53541 /* MenuRulesVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuRulesVC.swift; sourceTree = "<group>"; };
 		CE67A6A31FFA066B00BD57BD /* StringExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StringExtension.swift; sourceTree = "<group>"; };
 		CE83F8BA1FFD329C00C39EC8 /* MyFuncs.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MyFuncs.swift; sourceTree = "<group>"; };
-		CE9BBFF62235598500DCE317 /* Keywords.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keywords.swift; sourceTree = "<group>"; };
+		CE9BBFF62235598500DCE317 /* WordLookup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordLookup.swift; sourceTree = "<group>"; };
 		CEA1C5182291C6860033024B /* Main.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
 		CEA6263920067DCA000F923D /* SampleCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleCode.swift; sourceTree = "<group>"; };
 		CEA6263B20068AA2000F923D /* AnalyseSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyseSwift.swift; sourceTree = "<group>"; };
@@ -109,9 +107,8 @@
 				CEBAD4A32194A8E600CBBCBA /* AnalyseXcodeproj.swift */,
 				CE4194AD21BD8C22006808B1 /* AttributableStrings.swift */,
 				CEF60B432274FDAF00C04442 /* CodeLineDetail.swift */,
-				CE063B8E22160B5B000CACDF /* FindVBCode.swift */,
 				CE410E92227D383B00D4B351 /* FormatSwiftSummary.swift */,
-				CE9BBFF62235598500DCE317 /* Keywords.swift */,
+				CE9BBFF62235598500DCE317 /* WordLookup.swift */,
 				CE510E2E2256F34700B53541 /* MenuRulesVC.swift */,
 				CECCE41722539EB800DF2C02 /* PBX.swift */,
 				CEA6263920067DCA000F923D /* SampleCode.swift */,
@@ -251,7 +248,6 @@
 				CECCE41822539EB800DF2C02 /* PBX.swift in Sources */,
 				26ECD33D1E874B5C00380F56 /* ViewController.swift in Sources */,
 				CED9D7F9223E090F009978EF /* VBcompatablity.swift in Sources */,
-				CE063B8F22160B5B000CACDF /* FindVBCode.swift in Sources */,
 				CE4194AE21BD8C22006808B1 /* AttributableStrings.swift in Sources */,
 				CE83F8BB1FFD329D00C39EC8 /* MyFuncs.swift in Sources */,
 				CEBAD4A42194A8E600CBBCBA /* AnalyseXcodeproj.swift in Sources */,
@@ -262,7 +258,7 @@
 				26ECD33B1E874B5C00380F56 /* AppDelegate.swift in Sources */,
 				CE67A6A41FFA066B00BD57BD /* StringExtension.swift in Sources */,
 				CEE94E93223EB84E00A6F2FB /* AnalyseWWDC.swift in Sources */,
-				CE9BBFF72235598500DCE317 /* Keywords.swift in Sources */,
+				CE9BBFF72235598500DCE317 /* WordLookup.swift in Sources */,
 				CEF60B442274FDAF00C04442 /* CodeLineDetail.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
