@@ -313,8 +313,6 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         print("🔷 AnalyseSwift.swift #\(#line) Enter AnalyseSwiftFile (\(selecFileInfo.name) \(lines.count) lines)")
     }
 
-    resetVBwords()
-
     var swiftSummary = SwiftSummary()
     swiftSummary.fileName = selecFileInfo.name
     swiftSummary.url = selecFileInfo.url!
@@ -331,10 +329,10 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
     namedBlocks  = []
 
     var containerName = ""
-    var index        = 0
-    var lineNum      = 0
+    var index         = 0
+    var lineNum       = 0
 
-    var inQuote    = false
+    var inQuote       = false
 
     var fromPrevLine    = ""    // if prev line had a ";" (Compund Line), this is the excess after 1st ";"
     var partialLine     = ""    // if this is a Continuation Line
@@ -567,7 +565,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             }
 
             // Find VBCompatability calls
-            if gDictVBwords[word] != nil {
+            if WordLookup.isVBword(word: word) {
                 // MARK:  ➡️ Record Issue "vbCompatCalls" - Dictionary
                 if swiftSummary.vbCompatCalls.isEmpty       { swiftSummary.issueCatsCount += 1 }
                 if swiftSummary.vbCompatCalls[word] == nil  { swiftSummary.totalIssues    += 1 }
@@ -596,7 +594,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         //MARK: Blocks -> func, struc, enum, class, extension
         var foundNamedBlock = false
 
-        //---------------------------------------------------------------   // func
+        //---------------------------------------------------------------   // func, override, @IBAction
         codeName = "func"
         if let posFunc = words.firstIndex(of: codeName) {
             //codeType = BlockType.isFunc
@@ -619,27 +617,25 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                 if firstWord == "override" {
                     index = BlockTypeEnum.isOverride.rawValue                               // isOverride
                     blockOnDeck.blockType = .isOverride
-                    blockTypes[index].total += 1
                 } else if firstWord == "@IBAction" {
                     index = BlockTypeEnum.IBAction.rawValue                                 // IBAction
                     blockOnDeck.blockType = .IBAction
-                    blockTypes[index].total += 1
                 } else {                // private, internal, fileprivate, public
                     index = BlockTypeEnum.Func.rawValue                                     // Func
                     containerName = ""
-                    if blockStack.count > 0 {
-                        containerName = (blockStack.last!.name)
-                        blockOnDeck.name = "\(containerName).\(blockOnDeck.name)"
-                    } else {
-                        // MARK:  ➡️ Record Issue "freeFuncs"
-                        if swiftSummary.freeFuncs.isEmpty { swiftSummary.issueCatsCount += 1 }
-                        swiftSummary.totalIssues += 1
-                        swiftSummary.freeFuncs.append(LineItem(name: blockOnDeck.name, lineNum: lineNum))
-                    }
-                    blockTypes[index].total += 1
                 }
+                blockTypes[index].total += 1
             }
             foundNamedBlock = true
+            if blockStack.count > 0 {
+                containerName = (blockStack.last!.name)
+                blockOnDeck.name = "\(containerName).\(blockOnDeck.name)"
+            } else {
+                // MARK:  ➡️ Record Issue "freeFuncs"
+                if swiftSummary.freeFuncs.isEmpty { swiftSummary.issueCatsCount += 1 }
+                swiftSummary.totalIssues += 1
+                swiftSummary.freeFuncs.append(LineItem(name: blockOnDeck.name, lineNum: lineNum))
+            }
         }//endif func
 
         // FIXME: THIS IS NUTS. Find another way to identify a Block

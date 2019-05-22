@@ -43,7 +43,7 @@
 // Bug: Handle Raw String with multiple asterisks (***"..."*** )
 // Bug: Continuation Line on let, var, etc
 // Bug: "*/" comes through as a codeline
-// *BUG: enum cases not tested for camelCode
+// *BUG: enum cases not tested for camelCase
 // dependency
 // computed variables, var observer
 // show commentLinesCount(dead code?) vs MarkupLineCount (///) (/**)
@@ -69,7 +69,6 @@
 //  Compound Lines
 
 //  Done:
-//  Fixed Bug: Does not show "init" as a func
 
 import Cocoa    /* partial-line Block Comment does work.*/
 /* single-line Block Comment does work. */
@@ -220,6 +219,7 @@ class ViewController: NSViewController, NSWindowDelegate {
 
     override func viewDidLoad() {
         WordLookup.initWordLookup()
+        WordLookup.initVBwords()
         popupBaseDir.removeAllItems()
         popupBaseDir.addItems(withTitles: ["Desktop","Downloads","Documents","All"])
         popupBaseDir.selectItem(at: 0)
