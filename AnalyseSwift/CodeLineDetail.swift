@@ -59,7 +59,7 @@ public struct CodeLineDetail {
         // All code & nothing to see here
         if !trimLine.contains("//") && !trimLine.contains("\"") && !trimLine.contains("/*")  && !trimLine.contains("*/")
             && !trimLine.contains("(") && !trimLine.contains("[") {
-            self.codeLine = trimLine
+            self.codeLine = trimLine.replacingOccurrences(of: "\t", with: " ")
             return                      // No comment or quote
         }
         if trimLine.hasPrefix("\"\"\"") || trimLine.hasSuffix("\"\"\"") {
@@ -215,6 +215,6 @@ public struct CodeLineDetail {
         } else {
             codeLine = String(chars).replacingOccurrences(of: blockCommentStr, with: "")
         }
-        self.codeLine = codeLine.trim
+        self.codeLine = codeLine.trim.replacingOccurrences(of: "\t", with: " ")
     }//end init
 }//end struct CodeLineDetail

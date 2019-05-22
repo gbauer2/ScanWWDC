@@ -56,13 +56,16 @@ public struct SwiftSummary {
     var nEmbedded       = 0
 
     // issues
-    var nonCamelVars    = [LineItem]()          // "@ line #   51   TestTargetID"
-    var forceUnwraps    = [LineItem]()          // "@ line #   59   .first!   print(comps.first!)"
-    var massiveFuncs    = [LineItem]()
-    var massiveFile     = [LineItem]()
-    var freeFuncs       = [LineItem]()
-    var globals         = [LineItem]()
-    var toDoFixMe       = [LineItem]()
+    //FormatSwiftSummary.swift ~200;        AnalyseXcodeproj.swift ~700
+    var nonCamelVars    = [LineItem]()      // 344
+    var toDoFixMe       = [LineItem]()      // 425
+    var compoundLines   = [LineItem]()      // 483, 726
+    var forceUnwraps    = [LineItem]()      // 560
+    var freeFuncs       = [LineItem]()      // 634
+    var globals         = [LineItem]()      // 743
+    var massiveFile     = [LineItem]()      // 767
+    var massiveFuncs    = [LineItem]()      // 785
+
     var vbCompatCalls   = [String: LineItem]()  // "VB.Left     3    times"
 
     var issueCatsCount  = 0         // for display spacing when issuesFirst
@@ -71,7 +74,7 @@ public struct SwiftSummary {
 }//end struct SwiftSummary
 
 // List of BlockTypes & their index
-public enum BlockType: Int {
+public enum BlockTypeEnum: Int {
     case None       = 0
     case Func       = 1
     case IBAction   = 2
@@ -85,7 +88,7 @@ public enum BlockType: Int {
 
 // Search words, Display directives, Total Count(for display)
 internal struct BlockAggregate {
-    let blockType:   BlockType
+    let blockType:   BlockTypeEnum
     let codeName:    String
     let displayName: String
     let showNone:    Bool
@@ -95,7 +98,7 @@ internal struct BlockAggregate {
 // for use in "139 lines@ 104 pbxToXcodeProj xtra"
 //Holds Block info for each Block in Stack
 public struct BlockInfo {
-    var blockType        = BlockType.None
+    var blockType        = BlockTypeEnum.None
     var lineNum          = 0
     var codeLinesAtStart = 0
     var name             = ""
@@ -300,8 +303,8 @@ internal func needsContinuation(codeLineDetail: CodeLineDetail, nextLine: String
     return false
 }
 
-// MARK: - the main event 444-lines
-// called from analyseContentsButtonClicked         //305-769 = 464-lines
+// MARK: - the main event 308-794 = 486-lines
+
 public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, deBug: Bool) -> (SwiftSummary) {
     let lines = contentFromFile.components(separatedBy: "\n")
     if gTrace != .none {
@@ -334,10 +337,11 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
     var fromPrevLine    = ""    // if prev line had a ";" (Compund Line), this is the excess after 1st ";"
     var partialLine     = ""    // if this is a Continuation Line
     var iLine           = 0
+    var stillInCompound = false
 
     func recordNonCamelcase(_ name: String) {
         let lineItem = LineItem(name: name, lineNum: lineNum)
-        if deBug && gDebug == .all {print("➡️ \(lineItem.lineNum) Non-CamelCased \(lineItem.name)")}
+        // MARK:  ➡️ Record Issue "nonCamelVars"
         if swiftSummary.nonCamelVars.isEmpty { swiftSummary.issueCatsCount += 1 }
         swiftSummary.totalIssues += 1
         swiftSummary.nonCamelVars.append(lineItem)
@@ -345,7 +349,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
 
     var codeLineDetail = CodeLineDetail()
 
-    // MARK: Main Loop 349-734 = 385-lines
+    // MARK: Main Loop 353-757 = 404-lines
     while iLine < lines.count {
         //        // Multitasking Check
         //        if selecFileInfo.url != ViewController.latestUrl {
@@ -357,6 +361,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         //        }
         var line: String
         if fromPrevLine.isEmpty {       // Read a new line from source
+            stillInCompound = false
             line = lines[iLine].trim
             iLine += 1
             lineNum += 1
@@ -417,6 +422,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             if line.count >= 7 {
                 let bareLine = String(line.dropFirst(2).trim)
                 if bareLine.hasPrefix("TODO:") ||  bareLine.hasPrefix("FIXME:") {
+                    // MARK:  ➡️ Record Issue "toDoFixMe"
                     if swiftSummary.toDoFixMe.isEmpty { swiftSummary.issueCatsCount += 1 }
                     swiftSummary.totalIssues += 1
                     swiftSummary.toDoFixMe.append(LineItem(name: bareLine, lineNum: lineNum))
@@ -435,7 +441,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             continue                                                // bypass further processing???
         }
 
-        // MARK: Code!  441-734 = 293-lines
+        // MARK: Code!  444-757 = 313-lines
 
         // Call CodeLineDetail.init
         codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: codeLineDetail, lineNum: lineNum)
@@ -448,15 +454,15 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                 swiftSummary.nEmbedded += 1
             }
             if codeLineFull.count <= 1 {
-                if codeLineFull == "{" {                                    // single "{" plus comment
+                if codeLineFull == "{" {                                // single "{" plus comment
                     gotOpenCurly(lineNum: lineNum)
                     swiftSummary.commentLineCount += 1
                 }   // single "{" plus comment on line
-                if codeLineFull == "}" {                                    // single "}" plus comment
+                if codeLineFull == "}" {                                // single "}" plus comment
                     gotCloseCurly(lineNum: lineNum, nCodeLine: swiftSummary.codeLineCount)
                     swiftSummary.commentLineCount += 1
                 }   // single "}" on line
-                continue                                                    // bypass further processing
+                continue                                                // bypass further processing
             }
         }
         if codeLineFull.isEmpty {
@@ -473,6 +479,14 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         if  codeLineFull.contains(";") {
             //print("Compound line \"\(codeLineFull)\"")
             let ptr = codeLineFull.firstIntIndexOf(";")
+            if !stillInCompound {
+                // MARK:  ➡️ Record Issue "compoundLines"
+                if swiftSummary.compoundLines.isEmpty { swiftSummary.issueCatsCount += 1 }
+                swiftSummary.totalIssues += 1
+                swiftSummary.compoundLines.append(LineItem(name: codeLineFull, lineNum: lineNum))
+
+                stillInCompound = true
+            }
             fromPrevLine = codeLineFull.substring(begin: ptr+1).trim
             codeLine = codeLineFull.left(ptr)
         } else {
@@ -486,7 +500,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             //print("\(lineNum) Partial line? \"\(line)\" -> \"\(codeLine)\" from #\(#line)")
             partialLine = codeLine
             swiftSummary.continueLineCount += 1
-            continue
+            continue                                                    // bypass further processing
         }
 
         swiftSummary.codeLineCount += 1
@@ -543,6 +557,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                         }
                         //xword = "." + (comps.last ?? "")
                     }
+                    // MARK:  ➡️ Record Issue "forceUnwraps"
                     if swiftSummary.forceUnwraps.isEmpty { swiftSummary.issueCatsCount += 1 }
                     swiftSummary.totalIssues += 1
                     swiftSummary.forceUnwraps.append(LineItem(name: xword, lineNum: lineNum, extra: extra))
@@ -553,6 +568,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
 
             // Find VBCompatability calls
             if gDictVBwords[word] != nil {
+                // MARK:  ➡️ Record Issue "vbCompatCalls" - Dictionary
                 if swiftSummary.vbCompatCalls.isEmpty       { swiftSummary.issueCatsCount += 1 }
                 if swiftSummary.vbCompatCalls[word] == nil  { swiftSummary.totalIssues    += 1 }
                 swiftSummary.vbCompatCalls[word, default: LineItem(name: word, lineNum: lineNum)].timesUsed += 1
@@ -574,7 +590,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
 
             }
             //if deBug {print("\(lineNum) \(codeName) = \(itemName)")}
-            continue                                        // isImport
+            continue                                        // isImport, so bypass further processing
         }
 
         //MARK: Blocks -> func, struc, enum, class, extension
@@ -601,21 +617,21 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             blockOnDeck = BlockInfo(blockType: .Func, lineNum: lineNum, codeLinesAtStart: swiftSummary.codeLineCount, name: funcName, extra: "", codeLineCount: 0)
             if posFunc > 0 {
                 if firstWord == "override" {
-                    index = BlockType.isOverride.rawValue                               // isOverride
+                    index = BlockTypeEnum.isOverride.rawValue                               // isOverride
                     blockOnDeck.blockType = .isOverride
                     blockTypes[index].total += 1
                 } else if firstWord == "@IBAction" {
-                    index = BlockType.IBAction.rawValue                                 // IBAction
+                    index = BlockTypeEnum.IBAction.rawValue                                 // IBAction
                     blockOnDeck.blockType = .IBAction
                     blockTypes[index].total += 1
                 } else {                // private, internal, fileprivate, public
-                    index = BlockType.Func.rawValue                                     // Func
+                    index = BlockTypeEnum.Func.rawValue                                     // Func
                     containerName = ""
                     if blockStack.count > 0 {
                         containerName = (blockStack.last!.name)
                         blockOnDeck.name = "\(containerName).\(blockOnDeck.name)"
                     } else {
-                        print("⚠️ Free func: \(blockOnDeck.name)")
+                        // MARK:  ➡️ Record Issue "freeFuncs"
                         if swiftSummary.freeFuncs.isEmpty { swiftSummary.issueCatsCount += 1 }
                         swiftSummary.totalIssues += 1
                         swiftSummary.freeFuncs.append(LineItem(name: blockOnDeck.name, lineNum: lineNum))
@@ -626,12 +642,12 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             foundNamedBlock = true
         }//endif func
 
-        //FIXME: THIS IS NUTS
+        // FIXME: THIS IS NUTS. Find another way to identify a Block
         while !foundNamedBlock {    //for index in 4...8  containers: 4)Struct, 5)Enum, 6)Extension, 7)Class, 8)Protocol
             if words.count < 2 { break }
             let iMax = min(4, words.count)
             var index = -1
-            for i in 0..<iMax {     // see if Block-Type appeaer in 1st 4 words
+            for i in 0..<iMax {     // see if Block-Type appear in 1st 4 words
                 if let idx = blockLookup[words[i]] {
                     index = idx
                     foundNamedBlock = true
@@ -705,7 +721,14 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             let comps2 = assigneeList.components(separatedBy: ":")
             assigneeList = comps2[0]                                    // Strip off right side of ":"
             let assignees = assigneeList.components(separatedBy: ",").map { $0.trim }
-            //if deBug {print(codeLineTrunc, assignees)}
+
+            if assignees.count > 1 && !assignees[0].hasPrefix("(") {
+                // MARK:  ➡️ Record Issue "compoundLines" (2)
+                if swiftSummary.compoundLines.isEmpty { swiftSummary.issueCatsCount += 1 }
+                swiftSummary.totalIssues += 1
+                swiftSummary.compoundLines.append(LineItem(name: codeLineFull, lineNum: lineNum))
+            }
+
             let isGlobal = blockStack.isEmpty ? true : false
 
             for assignee in assignees {
@@ -717,7 +740,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                     name = String(name.dropLast()).trim
                 }
                 if isGlobal {
-                    print("⚠️ global: \(assignee)")
+                    // MARK:  ➡️ Record Issue "globals"
                     if swiftSummary.globals.isEmpty { swiftSummary.issueCatsCount += 1 }
                     swiftSummary.totalIssues += 1
                     swiftSummary.globals.append(LineItem(name: name, lineNum: lineNum))
@@ -741,6 +764,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
     swiftSummary.byteCount = selecFileInfo.size
     swiftSummary.totalLineCount = lineNum
     if swiftSummary.codeLineCount > CodeRule.maxFileCodeLines {
+        // MARK:  ➡️ Record Issue "massiveFile"
         swiftSummary.issueCatsCount += 1
         swiftSummary.totalIssues += 1
         swiftSummary.massiveFile.append(LineItem(name: swiftSummary.fileName, lineNum: 0, codeLineCt: swiftSummary.codeLineCount))
@@ -758,6 +782,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         switch c.blockType {
         case .Func:
             if c.codeLineCount > CodeRule.maxFuncCodeLines {
+                // MARK:  ➡️ Record Issue "massiveFuncs"
                 if swiftSummary.massiveFuncs.isEmpty { swiftSummary.issueCatsCount += 1 }
                 swiftSummary.totalIssues += 1
                 swiftSummary.massiveFuncs.append(LineItem(name: c.name, lineNum: c.lineNum, codeLineCt: c.codeLineCount))

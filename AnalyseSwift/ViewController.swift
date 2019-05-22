@@ -57,15 +57,15 @@
 //   singletons (dependency injection?)
 //   Public func without markup
 //   Var name too short or too long
-//   Compound lines (;) and Multiple declarations on a line (,)
 //   CodeLine too long
 //   Missing Unit-Test
 //   Type-Names must Start with Uppercase
 //   Find "NS..." or "UI..." to check OS
 
-// Need User-Selected Rules for:
+// Need User-Selected Rules & AnalyseXcodeproj table columns for:
 //  Free functions
 //  Globals
+//  Compound Lines
 
 //  Done:
 

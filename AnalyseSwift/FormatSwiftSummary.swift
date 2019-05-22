@@ -16,7 +16,7 @@ struct SwiftSumAttStr {
     let fontNormal          = NSFont.systemFont(ofSize: 14)
     let fontSmall           = NSFont.systemFont(ofSize: 12)
 
-    init(swiftSummary: SwiftSummary, fileInfo: FileAttributes, issuesFirst: Bool) {   // 21-51 = 40-lines
+    init(swiftSummary: SwiftSummary, fileInfo: FileAttributes, issuesFirst: Bool) {   // 19-59 = 40-lines
         completeAttText = NSMutableAttributedString(string: "")
 
         // Display Tab-stop ruler & fonts
@@ -58,7 +58,7 @@ struct SwiftSumAttStr {
         }
     }//end init
 
-    func showSummary(swiftSummary: SwiftSummary, fileInfo: FileAttributes) -> NSMutableAttributedString { // 54-163 = 109-lines
+    func showSummary(swiftSummary: SwiftSummary, fileInfo: FileAttributes) -> NSMutableAttributedString { // 61-169 = 108-lines
         let txt:NSMutableAttributedString = NSMutableAttributedString(string: "")
         let attributesSmallFont = [NSAttributedString.Key.font: fontSmall]
         if gTrace != .none {
@@ -141,15 +141,15 @@ struct SwiftSumAttStr {
         txt.append(tx)
 
         // MARK: Blocks
-        let printOrder = [BlockType.Enum.rawValue,
-                          BlockType.Struct.rawValue,
-                          BlockType.isProtocol.rawValue,
-                          BlockType.Class.rawValue,
-                          BlockType.Extension.rawValue,
-                          BlockType.isOverride.rawValue,
-                          BlockType.IBAction.rawValue,
-                          BlockType.Func.rawValue,
-                          BlockType.None.rawValue]
+        let printOrder = [BlockTypeEnum.Enum.rawValue,
+                          BlockTypeEnum.Struct.rawValue,
+                          BlockTypeEnum.isProtocol.rawValue,
+                          BlockTypeEnum.Class.rawValue,
+                          BlockTypeEnum.Extension.rawValue,
+                          BlockTypeEnum.isOverride.rawValue,
+                          BlockTypeEnum.IBAction.rawValue,
+                          BlockTypeEnum.Func.rawValue,
+                          BlockTypeEnum.None.rawValue]
 
         if blockTypes.count != printOrder.count {           // Error Check
             print("⛔️ Error formatSwiftSummary #\(#line) - \(blockTypes.count) blockTypes,  but \(printOrder.count) items in printOrder")
@@ -170,7 +170,7 @@ struct SwiftSumAttStr {
 
     //MARK:- --- Show Issues ---
 
-    func showIssues(swiftSummary: SwiftSummary, fileInfo: FileAttributes) -> NSMutableAttributedString  { //167-225 = 58-lines
+    func showIssues(swiftSummary: SwiftSummary, fileInfo: FileAttributes) -> NSMutableAttributedString  { //173-220 = 47-lines
         var tx: NSAttributedString = NSMutableAttributedString(string: "")
         let txt:NSMutableAttributedString = NSMutableAttributedString(string: "")
         var title = ""
@@ -197,6 +197,9 @@ struct SwiftSumAttStr {
 
         // MARK: TODO's & FIXME's
         txt.append(showLineItems(title: "ToDo & FixMe", items: swiftSummary.toDoFixMe))
+
+        // MARK: Compound Lines
+        txt.append(showLineItems(title: "Compound Line", items: swiftSummary.compoundLines))
 
         // MARK: Globals
         txt.append(showLineItems(title: "Global", items: swiftSummary.globals))
@@ -308,7 +311,7 @@ struct SwiftSumAttStr {
     }//end func
 
     // Returns NSMutableAttributedString showing a title, followed by list of items (codelineCount,line#, name, extra)
-    public func showNamedBlock(title: String, blockType: BlockType, list: [BlockInfo]) -> NSMutableAttributedString {
+    public func showNamedBlock(title: String, blockType: BlockTypeEnum, list: [BlockInfo]) -> NSMutableAttributedString {
         let items = list.filter { $0.blockType == blockType }   // Filter for only this blockType
         let paragraphStyleA2 = NSMutableParagraphStyle()
         paragraphStyleA2.tabStops = setLineItemTabs()
