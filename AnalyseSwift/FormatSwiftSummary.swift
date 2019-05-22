@@ -148,6 +148,7 @@ struct SwiftSumAttStr {
                           BlockTypeEnum.Extension.rawValue,
                           BlockTypeEnum.isOverride.rawValue,
                           BlockTypeEnum.IBAction.rawValue,
+                          BlockTypeEnum.isInit.rawValue,
                           BlockTypeEnum.Func.rawValue,
                           BlockTypeEnum.None.rawValue]
 

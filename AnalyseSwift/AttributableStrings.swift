@@ -226,7 +226,7 @@ extension ViewController {
                                 if i > 0 && chars[i-1] == "." {
                                     colorMarks.append(ColorMark(index: i, color: namesColor))
                                     inColoredWord = true
-                                } else if isKeyword(word: word) {
+                                } else if WordLookup.isKeyword(word: word) {
                                     colorMarks.append(ColorMark(index: i, color: keywordColor))
                                     inColoredWord = true
                                 } else if word.count > 5 && (word.prefix(2) == "NS" || word.prefix(2) == "UI")  {

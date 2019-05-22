@@ -16,13 +16,15 @@
 // Error Handler
 // Single Click for analyse & change dir - no double Click
 // if newly opened folder has a single xcodeproj: analyse it
-// Display AnalyseSwift as expandable tree, with option for printable
+// Display AnalyseSwift as expandable tree, with option for printable.
+// Show signatures for funcs & inits
 
 // Code:
 // change state storage to userDefaults
 // Unit-Test CodeLineDetail for tripleQuote
 
 // showContents - Swift file:
+//  Fix namesColor for Types
 //  Fix namesColor to include:  ClassNames, funcNames, InstanceVars, Globals, & library names (MK- for MapKit,  etc.)
 //     e.g. NSColor, URL, false
 //  User chooses colors & truncation
@@ -39,7 +41,6 @@
 //AnalyseSwift:
 // Bug: Handle "var ee: Int=0, ff = 0, gg: Int" vs "var hh = kk.substring(start: 1, length:2)"
 // Bug: Handle Raw String with multiple asterisks (***"..."*** )
-// *Bug: Does not show "init" as a func
 // Bug: Continuation Line on let, var, etc
 // Bug: "*/" comes through as a codeline
 // *BUG: enum cases not tested for camelCode
@@ -62,12 +63,13 @@
 //   Type-Names must Start with Uppercase
 //   Find "NS..." or "UI..." to check OS
 
-// Need User-Selected Rules & AnalyseXcodeproj table columns for:
+// Need User-Selected Rules & AnalyseXcodeproj table columns & UnitTests for:
 //  Free functions
 //  Globals
 //  Compound Lines
 
 //  Done:
+//  Fixed Bug: Does not show "init" as a func
 
 import Cocoa    /* partial-line Block Comment does work.*/
 /* single-line Block Comment does work. */
@@ -217,6 +219,7 @@ class ViewController: NSViewController, NSWindowDelegate {
     // MARK: - Lifecycle
 
     override func viewDidLoad() {
+        WordLookup.initWordLookup()
         popupBaseDir.removeAllItems()
         popupBaseDir.addItems(withTitles: ["Desktop","Downloads","Documents","All"])
         popupBaseDir.selectItem(at: 0)
@@ -229,7 +232,7 @@ class ViewController: NSViewController, NSWindowDelegate {
         splitView.setPosition(222.0, ofDividerAt: 0)
         restoreCurrentSelections()
         self.view.window?.delegate = self
-        self.view.window?.setFrame(NSRect(x: 300, y: 70, width: 900, height: 800), display: true)
+        self.view.window?.setFrame(NSRect(x: 300, y: 70, width: 1100, height: 800), display: true)
         //self.view.window?.setContentSize(NSSize(width: 1000, height: 800))
 
         //myStr = UserDefaults.standard.object(forKey: “MyKey”) as? String ?? ""

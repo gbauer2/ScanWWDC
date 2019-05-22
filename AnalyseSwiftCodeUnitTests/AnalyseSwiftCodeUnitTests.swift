@@ -387,14 +387,14 @@ RawString
     // 31 Keywords.swift
     func testisKeyword() {
         var result = false
-        result = isKeyword(word: "let")
+        result = WordLookup.isKeyword(word: "let")
         XCTAssertTrue(result)
-        result = isKeyword(word: "super")
+        result =  WordLookup.isKeyword(word: "super")
         XCTAssertTrue(result)
 
-        result = isKeyword(word: "Let")
+        result =  WordLookup.isKeyword(word: "Let")
         XCTAssertFalse(result)
-        result = isKeyword(word: "gwb")
+        result =  WordLookup.isKeyword(word: "gwb")
         XCTAssertFalse(result)
     }
 

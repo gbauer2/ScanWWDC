@@ -18,6 +18,7 @@ public      var namedBlocks = [BlockInfo]()     //accessed from analyseSwiftFile
 // Holds the aggregate data for each BlockType  //accessed from analyseSwiftFile, needsContinuation, FormatSwiftSummary
 var blockTypes = [
 BlockAggregate(blockType: .None,       codeName: "",          displayName: "unNamed",       showNone: false, total: 0),
+BlockAggregate(blockType: .isInit,     codeName: "init",      displayName: "Init",          showNone: false, total: 0),
 BlockAggregate(blockType: .Func,       codeName: "func",      displayName: "Regular func",  showNone: true,  total: 0),
 BlockAggregate(blockType: .IBAction,   codeName: "IBAction",  displayName: "IBAction func", showNone: false, total: 0),
 BlockAggregate(blockType: .isOverride, codeName: "override",  displayName: "Override func", showNone: false, total: 0),
@@ -76,14 +77,15 @@ public struct SwiftSummary {
 // List of BlockTypes & their index
 public enum BlockTypeEnum: Int {
     case None       = 0
-    case Func       = 1
-    case IBAction   = 2
-    case isOverride = 3
-    case Struct     = 4
-    case Enum       = 5
-    case Extension  = 6
-    case Class      = 7
-    case isProtocol = 8
+    case isInit     = 1
+    case Func       = 2
+    case IBAction   = 3
+    case isOverride = 4
+    case Struct     = 5
+    case Enum       = 6
+    case Extension  = 7
+    case Class      = 8
+    case isProtocol = 9
 }
 
 // Search words, Display directives, Total Count(for display)
@@ -426,8 +428,6 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                     if swiftSummary.toDoFixMe.isEmpty { swiftSummary.issueCatsCount += 1 }
                     swiftSummary.totalIssues += 1
                     swiftSummary.toDoFixMe.append(LineItem(name: bareLine, lineNum: lineNum))
-                    print(bareLine)
-                    print()
                 }
             }
             continue
@@ -615,7 +615,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             }
 
             blockOnDeck = BlockInfo(blockType: .Func, lineNum: lineNum, codeLinesAtStart: swiftSummary.codeLineCount, name: funcName, extra: "", codeLineCount: 0)
-            if posFunc > 0 {
+            if posFunc >= 0 {
                 if firstWord == "override" {
                     index = BlockTypeEnum.isOverride.rawValue                               // isOverride
                     blockOnDeck.blockType = .isOverride
@@ -646,35 +646,47 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         while !foundNamedBlock {    //for index in 4...8  containers: 4)Struct, 5)Enum, 6)Extension, 7)Class, 8)Protocol
             if words.count < 2 { break }
             let iMax = min(4, words.count)
-            var index = -1
+            var blockIndexOpt: Int? = nil
+            var wordIndex = -1
             for i in 0..<iMax {     // see if Block-Type appear in 1st 4 words
                 if let idx = blockLookup[words[i]] {
-                    index = idx
+                    blockIndexOpt = idx
+                    wordIndex = i
                     foundNamedBlock = true
                     break
                 }
             }
-            if index < 0 { break }
+            guard let blockIndex = blockIndexOpt else { break }  // Block-Type not found
 
-            codeName = blockTypes[index].codeName
-            //print("\(index) \(iLine) \(line) \(words)")
-            if let posItem = words.firstIndex(of: codeName) {
-                let itemName = words[posItem + 1]
-                var extra = ""
-                for i in (posItem + 2)..<words.count {
-                    if words[i].count > 1 {
-                        extra += " " + words[i]
-                    }
-                }
-                if codeName == "class" && words.count >= 3 && words[2].contains("ViewController") {
-                    swiftSummary.viewController = words[2]
-                }
-                blockOnDeck = BlockInfo(blockType: blockTypes[index].blockType, lineNum: lineNum, codeLinesAtStart: swiftSummary.codeLineCount, name: itemName, extra: extra, codeLineCount: 0)
+            codeName = blockTypes[blockIndex].codeName
+            var itemName = "???"
+            if words.count > wordIndex { itemName = words[wordIndex + 1] }
 
-                blockTypes[index].total += 1
-                foundNamedBlock = true
-                break
-            }//endif codeLine.contains
+            var extra = ""
+            for i in (wordIndex + 2)..<words.count {
+                if words[i].count > 1 {
+                    extra += " " + words[i]
+                }
+            }
+            if codeName == "class" && words.count >= 3 && words[2].contains("ViewController") {
+                swiftSummary.viewController = words[2]
+            }
+
+            if codeName == "init" {
+                //print("\(#line) \(codeLineFull)")
+                itemName = "init"
+                extra    = "" //or codeLineFull
+            }
+            if blockStack.count > 0 {
+                containerName = blockStack.last?.name ?? "??"
+                itemName = "\(containerName).\(itemName)"
+            }
+
+            blockOnDeck = BlockInfo(blockType: blockTypes[blockIndex].blockType, lineNum: lineNum, codeLinesAtStart: swiftSummary.codeLineCount, name: itemName, extra: extra, codeLineCount: 0)
+
+            blockTypes[blockIndex].total += 1
+            foundNamedBlock = true
+            break
         }//end while
 
         //---------------------------------------------------------------   //end Named Blocks
