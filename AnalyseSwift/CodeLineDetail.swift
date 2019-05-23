@@ -24,6 +24,9 @@ public struct CodeLineDetail {
     var isMarkup           = false  // Entire line is Mark-up
     var parenMismatch      = 0      // Flag for Line-Continuation ()
     var bracketMismatch    = 0      // Flag for Line-Continuation []
+    var openCurlyCount     = 0      // Number of "{"s in line
+    var closeCurlyCount    = 0      // Number of "}"s in line
+    var firstSplitter      = ""     // String value of first curly in line
     var inMultiLine: InMultiLine = .none    // tripleQuote, blockComment, blockMarkup
 
     init() {}       // replace the default initializer
@@ -56,20 +59,16 @@ public struct CodeLineDetail {
             return                      // Whole line is in BlockComment or BlockMarkup
         }
 
-        // All code & nothing to see here
-        if !trimLine.contains("//") && !trimLine.contains("\"") && !trimLine.contains("/*")  && !trimLine.contains("*/")
-            && !trimLine.contains("(") && !trimLine.contains("[") {
-            self.codeLine = trimLine.replacingOccurrences(of: "\t", with: " ")
-            return                      // No comment or quote
-        }
+        // Starts or ends with <""">, so toggle inMultiLine.tripleQuote
         if trimLine.hasPrefix("\"\"\"") || trimLine.hasSuffix("\"\"\"") {
-//            self.inTripleQuote.toggle()
             if self.inMultiLine == .tripleQuote {
                 self.inMultiLine = .none
             } else if self.inMultiLine == .none {
                 self.inMultiLine = .tripleQuote
             }
         }
+
+        // No Code in this line
         if !inBlockCommentOrMarkup && trimLine.hasPrefix("//") {
             if trimLine.hasPrefix("///") {
                 self.isMarkup = true
@@ -78,6 +77,8 @@ public struct CodeLineDetail {
             }
             return
         }
+
+        //MARK: Now process the line character by character
         let blockCommentStr  = "⌇"
         let blockCommentChar = Character(blockCommentStr)
         let quoteChar        = Character("\"")
@@ -136,7 +137,14 @@ public struct CodeLineDetail {
                         self.bracketMismatch += 1
                     } else if char == "]" {
                         self.bracketMismatch -= 1
-
+                    } else if char == "{" {
+                        self.openCurlyCount += 1
+                        if self.firstSplitter.isEmpty { firstSplitter = "{" }
+                    } else if char == "}" {
+                        self.closeCurlyCount += 1
+                        if self.firstSplitter.isEmpty { firstSplitter = "}" }
+                    } else if char == ";" {
+                        if self.firstSplitter.isEmpty { firstSplitter = ";" }
                     }//endif char
 
 
@@ -208,13 +216,13 @@ public struct CodeLineDetail {
         }//next p
         //----------------------
 
-        let codeLine: String
+        let myCodeline: String
         if pComment >= 0 {
             let sliceChars = chars.prefix(pComment - 1)
-            codeLine = String(sliceChars).replacingOccurrences(of: blockCommentStr, with: "")
+            myCodeline = String(sliceChars).replacingOccurrences(of: blockCommentStr, with: "")
         } else {
-            codeLine = String(chars).replacingOccurrences(of: blockCommentStr, with: "")
+            myCodeline = String(chars).replacingOccurrences(of: blockCommentStr, with: "")
         }
-        self.codeLine = codeLine.trim.replacingOccurrences(of: "\t", with: " ")
+        self.codeLine = myCodeline.trim.replacingOccurrences(of: "\t", with: " ")
     }//end init
 }//end struct CodeLineDetail

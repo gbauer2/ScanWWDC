@@ -364,7 +364,7 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
 //        if !sw.ibActionFuncs.isEmpty   { XCTAssertEqual(sw.ibActionFuncs[0].name, "saveInfoClicked", "")}
 
         //codeLine
-        XCTAssertEqual(sw.codeLineCount,       19, "")
+        XCTAssertEqual(sw.codeLineCount,       19, "codeLineCount != 19")
 
         //nonCamelCases
         XCTAssertEqual(sw.nonCamelVars.count,  9, "")

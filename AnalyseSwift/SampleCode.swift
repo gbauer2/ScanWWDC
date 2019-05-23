@@ -15,6 +15,15 @@ import Cocoa    /* ????? partial-line Block Comment does not work.*/
 
 //FIXME: This is a test FixMe.
 //TODO: This is a test ToDo.
+
+enum Enum1 { case Good, Bad, Ugly }
+enum enum2 {
+    case GoodGuy
+    case BadBoy
+}
+enum EnumStatic {
+    static let Good = 1
+}
 var myGlobalTestVar = 0
 private func doNothing() { print("Do Nothing") }
 

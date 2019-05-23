@@ -49,6 +49,7 @@
 // show commentLinesCount(dead code?) vs MarkupLineCount (///) (/**)
 // organize by MARK: or by extension
 // allow extensions other than class - esp protocols & structs
+// Separate out FileIO and Base1Sting funcs in VBwords
 
 //MenuRulesVC:
 // Refresh analysis when user changes rules
