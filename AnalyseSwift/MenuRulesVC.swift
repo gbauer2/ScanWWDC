@@ -34,14 +34,14 @@ public struct CR {
         didSet {
             print("🍎 didSet boolVal = \(boolVal)")
             print()
+        }
     }
-}
     var intVal        = 0 {      //11 Value if Int                         1000
         didSet {
             print("🍎 didSet intVal = \(intVal)")
             print()
+        }
     }
-}
     var minVal        = 0       //12 Minimum Value if numerical           200
     var maxVal        = 0       //13 Maximum Value if numerical           1000
     var decimalPos    = 0       //14 Decimal point position if numerical  0
@@ -54,7 +54,7 @@ public struct CR {
     public init(tag: Int, idx: Int, name: String, key: String, helpMsg: String, errMsg: String, dfault: String, txt: String) {
         initHelper(tag: tag, idx: idx, name: name, key: key, helpMsg: helpMsg, dfault: dfault)
         if errMsg.isEmpty { msgError = helpMsg }        // 6
-                     else { msgError = errMsg }
+        else { msgError = errMsg }
         type        = .text                             // 7
         textVal     = txt                               // 9 final
     }
@@ -98,8 +98,8 @@ public struct CR {
             if key.hasPrefix("Rule") { return key }
             return "Rule" + key
         }
-//        let pattern = "[^A-Za-z0-9]+"
-//        let cleanNameRE = name.replacingOccurrences(of: pattern, with: "", options: [.regularExpression])
+        //        let pattern = "[^A-Za-z0-9]+"
+        //        let cleanNameRE = name.replacingOccurrences(of: pattern, with: "", options: [.regularExpression])
         let cleanName = name.components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
         return "Rule" + cleanName
     }//end func

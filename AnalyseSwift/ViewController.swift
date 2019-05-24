@@ -44,6 +44,8 @@
 // Bug: Continuation Line on let, var, etc
 // Bug: "*/" comes through as a codeline
 // *BUG: enum cases not tested for camelCase
+// BUG: CodeLineDetail: Do not change inMultiLine if change occurs after firstSplitter
+
 // dependency
 // computed variables, var observer
 // show commentLinesCount(dead code?) vs MarkupLineCount (///) (/**)

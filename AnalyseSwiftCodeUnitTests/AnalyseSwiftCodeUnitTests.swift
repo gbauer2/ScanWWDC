@@ -364,10 +364,13 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
 //        if !sw.ibActionFuncs.isEmpty   { XCTAssertEqual(sw.ibActionFuncs[0].name, "saveInfoClicked", "")}
 
         //codeLine
-        XCTAssertEqual(sw.codeLineCount,       19, "codeLineCount != 19")
+        XCTAssertEqual(sw.codeLineCount,       20, "codeLineCount != 20")
+
+        //blankLine
+        XCTAssertEqual(sw.blankLineCount,       8)
 
         //nonCamelCases
-        XCTAssertEqual(sw.nonCamelVars.count,  9, "")
+        XCTAssertEqual(sw.nonCamelVars.count,   9, "")
 
         //forceUnwraps.count
         XCTAssertEqual(sw.forceUnwraps.count,   4, "")

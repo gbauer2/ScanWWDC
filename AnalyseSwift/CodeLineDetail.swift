@@ -38,7 +38,7 @@ public struct CodeLineDetail {
     ///   - lineNum: Swift source line number
     ///   - prevCodeLineDetail: provides: inMultiLine: none, tripleQuote, blockComment, or blockMarkup
     /// - Returns: CodeLineDetail
-    init(fullLine: String, prevCodeLineDetail: CodeLineDetail, lineNum: Int) { //38-219 = 181-lines
+    init(fullLine: String, inMultiLine: InMultiLine, lineNum: Int) { //38-219 = 181-lines
         //TODO: Raw-string delimiters with more than 1 asterisk **"..."**
         //TODO: Raw-triple-quote    *"""
         //TODO: Mark-up detection   ///     /**.../*
@@ -49,7 +49,7 @@ public struct CodeLineDetail {
         self = CodeLineDetail()
         self.trimLine    = trimLine
         self.lineNum     = lineNum
-        self.inMultiLine = prevCodeLineDetail.inMultiLine
+        self.inMultiLine = inMultiLine
         var inBlockCommentOrMarkup = self.inMultiLine == .blockComment || self.inMultiLine == .blockMarkup
 
         // inBlockCommentOrMarkup with no end in sight
@@ -114,6 +114,7 @@ public struct CodeLineDetail {
                         if prevChar == "/" {   // "/*"   // --not inQuotes
                             chars[p-1] = blockCommentChar
                             self.hasEmbeddedComment = true
+                            //FIXME: Do not change inMultiLine if change occurs after firstSplitter
                             if p >= chars.count || chars[p+1] != "*" {
                                 self.inMultiLine = .blockComment
                             } else {
@@ -185,6 +186,7 @@ public struct CodeLineDetail {
 
             // Mark Comment Char & Check for End of Block
             if inBlockCommentOrMarkup {
+                //FIXME: Do not change inMultiLine if change occurs after firstSplitter
                 if char == "/" && prevChar == "*" {         // "*/"
                     self.inMultiLine = .none
                     inBlockCommentOrMarkup = false

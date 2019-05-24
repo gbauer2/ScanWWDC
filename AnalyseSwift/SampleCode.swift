@@ -1,3 +1,6 @@
+/*
+ eNum RuleType {case flagProductNameDif = 0, allowAllCaps=1, etc
+ */
 //
 //  SampleCode.swift
 //  AnalyseSwiftCode
