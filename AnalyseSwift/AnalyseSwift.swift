@@ -17,16 +17,16 @@ public      var namedBlocks = [BlockInfo]()     //accessed from analyseSwiftFile
 
 // Holds the aggregate data for each BlockType  //accessed from analyseSwiftFile, needsContinuation, FormatSwiftSummary
 var blockTypes = [
-BlockAggregate(blockType: .None,       codeName: "",          displayName: "unNamed",       showNone: false, total: 0),
-BlockAggregate(blockType: .isInit,     codeName: "init",      displayName: "Init",          showNone: false, total: 0),
-BlockAggregate(blockType: .Func,       codeName: "func",      displayName: "Regular func",  showNone: true,  total: 0),
-BlockAggregate(blockType: .IBAction,   codeName: "IBAction",  displayName: "IBAction func", showNone: false, total: 0),
-BlockAggregate(blockType: .isOverride, codeName: "override",  displayName: "Override func", showNone: false, total: 0),
-BlockAggregate(blockType: .Struct,     codeName: "struct",    displayName: "Struct",        showNone: false, total: 0),
-BlockAggregate(blockType: .Enum,       codeName: "enum",      displayName: "Enum",          showNone: false, total: 0),
-BlockAggregate(blockType: .Extension,  codeName: "extension", displayName: "Extension",     showNone: false, total: 0),
-BlockAggregate(blockType: .Class,      codeName: "class",     displayName: "Class",         showNone: true,  total: 0),
-BlockAggregate(blockType: .isProtocol, codeName: "protocol",  displayName: "Protocol",      showNone: false, total: 0)
+BlockAggregate(blockType: .none,        codeName: "",          displayName: "unNamed",       showNone: false, total: 0),
+BlockAggregate(blockType: .isInit,      codeName: "init",      displayName: "Init",          showNone: false, total: 0),
+BlockAggregate(blockType: .isFunc,      codeName: "func",      displayName: "Regular func",  showNone: true,  total: 0),
+BlockAggregate(blockType: .isIBAction,  codeName: "IBAction",  displayName: "IBAction func", showNone: false, total: 0),
+BlockAggregate(blockType: .isOverride,  codeName: "override",  displayName: "Override func", showNone: false, total: 0),
+BlockAggregate(blockType: .isStruct,    codeName: "struct",    displayName: "Struct",        showNone: false, total: 0),
+BlockAggregate(blockType: .isEnum,      codeName: "enum",      displayName: "Enum",          showNone: false, total: 0),
+BlockAggregate(blockType: .isExtension, codeName: "extension", displayName: "Extension",     showNone: false, total: 0),
+BlockAggregate(blockType: .isClass,     codeName: "class",     displayName: "Class",         showNone: true,  total: 0),
+BlockAggregate(blockType: .isProtocol,  codeName: "protocol",  displayName: "Protocol",      showNone: false, total: 0)
 ]
 
 // MARK: - Block Structs & Enums
@@ -75,16 +75,16 @@ public struct SwiftSummary {
 
 // List of BlockTypes & their index
 public enum BlockTypeEnum: Int {
-    case None       = 0
-    case isInit     = 1
-    case Func       = 2
-    case IBAction   = 3
-    case isOverride = 4
-    case Struct     = 5
-    case Enum       = 6
-    case Extension  = 7
-    case Class      = 8
-    case isProtocol = 9
+    case none        = 0
+    case isInit      = 1
+    case isFunc      = 2
+    case isIBAction  = 3
+    case isOverride  = 4
+    case isStruct    = 5
+    case isEnum      = 6
+    case isExtension = 7
+    case isClass     = 8
+    case isProtocol  = 9
 }
 
 // Search words, Display directives, Total Count(for display)
@@ -99,7 +99,7 @@ internal struct BlockAggregate {
 // for use in "139 lines@ 104 pbxToXcodeProj xtra"
 //Holds Block info for each Block in Stack
 public struct BlockInfo {
-    var blockType        = BlockTypeEnum.None
+    var blockType        = BlockTypeEnum.none
     var lineNum          = 0
     var codeLinesAtStart = 0
     var name             = ""
@@ -189,7 +189,7 @@ private func gotCloseCurly(lineNum: Int, nCodeLine: Int) {
 //        print(#line, lineNum, block.blockType, block.name)
 //        print()
 //    }
-    if block.blockType != .None {
+    if block.blockType != .none {
         if gDebug == .all {print("#\(#line) \(block.name)")}
         block.codeLineCount = nCodeLine - block.codeLinesAtStart // lineNum - block.lineNum
         namedBlocks.append(block)
@@ -654,16 +654,16 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                 print("⛔️ AnalyseSwift.swift #\(#line) Probable line-continuation (end with 'func')")
             }
 
-            blockOnDeck = BlockInfo(blockType: .Func, lineNum: lineNum, codeLinesAtStart: swiftSummary.codeLineCount, name: funcName, extra: "", codeLineCount: 0)
+            blockOnDeck = BlockInfo(blockType: .isFunc, lineNum: lineNum, codeLinesAtStart: swiftSummary.codeLineCount, name: funcName, extra: "", codeLineCount: 0)
             if posFunc >= 0 {
                 if firstWord == "override" {
                     index = BlockTypeEnum.isOverride.rawValue                               // isOverride
                     blockOnDeck.blockType = .isOverride
                 } else if firstWord == "@IBAction" {
-                    index = BlockTypeEnum.IBAction.rawValue                                 // IBAction
-                    blockOnDeck.blockType = .IBAction
+                    index = BlockTypeEnum.isIBAction.rawValue                                 // IBAction
+                    blockOnDeck.blockType = .isIBAction
                 } else {                // private, internal, fileprivate, public
-                    index = BlockTypeEnum.Func.rawValue                                     // Func
+                    index = BlockTypeEnum.isFunc.rawValue                                     // Func
                     containerName = ""
                 }
                 blockTypes[index].total += 1
@@ -749,8 +749,8 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
 
         //find NonCamelCase in enum
         if words[0] == "case" {
-            let containerType = blockStack.last?.blockType ?? .None
-            if containerType == .Enum {
+            let containerType = blockStack.last?.blockType ?? .none
+            if containerType == .isEnum {
                 let list = getEnumCaseList(codeLine)
                 if list.isEmpty {
                     print("⚠️\(#line) needs camelCase check: \"\(codeLine)\"    in blockType.\(containerType)")
@@ -762,7 +762,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                         }
                     }//next item
                 }//endif list.isEmpty
-            }//endif is enum
+            }//endif in enum
         }//endif "case"
 
         var isDeclaration = false
@@ -839,7 +839,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         }
 
         switch c.blockType {
-        case .Func:
+        case .isFunc:
             if c.codeLineCount > CodeRule.maxFuncCodeLines {
                 // MARK:  ➡️ Record Issue "massiveFuncs"
                 if swiftSummary.massiveFuncs.isEmpty { swiftSummary.issueCatsCount += 1 }

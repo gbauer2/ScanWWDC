@@ -141,16 +141,16 @@ struct SwiftSumAttStr {
         txt.append(tx)
 
         // MARK: Blocks
-        let printOrder = [BlockTypeEnum.Enum.rawValue,
-                          BlockTypeEnum.Struct.rawValue,
+        let printOrder = [BlockTypeEnum.isEnum.rawValue,
+                          BlockTypeEnum.isStruct.rawValue,
                           BlockTypeEnum.isProtocol.rawValue,
-                          BlockTypeEnum.Class.rawValue,
-                          BlockTypeEnum.Extension.rawValue,
+                          BlockTypeEnum.isClass.rawValue,
+                          BlockTypeEnum.isExtension.rawValue,
                           BlockTypeEnum.isOverride.rawValue,
-                          BlockTypeEnum.IBAction.rawValue,
+                          BlockTypeEnum.isIBAction.rawValue,
                           BlockTypeEnum.isInit.rawValue,
-                          BlockTypeEnum.Func.rawValue,
-                          BlockTypeEnum.None.rawValue]
+                          BlockTypeEnum.isFunc.rawValue,
+                          BlockTypeEnum.none.rawValue]
 
         if blockTypes.count != printOrder.count {           // Error Check
             print("⛔️ Error formatSwiftSummary #\(#line) - \(blockTypes.count) blockTypes,  but \(printOrder.count) items in printOrder")
