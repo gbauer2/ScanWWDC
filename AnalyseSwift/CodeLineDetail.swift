@@ -26,7 +26,7 @@ public struct CodeLineDetail {
     var bracketMismatch    = 0      // Flag for Line-Continuation []
     var openCurlyCount     = 0      // Number of "{"s in line
     var closeCurlyCount    = 0      // Number of "}"s in line
-    var firstSplitter      = ""     // String value of first curly in line
+    var firstSplitter: Character?   // String value of first ";", "{", or "}" in line
     var inMultiLine: InMultiLine = .none    // tripleQuote, blockComment, blockMarkup
 
     init() {}       // replace the default initializer
@@ -140,12 +140,12 @@ public struct CodeLineDetail {
                         self.bracketMismatch -= 1
                     } else if char == "{" {
                         self.openCurlyCount += 1
-                        if self.firstSplitter.isEmpty { firstSplitter = "{" }
+                        if self.firstSplitter == nil { firstSplitter = "{" }
                     } else if char == "}" {
                         self.closeCurlyCount += 1
-                        if self.firstSplitter.isEmpty { firstSplitter = "}" }
+                        if self.firstSplitter == nil { firstSplitter = "}" }
                     } else if char == ";" {
-                        if self.firstSplitter.isEmpty { firstSplitter = ";" }
+                        if self.firstSplitter == nil { firstSplitter = ";" }
                     }//endif char
 
 

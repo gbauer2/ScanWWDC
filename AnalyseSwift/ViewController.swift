@@ -42,9 +42,10 @@
 // Bug: Handle "var ee: Int=0, ff = 0, gg: Int" vs "var hh = kk.substring(start: 1, length:2)"
 // Bug: Handle Raw String with multiple asterisks (***"..."*** )
 // Bug: Continuation Line on let, var, etc
-// Bug: "*/" comes through as a codeline
-// *BUG: enum cases not tested for camelCase
+// Bug: "*/" comes through as a codeline (patched at AnalyseSwift line 562)
 // BUG: CodeLineDetail: Do not change inMultiLine if change occurs after firstSplitter
+// BUG: Trailing Comment Count
+// BUG: Counts don't add up
 
 // dependency
 // computed variables, var observer
@@ -72,6 +73,7 @@
 //  Compound Lines
 
 //  Done:
+//  Fixed BUG: enum cases with associated values now tested for camelCase
 
 import Cocoa    /* partial-line Block Comment does work.*/
 /* single-line Block Comment does work. */

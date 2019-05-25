@@ -172,13 +172,6 @@ internal enum ProjectType {
 
 // MARK: - Helper funcs
 
-// Split line a 1st ocurrence of str
-internal func splitLine(_ line: String , at pos: Int ) -> (String, String) {
-    let rightSide = line.substring(begin: pos+1).trim
-    let leftSide = line.left(pos).trim
-    return (leftSide, rightSide)
-}
-
 //---- gotOpenCurly - push "ondeck" onto stack, clear ondeck,  stackedCounter = nCodeLines
 private func gotOpenCurly(lineNum: Int) {
     if gTrace == .all { print("\(lineNum) got open curly; depth \(curlyDepth) -> \(curlyDepth+1)") }
@@ -202,6 +195,47 @@ private func gotCloseCurly(lineNum: Int, nCodeLine: Int) {
         namedBlocks.append(block)
     }
 }//end func
+
+// Split line into 2 parts at 1st occurence of Character
+internal func splitLine(_ line: String , atCharacter sep: Character ) -> (lhs: String, rhs: String) {
+    let array = line.split(maxSplits: 1, omittingEmptySubsequences: false, whereSeparator: { $0 == sep }) // $0.isWhitespace
+    let lhs = String(array[0]).trim
+    let rhs = array.count >= 2 ? String(array[1]).trim : ""
+    return (lhs, rhs)
+}
+
+// Split line line into 2 parts at Int index - not used
+//internal func splitLineAtInt(_ line: String , at pos: Int ) -> (lhs: String, rhs: String) {
+//    let rightSide = line.substring(begin: pos+1).trim
+//    let leftSide = line.left(pos).trim
+//    return (leftSide, rightSide)
+//}
+
+// Find assignments in enum case - including associate value
+internal func getEnumCaseList(_ line: String) -> [String] {
+    var list = [String]()
+    if line.hasPrefix("case ") {
+        var myLine = String(line.dropFirst(5)).trim
+        var associate = ""
+        (myLine, _) = splitLine(myLine, atCharacter: "=")
+        (myLine, associate) = splitLine(myLine, atCharacter: "(")
+        list = myLine.components(separatedBy: ",").map { $0.trim }
+        if !associate.isEmpty {
+            let index1 = associate.startIndex
+            let index2 = associate.firstIndex(of: ":")
+            if let index2 = index2 {
+                if index1 < index2 {
+                    let range = index1..<index2
+                    let word = associate[range]
+                    //print("\"\(line)  \"\(word)\"")
+                    list.append(String(word.trim))
+                }
+            }
+        }
+    }
+    //print("\"\(line)  \(list)")
+    return list
+}
 
 //---- isCamelCase
 // Uses CodeRule
@@ -397,10 +431,10 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             swiftSummary.commentLineCount + swiftSummary.markupLineCount + swiftSummary.quoteLineCount +
             swiftSummary.codeLineCount + 1
         if sum != lineNum || iLine != lineNum {
-//            print("⛔️ Error#\(#line), lineNum \(lineNum), sum=\(sum)", swiftSummary.blankLineCount,
-//                  swiftSummary.continueLineCount, -swiftSummary.compoundLineCount, swiftSummary.commentLineCount,
-//                  swiftSummary.markupLineCount, swiftSummary.quoteLineCount, swiftSummary.codeLineCount )
-            //print()
+//            print("⛔️ Error#\(#line), lineNum \(lineNum), sum=\(sum): code=\(swiftSummary.codeLineCount) blank=\(swiftSummary.blankLineCount) comment=\(swiftSummary.commentLineCount)",
+//                  swiftSummary.continueLineCount, -swiftSummary.compoundLineCount,
+//                  swiftSummary.markupLineCount, swiftSummary.quoteLineCount)
+//            print()
         }
         //---------------------------
 
@@ -467,14 +501,12 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         let codeLineFull = codeLineDetail.codeLine
 
         let codeLine: String
-        if !codeLineDetail.firstSplitter.isEmpty {
-            let ptr = codeLineFull.firstIntIndexOf(codeLineDetail.firstSplitter)
-            let lineTuple = splitLine(codeLineFull, at: ptr)
+        if let firstSplitter = codeLineDetail.firstSplitter {
+            let lineTuple = splitLine(codeLineFull, atCharacter: firstSplitter)
 
-            if codeLineDetail.firstSplitter == ";" {
-                // Split compound line
-                //print("Compound line \"\(codeLineFull)\"")
-                if !stillInCompound {
+            // Split compound line
+            if firstSplitter == ";" {
+                if !stillInCompound && !lineTuple.lhs.isEmpty && !lineTuple.rhs.isEmpty {
                     // MARK:  ➡️ Record Issue "compoundLines"
                     if swiftSummary.compoundLines.isEmpty { swiftSummary.issueCatsCount += 1 }
                     swiftSummary.totalIssues += 1
@@ -482,21 +514,21 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                     stillInCompound = true
                 }
                 swiftSummary.compoundLineCount += 1
-                codeLine = lineTuple.0
-                fromPrevLine = lineTuple.1
+                codeLine     = lineTuple.lhs
+                fromPrevLine = lineTuple.rhs
             } else {                        // must be "{" or "}"
-                if lineTuple.0.isEmpty {
-                    if codeLineDetail.firstSplitter == "{" {
+                if lineTuple.lhs.isEmpty {
+                    if firstSplitter == "{" {
                         gotOpenCurly(lineNum: lineNum)
                     } else {                // must be "}"
                         gotCloseCurly(lineNum: lineNum, nCodeLine: swiftSummary.codeLineCount)
                     }
-                    fromPrevLine = lineTuple.1
+                    fromPrevLine = lineTuple.rhs
                     continue
                 } else {
                     //continue working on leftSide. Save curly+rightSide for next time
-                    codeLine = lineTuple.0
-                    fromPrevLine = codeLineDetail.firstSplitter + lineTuple.1
+                    codeLine     = lineTuple.lhs
+                    fromPrevLine = String(firstSplitter) + lineTuple.rhs
                 }
             }
         } else {        // firstSplitter isEmpty
@@ -526,6 +558,11 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             continue                                                    // bypass further processing
         }
 
+        // Patch
+        if line == "*/" {
+            swiftSummary.commentLineCount += 1
+            continue
+        }
         swiftSummary.codeLineCount += 1
 
         // Create a CharacterSet of delimiters.
@@ -710,14 +747,23 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
 
         if words.isEmpty { continue }
 
-        //find NonCamalCase in enum
+        //find NonCamelCase in enum
         if words[0] == "case" {
             let containerType = blockStack.last?.blockType ?? .None
             if containerType == .Enum {
-                print("⚠️\(#line) needs camelCase check: \"\(codeLine)\" in blockType.\(containerType)")
-                print()
-            }
-        }
+                let list = getEnumCaseList(codeLine)
+                if list.isEmpty {
+                    print("⚠️\(#line) needs camelCase check: \"\(codeLine)\"    in blockType.\(containerType)")
+                    print()
+                } else {
+                    for item in list {
+                        if !isCamelCase(item) {
+                            recordNonCamelcase(item)
+                        }
+                    }//next item
+                }//endif list.isEmpty
+            }//endif is enum
+        }//endif "case"
 
         var isDeclaration = false
         var pLet = 4

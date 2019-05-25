@@ -20,13 +20,24 @@ import Cocoa    /* ????? partial-line Block Comment does not work.*/
 //TODO: This is a test ToDo.
 
 enum Enum1 { case Good, Bad, Ugly }
-enum enum2 {
-    case GoodGuy
+enum enum2
+{    case GoodGuy
     case BadBoy
 }
 enum EnumStatic {
     static let Good = 1
 }
+enum Building    { case skyscraper(floors: Int) }
+enum Planet: Int {
+    case Mercury = 1
+    case Venus
+}
+enum Activity {
+    case bored
+    case running(destination: String)
+    case Singing(Volume: Int)
+}
+
 var myGlobalTestVar = 0
 private func doNothing() { print("Do Nothing") }
 
