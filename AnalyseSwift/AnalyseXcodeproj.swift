@@ -685,9 +685,13 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
     var totalForceUnwrap  = 0
     var totalVbCompatCall = 0
     var totalBig          = 0
+    var totalToDoFixMe    = 0
+    //var totalCompound     = 0
+    var totalGlobal       = 0
+    var totalMisc         = 0
 
     text += "\n------------ \(showCount(count: xcodeProj.swiftURLs.count, name: "Swift file")) in \(xcodeProj.filename) ------------\n"   // "Swift files"
-    text += "       FileName            CodeLines  NonCamel ForceUnwrap  VB    Big\n"
+    text += "       FileName            CodeLines  ToDo  Naming F-Unwrap  VB  Global  Misc  Big\n"
 
     for swiftSummary in xcodeProj.swiftSummaries {
         let name = swiftSummary.fileName
@@ -698,36 +702,45 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
             if clCt > CodeRule.maxFileCodeLines {
                 issues.append("\"\(name)\" has \(clCt) code-lines (>\(CodeRule.maxFileCodeLines)).")
             }
-            let ccCt = swiftSummary.nonCamelVars.count
+            let tdCt = swiftSummary.toDoFixMe.count
+            totalToDoFixMe += tdCt
+            let ccCt  = swiftSummary.nonCamelVars.count
             totalNonCamelCase += ccCt
-            let fuCt = swiftSummary.forceUnwraps.count
+            let fuCt  = swiftSummary.forceUnwraps.count
             totalForceUnwrap += fuCt
-            let vbCt = swiftSummary.vbCompatCalls.count
+            let vbCt  = swiftSummary.vbCompatCalls.count
             totalVbCompatCall += vbCt
+            let glbCt = swiftSummary.globals.count + swiftSummary.freeFuncs.count
+            totalGlobal += glbCt
+            let mscCt = swiftSummary.compoundLines.count
+            totalMisc += mscCt
             let bigCt = swiftSummary.massiveFile.count + swiftSummary.massiveFuncs.count
             for afunc in swiftSummary.massiveFuncs {
                 issues.append("\"\(name)\" has a func \"\(afunc.name)\" with \(afunc.codeLineCt) code-lines (>\(CodeRule.maxFuncCodeLines)).")
             }
             totalBig += bigCt
             //text += "\(swiftSummary.url.lastPathComponent)  -  nonCamel \(swiftSummary.nonCamelCases.count)\n"
-            text += format2(swiftSummary.url.lastPathComponent,clCt,ccCt,fuCt,vbCt,bigCt)
+            text += format2(swiftSummary.url.lastPathComponent,clCt,tdCt,ccCt,fuCt,vbCt,glbCt,mscCt,bigCt)
         } else {
             text += "(\(swiftSummary.url.lastPathComponent))\n"
         }
     }//next
-    text += "\n\(format2("  -- Totals --",totalCodeLine,totalNonCamelCase,totalForceUnwrap,totalVbCompatCall, totalBig))\n"
+    text += "\n\(format2("  -- Totals --",totalCodeLine,totalToDoFixMe,totalNonCamelCase,totalForceUnwrap,totalVbCompatCall,totalGlobal,totalMisc,totalBig))\n"
 
     //------------------------------------------------------------------
     //------------- Issues --------------
-    let totalIssueCount = totalNonCamelCase + totalForceUnwrap + totalVbCompatCall + totalBig + issues.count
+    let totalIssueCount = totalToDoFixMe + totalNonCamelCase + totalForceUnwrap + totalVbCompatCall + totalGlobal + totalMisc + totalBig + issues.count
 
     if totalIssueCount == 0 {
         text += "\n-------- No Issues --------\n"
     } else {
         text += "\n--------- \(totalIssueCount) Possible \("Issue".pluralize(totalIssueCount)) in \(xcodeProj.filename) ---------\n"
+        if totalToDoFixMe    > 0 {text += "\(showCount(count: totalToDoFixMe,    name: "TODO: or FIXME: comment")).\n"}
         if totalNonCamelCase > 0 {text += "\(showCount(count: totalNonCamelCase, name: "NonCamelCase Variable")).\n"}
         if totalForceUnwrap  > 0 {text += "\(showCount(count: totalForceUnwrap,  name: "ForceUnwrap")).\n"}
         if totalVbCompatCall > 0 {text += "\(showCount(count: totalVbCompatCall, name: "VBcompatability Call")).\n"}
+        if totalGlobal       > 0 {text += "\(showCount(count: totalGlobal,       name: "Global & Free Function")).\n"}
+        if totalMisc         > 0 {text += "\(showCount(count: totalMisc,         name: "miscellaneous issue")).\n"}
     }
     for issue in issues {
         text += issue + "\n"
@@ -745,9 +758,11 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
     return formattedText
 }//end func
 
-private func format2(_ name: String, _ c1: Int, _ c2: Int, _ c3: Int, _ c4: Int, _ c5: Int) -> String {
-    let txt = name.PadRight(26) + fmtI(c1, wid: 8) + fmtI(c2, wid: 9) + fmtI(c3, wid: 10)
-                                + fmtI(c4, wid: 9) + fmtI(c5, wid: 7) + "\n"
+//                      filename        lines      todo       naming
+private func format2(_ name: String, _ c1: Int, _ c2: Int, _ c3: Int, _ c4: Int, _ c5: Int, _ c6: Int, _ c7: Int, _ c8: Int) -> String {
+    let txt = name.PadRight(26) + fmtI(c1, wid: 7) + fmtI(c2, wid: 8) + fmtI(c3, wid: 8)
+                                + fmtI(c4, wid: 8) + fmtI(c5, wid: 6) + fmtI(c6, wid: 6)
+                                + fmtI(c7, wid: 6) + fmtI(c8, wid: 6) + "\n"
     return txt
 }
 private func fmtI(_ number: Int, wid: Int) -> String {

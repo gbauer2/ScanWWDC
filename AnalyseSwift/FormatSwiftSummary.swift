@@ -197,7 +197,7 @@ struct SwiftSumAttStr {
         txt.append(showLineItems(title: title, suffix: suffix, items: swiftSummary.massiveFuncs))
 
         // MARK: TODO's & FIXME's
-        txt.append(showLineItems(title: "ToDo & FixMe", items: swiftSummary.toDoFixMe))
+        txt.append(showLineItems(title: "ToDo/FixMe marker", items: swiftSummary.toDoFixMe))
 
         // MARK: Compound Lines
         txt.append(showLineItems(title: "Compound Line", items: swiftSummary.compoundLines))

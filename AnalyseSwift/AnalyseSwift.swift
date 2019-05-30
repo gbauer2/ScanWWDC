@@ -44,7 +44,7 @@ public struct SwiftSummary {
 
     var codeLineCount     = 0   // includes compound line & "if x {code}"   384 -> 400
     var continueLineCount = 0
-    var blankLineCount    = 0   // empty line or a single curly on line     162 -> 165
+    var blankLineCount    = 0   // empty line or a single curly or /* or /** or */     162 -> 165
     var commentLineCount  = 0   // entire line is a comment or part of block comment
     var quoteLineCount    = 0
     var markupLineCount   = 0
@@ -59,18 +59,23 @@ public struct SwiftSummary {
     //FormatSwiftSummary.swift ~200;        AnalyseXcodeproj.swift ~700
     var nonCamelVars    = [LineItem]()      // 344
     var toDoFixMe       = [LineItem]()      // 425
-    var compoundLines   = [LineItem]()      // 483, 726
     var forceUnwraps    = [LineItem]()      // 560
     var freeFuncs       = [LineItem]()      // 634
     var globals         = [LineItem]()      // 743
+    var compoundLines   = [LineItem]()      // 483, 726
     var massiveFile     = [LineItem]()      // 767
     var massiveFuncs    = [LineItem]()      // 785
+
+    var issues          = [String: Issue]()     //neww
 
     var vbCompatCalls   = [String: LineItem]()  // "VB.Left     3    times"
 
     var issueCatsCount  = 0         // for display spacing when issuesFirst
     var totalIssues     = 0         // for display spacing when issuesFirst
 
+    mutating func initIssues() {
+        issues = getDefaultIssues() //in Issues.swift
+    }
 }//end struct SwiftSummary
 
 // List of BlockTypes & their index
@@ -196,12 +201,24 @@ private func gotCloseCurly(lineNum: Int, nCodeLine: Int) {
     }
 }//end func
 
-// Split line into 2 parts at 1st occurence of Character
-internal func splitLine(_ line: String , atCharacter sep: Character ) -> (lhs: String, rhs: String) {
-    let array = line.split(maxSplits: 1, omittingEmptySubsequences: false, whereSeparator: { $0 == sep }) // $0.isWhitespace
+// Split line into 2 trimmed parts at 1st occurence of Character
+public func splitLine(_ line: String , atCharacter sep: Character ) -> (lhs: String, rhs: String) {
+    let array = line.split(separator: sep, maxSplits: 1, omittingEmptySubsequences: false)
+    //let array = line.split(maxSplits: 1, omittingEmptySubsequences: false, whereSeparator: { $0 == sep }) // $0.isWhitespace
     let lhs = String(array[0]).trim
     let rhs = array.count >= 2 ? String(array[1]).trim : ""
     return (lhs, rhs)
+}
+
+// Remove
+public func extractString(from str: String, between char1: Character, and char2: Character)
+    -> (remainderLhs: String, extracted: String, remainderRhs: String) {
+    let (remainderLhs, extractedPart) = splitLine(str, atCharacter: char1)
+    if extractedPart.isEmpty {
+        return (remainderLhs, extractedPart, "")     // char1 not there
+    }
+    let (extracted, remainderRhs) = splitLine(extractedPart, atCharacter: char2)
+    return (remainderLhs, extracted, remainderRhs)
 }
 
 // Split line line into 2 parts at Int index - not used
@@ -358,6 +375,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
     }
 
     var swiftSummary = SwiftSummary()
+    swiftSummary.initIssues()   //new
     swiftSummary.fileName = selecFileInfo.name
     swiftSummary.url = selecFileInfo.url!
 
@@ -381,6 +399,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
     var fromPrevLine    = ""    // if prev line had a ";" (Compund Line), this is the excess after 1st ";"
     var partialLine     = ""    // if this is a Continuation Line
     var iLine           = 0
+    var maxCountError   = 0
     var stillInCompound = false
 
     func recordNonCamelcase(_ name: String) {
@@ -427,18 +446,21 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         }
 
         //------- Sanity Check ------
+        if  iLine != lineNum {
+            print("⛔️ Error#\(#line), lineNum \(lineNum) != iLine \(iLine)")
+        }
         let sum = swiftSummary.blankLineCount + swiftSummary.continueLineCount - swiftSummary.compoundLineCount +
             swiftSummary.commentLineCount + swiftSummary.markupLineCount + swiftSummary.quoteLineCount +
             swiftSummary.codeLineCount + 1
-        if sum != lineNum || iLine != lineNum {
-//            print("⛔️ Error#\(#line), lineNum \(lineNum), sum=\(sum): code=\(swiftSummary.codeLineCount) blank=\(swiftSummary.blankLineCount) comment=\(swiftSummary.commentLineCount)",
-//                  swiftSummary.continueLineCount, -swiftSummary.compoundLineCount,
-//                  swiftSummary.markupLineCount, swiftSummary.quoteLineCount)
-//            print()
+        let countError = abs(sum - lineNum)
+        if countError != maxCountError {
+            print("⛔️ Error#\(#line), lineNum \(lineNum), \"\(line)\"\nsum=\(sum) dif=\(sum-lineNum): code=\(swiftSummary.codeLineCount) blank=\(swiftSummary.blankLineCount) comment=\(swiftSummary.commentLineCount) continuation=\(swiftSummary.continueLineCount)",
+                   -swiftSummary.compoundLineCount, swiftSummary.markupLineCount, swiftSummary.quoteLineCount)
+            maxCountError = countError
         }
         //---------------------------
 
-        if line.hasPrefix("/*") {                             // "/*"
+        if line.hasPrefix("/*") && !line.contains("*/") {                             // "/*"
             if line.hasPrefix("/**") {
                 inMultiLine = .blockMarkup
             } else {
@@ -455,7 +477,11 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         if line.hasPrefix("///") || inMultiLine == .blockMarkup {   // "///"
             swiftSummary.markupLineCount += 1
         } else if line.hasPrefix("//") || inMultiLine == .blockComment {   // "//"
-            swiftSummary.commentLineCount += 1
+            if line == "/*" {
+                swiftSummary.blankLineCount += 1
+            } else {
+                swiftSummary.commentLineCount += 1
+            }
             // File Header
             if swiftSummary.codeLineCount == 0 {
                 if line.contains("Copyright") {
@@ -541,8 +567,10 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
 
         if codeLineFull.isEmpty {
             if !codeLineDetail.isMarkup {
-                if deBug {
-                    print("⛔️ Empty CodeLine \(codeLineDetail.lineNum): \"\(codeLineDetail.trimLine)\"")
+                if !line.hasPrefix("/*") || !line.hasSuffix("*/") {
+                    if deBug {
+                        print("⛔️ Empty CodeLine \(codeLineDetail.lineNum): \"\(codeLineDetail.trimLine)\"")
+                    }
                 }
             }
             continue                                                    // bypass further processing
@@ -559,8 +587,11 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         }
 
         // Patch
-        if line == "*/" {
-            swiftSummary.commentLineCount += 1
+        if line == "*/" || line == "/*" || line == "/**" {
+            swiftSummary.blankLineCount += 1
+            continue
+        } else if line == "\"\"\"" {
+            swiftSummary.quoteLineCount += 1
             continue
         }
         swiftSummary.codeLineCount += 1
@@ -728,13 +759,6 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         }//end while
 
         if foundNamedBlock {
-            //TODO: eliminate this code
-            let comps = codeLine.components(separatedBy: "{")
-            if comps.count > 1 {
-                print(comps)
-                gotOpenCurly(lineNum: lineNum)
-                fromPrevLine = comps[1]
-            }
             continue
         }
         //---------------------------------------------------------------   //end Named Blocks
@@ -753,7 +777,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             if containerType == .isEnum {
                 let list = getEnumCaseList(codeLine)
                 if list.isEmpty {
-                    print("⚠️\(#line) needs camelCase check: \"\(codeLine)\"    in blockType.\(containerType)")
+                    print("⛔️ Error#\(#line) missing enum case associate: \"\(codeLine)\"    in blockType.\(containerType)")
                     print()
                 } else {
                     for item in list {

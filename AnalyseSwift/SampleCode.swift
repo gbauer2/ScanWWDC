@@ -47,7 +47,7 @@ private func interpolate() {
     print(#"xxx\#(myVar)yyy"#)
 }
 
-private func DoForceUnwrap() {
+private func doForceUnwrap() {
     var dict = [String: String]()
     dict["as!"] = "as!"
     let val = dict["as!"]!
@@ -69,7 +69,7 @@ private func DoForceUnwrap() {
     let int = attributes[key] as! Int
 
     print(str, date, int)
-}
+}//end func
 
 private func DoCamelCase(p1: Int, p2: Int , Param3:String) {
     let n, Bad1:   Int

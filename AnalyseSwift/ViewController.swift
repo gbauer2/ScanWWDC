@@ -42,7 +42,6 @@
 // Bug: Handle "var ee: Int=0, ff = 0, gg: Int" vs "var hh = kk.substring(start: 1, length:2)"
 // Bug: Handle Raw String with multiple asterisks (***"..."*** )
 // Bug: Continuation Line on let, var, etc
-// Bug: "*/" comes through as a codeline (patched at AnalyseSwift line 562)
 // BUG: CodeLineDetail: Do not change inMultiLine if change occurs after firstSplitter
 // BUG: Trailing Comment Count
 // BUG: Counts don't add up
@@ -223,7 +222,7 @@ class ViewController: NSViewController, NSWindowDelegate {
     // MARK: - Lifecycle
 
     override func viewDidLoad() {
-        WordLookup.initWordLookup()
+        WordLookup.initKeyWords()
         WordLookup.initVBwords()
         popupBaseDir.removeAllItems()
         popupBaseDir.addItems(withTitles: ["Desktop","Downloads","Documents","All"])
@@ -544,7 +543,7 @@ extension ViewController {
 
         let selectedItem = filesList[tableView.selectedRow]
 
-        if selectedItem.hasDirectoryPath {
+        if selectedItem.hasDirectoryPath && selectedItem.pathExtension != "xcodeproj"  {
             //clearForwardStack, pushBackStack
             self.pushDirBackStack()
             selectedFolderUrl = selectedItem

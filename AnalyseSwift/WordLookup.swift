@@ -33,7 +33,7 @@ public struct WordLookup {
 
     //MARK: init Swift KeyWords
 
-    static func initWordLookup() {
+    static func initKeyWords() {
         let zipped = zip(keyWords, Array(repeating: 0, count: keyWords.count) )
         dictKeyWords = Dictionary(uniqueKeysWithValues: zipped)
     }//end func
@@ -44,7 +44,7 @@ public struct WordLookup {
 
     //MARK:- List of VB Words
 
-    static var gDictVBwords = [String: Int]()
+    static var dictVBwords = [String: Int]()
 
     private static let varVBs  = ["vbCr", "vbLf", "VBcompPrintToLog", "knownProblems"]
     private static let funcVBs = ["UCase", "LCase", "Left", "Right", "Trim", "LTrim", "RTrim",
@@ -63,29 +63,29 @@ public struct WordLookup {
     //MARK: initVBwords
 
     public static func initVBwords() {
-        gDictVBwords = [:]
+        dictVBwords = [:]
         for word in varVBs {
-            gDictVBwords[word] = 1
+            dictVBwords[word] = 1
         }
         for word in funcVBs {
-            gDictVBwords[word] = 2
+            dictVBwords[word] = 2
         }
         for word in string1VBs {
-            gDictVBwords[word] = -3
+            dictVBwords[word] = -3
         }
         for word in fileIOVBs {
-            gDictVBwords[word] = -4
+            dictVBwords[word] = -4
         }
         for word in vbVBs {
-            gDictVBwords[word] = 5
+            dictVBwords[word] = 5
         }
         for word in strExtVBs {
-            gDictVBwords[word] = 6
+            dictVBwords[word] = 6
         }
     }
 
     static func isVBword(word: String) -> Bool {
-        return gDictVBwords[word] != nil
+        return dictVBwords[word] != nil
     }
 
 }//end struct WordLookup

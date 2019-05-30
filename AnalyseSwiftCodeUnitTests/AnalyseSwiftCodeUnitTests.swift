@@ -138,101 +138,99 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
     //11 CodeLineDetails.swift
     func testCodeLineDetailInit() {
         var line = ""
-        var codeLineDetail     = CodeLineDetail()
-        var prevCodeLineDetail = CodeLineDetail()
-
-        prevCodeLineDetail.inMultiLine = .none
+        var codeLineDetail           = CodeLineDetail()
+        var inMultiLine: InMultiLine = .none
         line = ##" i = #"xxx\#"## + ##"(myVar)yyy"#"##
-        codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
+        codeLineDetail = CodeLineDetail(fullLine: line, inMultiLine: inMultiLine, lineNum: 0)
         //stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
         XCTAssertEqual(codeLineDetail.codeLine, ##"i = #"~~~~~ myVar ~~~"#"##)
 
-        prevCodeLineDetail.inMultiLine = .none
+        inMultiLine = .none
         line = ##" i = "xxx\(myVar)yyy""##
-        codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
+        codeLineDetail = CodeLineDetail(fullLine: line, inMultiLine: inMultiLine, lineNum: 0)
         //stripCommentAndQuote(fullLine: line, lineNum: 0, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment, inBlockMarkup: &inBlockMarkup)
         XCTAssertEqual(codeLineDetail.codeLine, #"i = "~~~~ myVar ~~~""#)
 
-        prevCodeLineDetail.inMultiLine = .none
+        inMultiLine = .none
         line = #"""
         print("\"") //ok
         """#
-        codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
+        codeLineDetail = CodeLineDetail(fullLine: line, inMultiLine: inMultiLine, lineNum: 0)
         XCTAssertEqual(codeLineDetail.codeLine, #"print("~~")"#)
 
-        prevCodeLineDetail.inMultiLine = .none
+        inMultiLine = .none
         line = ##"a=#"1\"2"#"##
-        codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
+        codeLineDetail = CodeLineDetail(fullLine: line, inMultiLine: inMultiLine, lineNum: 0)
         XCTAssertEqual(codeLineDetail.codeLine,##"a=#"~~~~"#"##)
 
         line = ##"a="1\"2""##
-        codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
+        codeLineDetail = CodeLineDetail(fullLine: line, inMultiLine: inMultiLine, lineNum: 0)
         XCTAssertEqual(codeLineDetail.codeLine,##"a="~~~~""##)
 
         line = #"print("s\(s)")"#
-        codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
+        codeLineDetail = CodeLineDetail(fullLine: line, inMultiLine: inMultiLine, lineNum: 0)
         XCTAssertEqual(codeLineDetail.codeLine, #"print("~~ s ")"#)
         XCTAssertFalse(codeLineDetail.hasTrailingComment)
         XCTAssertFalse(codeLineDetail.hasEmbeddedComment)
         XCTAssertEqual(codeLineDetail.inMultiLine, InMultiLine.none)    //(codeLineDetail.inBlockComment)
 
         line = #"a="\n""#
-        codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
+        codeLineDetail = CodeLineDetail(fullLine: line, inMultiLine: inMultiLine, lineNum: 0)
         XCTAssertEqual(codeLineDetail.codeLine, #"a="~~""#)
 
         line = "//"
-        codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
+        codeLineDetail = CodeLineDetail(fullLine: line, inMultiLine: inMultiLine, lineNum: 0)
         XCTAssertEqual(codeLineDetail.codeLine, "")
         XCTAssertFalse(codeLineDetail.hasTrailingComment)
         XCTAssertFalse(codeLineDetail.hasEmbeddedComment)
 
         line = "// My Comments"
-        codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
+        codeLineDetail = CodeLineDetail(fullLine: line, inMultiLine: inMultiLine, lineNum: 0)
         XCTAssertEqual(codeLineDetail.codeLine, "")
         XCTAssertFalse(codeLineDetail.hasTrailingComment)
         XCTAssertFalse(codeLineDetail.hasEmbeddedComment)
         
         line = "myVar = false"
-        codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
+        codeLineDetail = CodeLineDetail(fullLine: line, inMultiLine: inMultiLine, lineNum: 0)
         XCTAssertEqual(codeLineDetail.codeLine, line.trim)
         XCTAssertFalse(codeLineDetail.hasTrailingComment)
         XCTAssertFalse(codeLineDetail.hasEmbeddedComment)
 
         line = "myVar = false    // Comment"
-        codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
+        codeLineDetail = CodeLineDetail(fullLine: line, inMultiLine: inMultiLine, lineNum: 0)
         XCTAssertEqual(codeLineDetail.codeLine, "myVar = false")
         XCTAssertTrue(codeLineDetail.hasTrailingComment)
         XCTAssertFalse(codeLineDetail.hasEmbeddedComment)
 
         line = #"myVar = "test""#
-        codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
+        codeLineDetail = CodeLineDetail(fullLine: line, inMultiLine: inMultiLine, lineNum: 0)
         XCTAssertEqual(codeLineDetail.codeLine, #"myVar = "~~~~""#)
         XCTAssertFalse(codeLineDetail.hasTrailingComment)
         XCTAssertFalse(codeLineDetail.hasEmbeddedComment)
 
         line = "myVar = /*embed*/ test"
-        codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
+        codeLineDetail = CodeLineDetail(fullLine: line, inMultiLine: inMultiLine, lineNum: 0)
         XCTAssertEqual(codeLineDetail.codeLine, "myVar =  test")
         XCTAssertFalse(codeLineDetail.hasTrailingComment)
         XCTAssertTrue(codeLineDetail.hasEmbeddedComment)
 
         line = "#\"You can use \" and \"\\\" in a raw string. Interpolating as \\#(var).\"#"
         line = "#\"123\"#"
-        codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
+        codeLineDetail = CodeLineDetail(fullLine: line, inMultiLine: inMultiLine, lineNum: 0)
         XCTAssertEqual(codeLineDetail.codeLine, "#\"~~~\"#")
 
-        prevCodeLineDetail.inMultiLine = .blockComment
+        inMultiLine = .blockComment
         line = "myVar = false    // Comment"
-        codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
+        codeLineDetail = CodeLineDetail(fullLine: line, inMultiLine: inMultiLine, lineNum: 0)
         XCTAssertEqual(codeLineDetail.codeLine, "")
         XCTAssertFalse(codeLineDetail.hasTrailingComment)
         XCTAssertFalse(codeLineDetail.hasEmbeddedComment)
         XCTAssertEqual(codeLineDetail.inMultiLine, InMultiLine.blockComment)
         //XCTAssertTrue(codeLineDetail.inBlockComment)
 
-        prevCodeLineDetail.inMultiLine = .blockComment
+        inMultiLine = .blockComment
         line = "comment*/myVar = false    // Comment"
-        codeLineDetail = CodeLineDetail(fullLine: line, prevCodeLineDetail: prevCodeLineDetail, lineNum: 0)
+        codeLineDetail = CodeLineDetail(fullLine: line, inMultiLine: inMultiLine, lineNum: 0)
         XCTAssertEqual(codeLineDetail.codeLine, "myVar = false")
         XCTAssertTrue(codeLineDetail.hasTrailingComment)
         XCTAssertFalse(codeLineDetail.hasEmbeddedComment)
@@ -318,6 +316,30 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         XCTAssertEqual(result[2], "var1")
     }
 
+    func testExtractString() {
+        var str = ""
+        var result = (remainderLhs: "", extracted: "", remainderRhs: "")
+
+        str = "part1(part2)part3"
+        result = extractString(from: str, between: "(", and: ")")
+        XCTAssertEqual(result.remainderLhs, "part1")
+        XCTAssertEqual(result.extracted,    "part2")
+        XCTAssertEqual(result.remainderRhs, "part3")
+
+        str = "part1part2)part3"
+        result = extractString(from: str, between: "(", and: ")")
+        XCTAssertEqual(result.remainderLhs, str)
+        XCTAssertEqual(result.extracted,    "")
+        XCTAssertEqual(result.remainderRhs, "")
+
+        str = "part1(part2part3"
+        result = extractString(from: str, between: "(", and: ")")
+        XCTAssertEqual(result.remainderLhs, "part1")
+        XCTAssertEqual(result.extracted,    "part2part3")
+        XCTAssertEqual(result.remainderRhs, "")
+    }
+
+
     //284 AnalyseSwift.swift
     func testAnalyseSwiftFileLong() {
         let fileAtt = FileAttributes(url: URL(fileURLWithPath: "/????"), name: "sampleCodeLong", creationDate: Date(), modificationDate: Date(), size: 1234, isDir: false)
@@ -331,7 +353,7 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         //XCTAssertEqual(sw.extensionNames[0], "ViewController", "")
         XCTAssertEqual(sw.fileName, "sampleCodeLong", "")
         //XCTAssertEqual(sw.funcs.count,    5, "")
-        XCTAssertEqual(sw.codeLineCount, 73, "")
+        XCTAssertEqual(sw.codeLineCount, 71, "")
         XCTAssertEqual(sw.nonCamelVars.count, 14, "")
         XCTAssertEqual(sw.forceUnwraps.count,  15, "")
         XCTAssertEqual(sw.vbCompatCalls.count,  3, "")
@@ -362,21 +384,51 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         // ibActionFuncs
 //        XCTAssertEqual(sw.ibActionFuncs.count,          1, "")
 //        if !sw.ibActionFuncs.isEmpty   { XCTAssertEqual(sw.ibActionFuncs[0].name, "saveInfoClicked", "")}
+/*
+         var codeLineCount     = 0   // includes compound line & "if x {code}"   384 -> 400
+         var continueLineCount = 0
+         var blankLineCount    = 0   // empty line or a single curly on line     162 -> 165
+         var commentLineCount  = 0   // entire line is a comment or part of block comment
+         var quoteLineCount    = 0
+         var markupLineCount   = 0
+         var compoundLineCount = 0
+         var totalLineCount    = 0
+ */
+        // codeLine
+        XCTAssertEqual(sw.codeLineCount,      21, "codeLineCount != 21")
 
-        //codeLine
-        XCTAssertEqual(sw.codeLineCount,       20, "codeLineCount != 20")
+        // continueLineCount
+        XCTAssertEqual(sw.continueLineCount,   2, "continueLineCount != 2")
 
-        //blankLine
-        XCTAssertEqual(sw.blankLineCount,       8)
+        // blankLineCount
+        XCTAssertEqual(sw.blankLineCount,     11, "blankLineCount != 11")
 
-        //nonCamelCases
-        XCTAssertEqual(sw.nonCamelVars.count,   9, "")
+        // commentLineCount
+        XCTAssertEqual(sw.commentLineCount,    3, "commentLineCount != 3")
 
-        //forceUnwraps.count
-        XCTAssertEqual(sw.forceUnwraps.count,   4, "")
+        // quoteLineCount
+        XCTAssertEqual(sw.quoteLineCount,      3, "quoteLineCount != 3")
+
+        // markupLineCount
+        XCTAssertEqual(sw.markupLineCount,     3, "markupLineCount != 3")
+
+        // compoundLineCount
+        XCTAssertEqual(sw.compoundLineCount,   2, "compoundLineCount != 2")
+
+        // totalLineCount
+        let total = sw.codeLineCount + sw.continueLineCount + sw.blankLineCount + sw.commentLineCount +
+            sw.quoteLineCount + sw.markupLineCount - sw.compoundLineCount
+        XCTAssertEqual(sw.totalLineCount,      total, "totalLineCount != \(total)")
+
+
+        // nonCamelCases
+        XCTAssertEqual(sw.nonCamelVars.count,  9, "")
+
+        // forceUnwraps.count
+        XCTAssertEqual(sw.forceUnwraps.count,  4, "")
 
         // vbCompatCalls.count
-        XCTAssertEqual(sw.vbCompatCalls.count,  1, "")
+        XCTAssertEqual(sw.vbCompatCalls.count, 1, "")
     }
 
 /* Still needed in sampleCodeShort
@@ -616,35 +668,51 @@ struct MySampleStruct {
 
 """#
 
+
+//---------------------------------------
+
     let sampleCodeShort = ###"""
+// Comment Line #1
 class ViewController: NSViewController, NSWindowDelegate {  //1
     private enum Enum1 {                                    //2 enum
         case: case1, case2, case3                           //3
     }
+/// Markup for MyFuncVC
     private func MyFuncVC(Extern Intern: Int,
                         a: String,
                         bb: Double) {    //4  4-Camel
-        guard let Bb = bb else { return }                   //5  1-Camel ???
-        if let a = bb {                                     //6  1-Camel ???
-            let Bc = bb!                                    //7  1-Camel 1-UnWrap
-            let cc = CInt("12")                             //8  1-VB
+        guard let Bb = bb else { return }                   //5,6  1-Camel ???
+        if let a = bb {                                     //7  1-Camel ???
+            let Bc = bb!                                    //8  1-Camel 1-UnWrap
+            let cc = CInt("12")                             //9  1-VB
         }
     }
 }
-public struct SwiftSummary {                                //9
-    var Camel = 0                                           //10  1-Camel
+/*
+Block Comment Line #2
+*/
+/*Block Comment Line #3*/
+public struct SwiftSummary {                                //10
+    var Camel = 0                                           //11  1-Camel
 }
-func MyFreeFunc() -> Int {                                  //11  1-Camel
-    let aa = fake(a1: bb!, a2: dd!, ff! )                   //12  3-Unwrap
-    aa=0; bb=1; cc=2                                        //13,14,15
-    return 0                                                //16
+/**
+Markup for MyFreeFunc
+*/
+func MyFreeFunc() -> Int {                                  //12  1-Camel
+    let aa = fake(a1: bb!, a2: dd!, ff! )                   //13  3-Unwrap
+    aa=0; bb=1; cc=2                                        //14,15,16
+    return 0                                                //17
 }
 
-extension ViewController: NSTableViewDelegate {             //17
-    @IBOutlet weak var tableView:    NSTableView!           //18
-    @IBAction func saveInfoClicked(_ sender: Any) {         //19
+extension ViewController: NSTableViewDelegate {             //18
+    @IBOutlet weak var tableView:    NSTableView!           //19
+    @IBAction func saveInfoClicked(_ sender: Any) {         //20
     }
 }//not a codeLine
+let myQuote = """
+quoteLine #1
+quoteLine #2
+"""
 """###
 
     //    func testPerformanceExample() {
