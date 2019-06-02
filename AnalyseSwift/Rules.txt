@@ -1,0 +1,12 @@
+Identifier,   Name        , Enabled, ParamLabel, ParamType, ParamMin,  ParamMax, ParamText, RuleType, SortGroup, Description
+BigFile   ,  Massive File ,  true ,   "Max: "  ,    Int   ,   60    ,    2000  ,    520   ,     ""  ,     ""   , "File too large"
+BigFunc   ,  Massive func ,  true ,   "Max: "  ,    Int   ,   30    ,    1000  ,    140   ,     ""  ,     ""   , "Function too large"
+ToDo      ,  ToDoFixMe    ,  true ,     ""     ,    nil   ,   ""    ,     ""   ,     ""   ,     ""  ,     ""   , "\"TODO:\" or \"FIXME:\" line"
+Naming    ,  NonCamelCase ,  true ,     ""     ,    nil   ,   ""    ,     ""   ,     ""   ,     ""  ,     ""   , "NonCamelCase Variable"
+F_Unwrap  ,  Force-Unwrap ,  true ,     ""     ,    nil   ,   ""    ,     ""   ,     ""   ,     ""  ,     ""   , "Force-Unwrap"
+VB        ,  VBCompatCall ,  true ,     ""     ,    nil   ,   ""    ,     ""   ,     ""   ,     ""  ,     ""   , "VBCompatCall"
+FreeFunc  ,  FreeFunc     ,  true ,     ""     ,    nil   ,   ""    ,     ""   ,     ""   ,     ""  ,     ""   , "Free Function"
+Global    ,  Global       ,  true ,     ""     ,    nil   ,   ""    ,     ""   ,     ""   ,     ""  ,     ""   , "Global Variable"
+Compound  ,  Compound     ,  true ,     ""     ,    nil   ,   ""    ,     ""   ,     ""   ,     ""  ,     ""   , "Compound Line"
+
+

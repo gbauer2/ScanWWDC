@@ -228,7 +228,9 @@ class ViewController: NSViewController, NSWindowDelegate {
         popupBaseDir.addItems(withTitles: ["Desktop","Downloads","Documents","All"])
         popupBaseDir.selectItem(at: 0)
 
+        (Issue.issueArray, Issue.dictIssues ) = setDefaultIssues()
         CodeRule.getUserDefaults()
+
     }
 
     override func viewWillAppear() {
@@ -306,7 +308,7 @@ class ViewController: NSViewController, NSWindowDelegate {
         }
         catch {
             //TODO: ⛔️ Handle Error
-            print("⛔️ #\(#line):\(error) Error listing contents of \(folder)")
+            print("⛔️ ViewController #\(#line): \(error) Error listing contents of \(folder)")
         }
     }
 
@@ -687,7 +689,7 @@ extension ViewController {
                 }//end try do
 
                 catch let error as NSError {
-                    print("😡 #\(#line): analyseContentsButtonClicked error: \(error)")
+                    print("😡 ViewController #\(#line): analyseContentsButtonClicked error: \(error)")
                 }//end try catch
 
             } else if analyseMode == .xcodeproj {
@@ -762,7 +764,7 @@ extension ViewController {
     // called from viewWillAppear - ???? Change to UserDefaults?
     func restoreCurrentSelections() {
         guard let dataFileUrl = urlForDataStorage() else {
-            print("😡 #\(#line): No dataFileUrl!")
+            print("😡 ViewController #\(#line): No dataFileUrl!")
             return
         }
 
@@ -788,7 +790,7 @@ extension ViewController {
                 }
             }//endif >=2
         } catch {
-            print("😡 #\(#line): restoreCurrentSelections error: \(error)")
+            print("😡 ViewController #\(#line): restoreCurrentSelections error: \(error)")
         }
     }//end func
 
@@ -872,7 +874,7 @@ extension ViewController {
             } else {
                 // Show raw text as read
                 guard let formattedText = formatWithHeader(contentFromFile) as? NSMutableAttributedString else {
-                    print(" #\(#line): Could not format read text")
+                    print("😡 ViewController #\(#line): Could not format read text")
                     return
                 }
                 // --- Load infoTextView with formattedText ---
@@ -880,7 +882,7 @@ extension ViewController {
             }
         }//end do
         catch let error as NSError {
-            let err = "😡 #\(#line): showFileContents error: \(error.localizedDescription)"
+            let err = "😡 ViewController #\(#line): showFileContents error: \(error.localizedDescription)"
             print(err)
             let str = "\(selecFileInfo.name)\n\n'View' only works in text-based files."
             let formattedText = formatWithHeader(str)

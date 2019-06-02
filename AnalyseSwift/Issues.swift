@@ -23,42 +23,79 @@ import Foundation
 //    static let count        = 9
 //}
 
-//TODO: Add identifier longName, rulesStr[:], rulesInt[:]
+//TODO: Add label2, param2, Type1, Type2, 3?, sortGroup#(or name), RuleType, Range1-3
 public struct Issue {
-    var name        = ""
-    var desc        = ""
+    static var issueArray = [Issue]()          // Holds all the possible issues
+    static var dictIssues = [String: Int]()    // Points to element of issueArray
+
+    var identifier: String
+    var name:       String
+    var desc:       String
+    var displayGroup = 0
     var enabled     = true
-    var rules       = [String: String]()
+    var paramLabel  = ""
+    var paramText   = ""
+    var paramType   = ""
+    var paramMin:   Int?
+    var paramMax:   Int?
     var items       = [LineItem]()
-    var dict        = [String: Int]()
-    init(name: String, desc: String, enabled: Bool) {
+    init(id: String, name: String, desc: String, enabled: Bool) {
+        self.identifier = id
         self.name    = name
         self.desc    = desc
         self.enabled = enabled
     }
-    init(name: String, desc: String, enabled: Bool, rules: [String: String]) {
+    init(id: String, name: String, desc: String, enabled: Bool, paramLabel: String, paramText: String) {
+        self.identifier = id
         self.name    = name
         self.desc    = desc
         self.enabled = enabled
-        self.rules   = rules
+        self.paramLabel  = paramLabel
+        self.paramText  = paramText
     }
 }
-//MARK:- end Neww
 
+// id
+//"desc"
+//name,ruleType,sortGroup#(or name)
+//*enabled
+//paramLabel, paramType, paramMin, paramMax, *paramText
+//--- rule stored in bundle, *enabled & *param also stored in userdefaults
+// (id, 0/1, paramText)
+public func loadIssues() {
+//    var issue = Issue(id: "??", name: "???", desc: "????", enabled: false)
+//    var issues  = [Issue]()
+//    var dictIssues = [String: Int]()
 
-public func getDefaultIssues() -> [String: Issue]  {
-    var issues = [String: Issue]()
+}
 
-    issues["ToDo"]      = Issue(name: "ToDoFixMe",      desc: "TODO: or FIXME:",        enabled: true)
-    issues["Naming"]    = Issue(name: "NonCamelCase",   desc: "NonCamelCase",           enabled: true)
-    issues["F_Unwrap"]  = Issue(name: "Force-Unwrap",   desc: "Force-Unwrap",           enabled: true)
-    issues["VB"]        = Issue(name: "VB",             desc: "VBCompatability Call",   enabled: true)
-    issues["FreeFunc"]  = Issue(name: "FreeFunc",       desc: "Free Func",              enabled: true)
-    issues["Global"]    = Issue(name: "Global",         desc: "Global",                 enabled: true)
-    issues["Compound"]  = Issue(name: "Compound",       desc: "Compound Line",          enabled: true)
-    issues["LargeFunc"] = Issue(name: "Massive func",   desc: "Very large func",        enabled: true)
-    issues["LargeFile"] = Issue(name: "Massive File",   desc: "Very large file",        enabled: true)
+//TODO: Replace setDefaultIssues() with external table
+public func setDefaultIssues() -> ([Issue], [String: Int])  {
+    var issue = Issue(id: "??", name: "???", desc: "????", enabled: false)
+    var issues  = [Issue]()
+    var dictIssues = [String: Int]()
 
-    return issues
+    issue       = Issue(id: "BigFile", name: "Massive File",  desc: "File too large",               enabled: true)
+    issue.paramLabel = "Max: "
+    issue.paramText  = "520"
+    issues.append(issue)
+
+    issue       = Issue(id: "BigFunc",  name: "Massive func", desc: "Function too large",           enabled: true)
+    issue.paramLabel = "Max: "
+    issue.paramText  = "140"
+    issues.append(issue)
+
+    issues.append(Issue(id: "ToDo",     name: "ToDoFixMe",    desc: "\"TODO:\" or \"FIXME:\" line", enabled: true))
+    issues.append(Issue(id: "Naming",   name: "NonCamelCase", desc: "NonCamelCase Variable",        enabled: true))
+    issues.append(Issue(id: "F_Unwrap", name: "Force-Unwrap", desc: "Force-Unwrap",                 enabled: true))
+    issues.append(Issue(id: "VB",       name: "VBCompatCall", desc: "VBCompatability Call",         enabled: false))
+    issues.append(Issue(id: "FreeFunc", name: "FreeFunc",     desc: "Free Function",                enabled: true))
+    issues.append(Issue(id: "Global",   name: "Global",       desc: "Global Variable",              enabled: true))
+    issues.append(Issue(id: "Compound", name: "Compound",     desc: "Compound Line",                enabled: true))
+
+    for (i, issue) in issues.enumerated() {
+        dictIssues[issue.identifier] = i
+    }
+    return (issues, dictIssues)
 }
 

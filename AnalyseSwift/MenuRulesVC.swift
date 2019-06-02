@@ -14,7 +14,7 @@ public enum ValType {
     case bool, int, text
 }
 
-//MARK: - CR struct - Not yet used
+//MARK: - CR struct - 18-162 = 144-lines - Not yet used
 public struct CR {
     var controlTag    = -1      // 1 (Change to TableView Section/Row?)   101
     var name          = ""      // 2 Display Name                         "Max CodeLines in File"
@@ -199,7 +199,7 @@ public struct CodeRule {
     static var keyRuleUnderScore    = "RuleUnderScore"              //3
     static var keyMaxFuncCodeline   = "RuleMaxFuncCodeline"         //5
 
-    //---- saveUserDefaults - Save the Rules in UserDefaults
+    //---- CodeRule.saveUserDefaults - Save the Rules in UserDefaults
     static func saveUserDefaults() {
         let defaults = UserDefaults.standard                    //Save UserDefaults
 
@@ -212,7 +212,18 @@ public struct CodeRule {
         defaults.set(allowUnderscore,     forKey: keyRuleUnderScore)    //3
         defaults.set(maxFuncCodeLines,    forKey: keyMaxFuncCodeline)   //5
 
+        print("Save Default Rules")
+        for issue in Issue.issueArray {
+            let key = "Rule_" + issue.identifier
+            let value = makeStr(fromBool: issue.enabled) + "," + issue.paramText
+            print ("userDefault save  \(key):  \(value)")
+        }
+
         //UserDefaults.standard.removeObject(forKey: "name")
+    }
+
+    static func makeStr(fromBool: Bool ) -> String {
+        return fromBool ? "true" : "false"
     }
 
     //---- getUserDefaults - Get the Rules from UserDefaults
@@ -234,7 +245,22 @@ public struct CodeRule {
             allowUnderscore    = defaults.bool(forKey: keyRuleUnderScore)   //3
             let funcCodelines = defaults.integer(forKey: keyMaxFuncCodeline)
             if funcCodelines > 0 { maxFuncCodeLines = funcCodelines }       //5
-
+            for (key, index) in Issue.dictIssues {
+                let udKey = "Rule_" + key
+                if let str = defaults.string(forKey: udKey) {        //7
+                    let (enabledText, param) = splitLine(str, atCharacter: ",")
+                    if index >= 0 && index < Issue.dictIssues.count {
+                        let enabled = (enabledText == "true")
+                        print("userDefault get  \(key): enabled=\(enabled),  paramText=\(param)")
+                        Issue.issueArray[index].enabled   = enabled
+                        Issue.issueArray[index].paramText = param
+                    } else {
+                        print("Error #\(#line) index out of bounds.")
+                    }
+                } else {
+                    print("Error #\(#line) No UserDefault for \(key)")
+                }
+            }
         }
     }//end func
 
@@ -278,8 +304,16 @@ class MenuRulesVC: NSViewController {
         txtRuleOrganization.delegate  = self    // 301 as NSTextFieldDelegate
 
         btnOk.isEnabled = false
+        tableView.delegate   = self
+        tableView.dataSource = self
+
+        self.tableView.reloadData()
+
     }//end func
 
+    override func viewWillAppear() {
+        print("MenuRulesVC:", #line, Issue.issueArray[0])
+    }
     //MARK:- @IBOutlets
 
     @IBOutlet weak var lblError:            NSTextField!
@@ -298,7 +332,15 @@ class MenuRulesVC: NSViewController {
 
     @IBOutlet weak var menuView: NSView!
 
+    @IBOutlet weak var tableView:    NSTableView!
+    @IBOutlet weak var tableCheckEnabled: NSButton!
+    
+
     //MARK:- @IBActions
+
+    @IBAction func tableCheck1(_ sender: NSButtonCell) {
+
+    }
 
     //---- "Save as Defaults" checkBox change ----
     @IBAction func chkDefaultClicked(_ sender: Any) {
@@ -348,7 +390,8 @@ class MenuRulesVC: NSViewController {
         }
 
         self.view.window?.close()
-    }//end func
+    }//end func btnOkClick
+
     //                                                          //@IBActions
     @IBAction func chkRuleAppVsProductClick(_ sender: Any) {        //1
         lblError.stringValue = ""
@@ -501,3 +544,72 @@ extension MenuRulesVC: NSTextFieldDelegate {
  */
 
 }//end extension
+
+//Sample Data
+let sample = [0,1,2]
+
+// MARK: - NSTableViewDataSource
+extension MenuRulesVC: NSTableViewDataSource {
+
+    func numberOfRows(in tableView: NSTableView) -> Int {
+        return Issue.issueArray.count
+    }//end func
+
+}//end extension
+
+
+// MARK: - NSTableViewDelegate
+extension MenuRulesVC: NSTableViewDelegate {
+
+    func tableView(_ tableView: NSTableView,
+                   viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
+
+        let issue = Issue.issueArray[row]
+        let desc = issue.desc
+
+        if let cell = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "RuleCell"), owner: nil) as? viewIssue {
+            cell.row = row
+            cell.lblRuleName.stringValue = desc
+            cell.chkEnabled.state = issue.enabled ? .on : .off
+            //cell.textField?.stringValue = "Label#1: "
+            cell.lblParam.stringValue = issue.paramLabel
+            if issue.paramLabel.isEmpty {
+                cell.txtParam.isHidden = true
+            } else {
+                cell.txtParam.isHidden = false
+                cell.txtParam.stringValue = issue.paramText
+            }
+            return cell
+        }
+        return nil
+    }//end func
+
+    func tableViewSelectionDidChange(_ notification: Notification) {
+        if tableView.selectedRow < 0 {
+            print("Error MenuRulesVC #(#line)")
+            return
+        }
+        print(tableView?.selectedRow ?? -1)
+    }//end func
+
+}//end extension
+
+class viewIssue: NSTableCellView {
+    var row = -1
+    @IBOutlet weak var chkEnabled: NSButton!
+    @IBOutlet weak var lblParam: NSTextField!
+    @IBOutlet weak var txtParam: NSTextField!
+    @IBOutlet weak var lblRuleName: NSTextField!
+    
+
+    @IBAction func chkEnabledClick(_ sender: NSButton) {
+        //print("chkEnabled = \(chkEnabled.state)")
+        Issue.issueArray[row].enabled = (chkEnabled.state == .on)
+    }
+
+    @IBAction func txt1(_ sender: Any) {
+        //print("paramText = \(txtParam.stringValue)")
+        Issue.issueArray[row].paramText = txtParam.stringValue
+
+    }
+}

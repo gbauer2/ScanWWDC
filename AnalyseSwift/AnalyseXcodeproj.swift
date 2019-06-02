@@ -639,28 +639,28 @@ private func isObjectKey(_ str: String) -> Bool {
 public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      //639-746 = 107-lines
 
     var text = ""
-    var issues = [String]()
+    var projIssues = [String]()
     text += "----------------- \(xcodeProj.filename) -----------------\n"
     text += "Application Name         = \(xcodeProj.appName)\n"
     if xcodeProj.appName != xcodeProj.productName {
         text += "Product Name             = \(xcodeProj.productName)\n"
         if CodeRule.flagProductNameDif {
-            issues.append("AppName: \"\(xcodeProj.appName)\" != ProductName: \"\(xcodeProj.productName)\"")
+            projIssues.append("AppName: \"\(xcodeProj.appName)\" != ProductName: \"\(xcodeProj.productName)\"")
         }
     }
 
     if xcodeProj.swiftVerMin != xcodeProj.swiftVerMax {
         let issue = "Multiple Swift Versions: \(xcodeProj.swiftVerMin) & \(xcodeProj.swiftVerMax)"
         text += "\(issue)\n"
-        issues.append(issue)
+        projIssues.append(issue)
     } else {
         if xcodeProj.swiftVerMin == 0.0 {
             let issue = "No Swift Version found"
             text += "\(issue)!\n"
-            issues.append(issue)
+            projIssues.append(issue)
         } else {
             if xcodeProj.swiftVerMin < CodeRule.minumumSwiftVersion {
-                issues.append("Obsolete Swift Version \(xcodeProj.swiftVerMin)")
+                projIssues.append("Obsolete Swift Version \(xcodeProj.swiftVerMin)")
             }
             text += "Swift Version used       = \(xcodeProj.swiftVerMin)\n"
         }
@@ -677,7 +677,7 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
 
     if !CodeRule.allowedOrganizations.isEmpty {
         if !CodeRule.allowedOrganizations.contains(xcodeProj.organizationName) {
-            issues.append("External Organization \"\(xcodeProj.organizationName)\"")
+            projIssues.append("External Organization \"\(xcodeProj.organizationName)\"")
         }
     }
     var totalCodeLine     = 0
@@ -700,7 +700,7 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
             let clCt = swiftSummary.codeLineCount
             totalCodeLine += clCt
             if clCt > CodeRule.maxFileCodeLines {
-                issues.append("\"\(name)\" has \(clCt) code-lines (>\(CodeRule.maxFileCodeLines)).")
+                projIssues.append("\"\(name)\" has \(clCt) code-lines (>\(CodeRule.maxFileCodeLines)).")
             }
             let tdCt = swiftSummary.toDoFixMe.count
             totalToDoFixMe += tdCt
@@ -716,7 +716,7 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
             totalMisc += mscCt
             let bigCt = swiftSummary.massiveFile.count + swiftSummary.massiveFuncs.count
             for afunc in swiftSummary.massiveFuncs {
-                issues.append("\"\(name)\" has a func \"\(afunc.name)\" with \(afunc.codeLineCt) code-lines (>\(CodeRule.maxFuncCodeLines)).")
+                projIssues.append("\"\(name)\" has a func \"\(afunc.name)\" with \(afunc.codeLineCt) code-lines (>\(CodeRule.maxFuncCodeLines)).")
             }
             totalBig += bigCt
             //text += "\(swiftSummary.url.lastPathComponent)  -  nonCamel \(swiftSummary.nonCamelCases.count)\n"
@@ -729,7 +729,7 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
 
     //------------------------------------------------------------------
     //------------- Issues --------------
-    let totalIssueCount = totalToDoFixMe + totalNonCamelCase + totalForceUnwrap + totalVbCompatCall + totalGlobal + totalMisc + totalBig + issues.count
+    let totalIssueCount = totalToDoFixMe + totalNonCamelCase + totalForceUnwrap + totalVbCompatCall + totalGlobal + totalMisc + totalBig + projIssues.count
 
     if totalIssueCount == 0 {
         text += "\n-------- No Issues --------\n"
@@ -742,7 +742,7 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
         if totalGlobal       > 0 {text += "\(showCount(count: totalGlobal,       name: "Global & Free Function")).\n"}
         if totalMisc         > 0 {text += "\(showCount(count: totalMisc,         name: "miscellaneous issue")).\n"}
     }
-    for issue in issues {
+    for issue in projIssues {
         text += issue + "\n"
     }
 

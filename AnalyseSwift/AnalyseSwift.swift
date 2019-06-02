@@ -55,7 +55,7 @@ public struct SwiftSummary {
     var nTrailing       = 0     // Code lines with trailing comments        119 -> 97
     var nEmbedded       = 0
 
-    // issues
+    // swift file issues
     //FormatSwiftSummary.swift ~200;        AnalyseXcodeproj.swift ~700
     var nonCamelVars    = [LineItem]()      // 344
     var toDoFixMe       = [LineItem]()      // 425
@@ -66,7 +66,7 @@ public struct SwiftSummary {
     var massiveFile     = [LineItem]()      // 767
     var massiveFuncs    = [LineItem]()      // 785
 
-    var issues          = [String: Issue]()     //neww
+    var dictIssues      = [String: Issue]()     //neww
 
     var vbCompatCalls   = [String: LineItem]()  // "VB.Left     3    times"
 
@@ -74,7 +74,7 @@ public struct SwiftSummary {
     var totalIssues     = 0         // for display spacing when issuesFirst
 
     mutating func initIssues() {
-        issues = getDefaultIssues() //in Issues.swift
+        dictIssues = [String: Issue]()
     }
 }//end struct SwiftSummary
 
@@ -454,8 +454,8 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             swiftSummary.codeLineCount + 1
         let countError = abs(sum - lineNum)
         if countError != maxCountError {
-            print("⛔️ Error#\(#line), lineNum \(lineNum), \"\(line)\"\nsum=\(sum) dif=\(sum-lineNum): code=\(swiftSummary.codeLineCount) blank=\(swiftSummary.blankLineCount) comment=\(swiftSummary.commentLineCount) continuation=\(swiftSummary.continueLineCount)",
-                   -swiftSummary.compoundLineCount, swiftSummary.markupLineCount, swiftSummary.quoteLineCount)
+//            print("⛔️ Error#\(#line), lineNum \(lineNum), \"\(line)\"\nsum=\(sum) dif=\(sum-lineNum): code=\(swiftSummary.codeLineCount) blank=\(swiftSummary.blankLineCount) comment=\(swiftSummary.commentLineCount) continuation=\(swiftSummary.continueLineCount)",
+//                   -swiftSummary.compoundLineCount, swiftSummary.markupLineCount, swiftSummary.quoteLineCount)
             maxCountError = countError
         }
         //---------------------------
