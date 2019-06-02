@@ -27,17 +27,18 @@ import Foundation
 public struct Issue {
     static var issueArray = [Issue]()          // Holds all the possible issues
     static var dictIssues = [String: Int]()    // Points to element of issueArray
-
+    
     var identifier: String
     var name:       String
     var desc:       String
-    var displayGroup = 0
     var enabled     = true
     var paramLabel  = ""
     var paramText   = ""
     var paramType   = ""
     var paramMin:   Int?
     var paramMax:   Int?
+    var displayGroup = ""
+    var ruleType    = ""
     var items       = [LineItem]()
     init(id: String, name: String, desc: String, enabled: Bool) {
         self.identifier = id
@@ -45,57 +46,82 @@ public struct Issue {
         self.desc    = desc
         self.enabled = enabled
     }
-    init(id: String, name: String, desc: String, enabled: Bool, paramLabel: String, paramText: String) {
-        self.identifier = id
-        self.name    = name
-        self.desc    = desc
-        self.enabled = enabled
-        self.paramLabel  = paramLabel
-        self.paramText  = paramText
+    init(id: String, name: String, desc: String, enabled: Bool, paramLabel: String, paramText: String,
+         paramType: String, paramMin: Int?,  paramMax: Int?, displayGroup: String, ruleType: String) {
+        self.identifier   = id
+        self.name         = name
+        self.desc         = desc
+        self.enabled      = enabled
+        self.paramLabel   = paramLabel
+        self.paramText    = paramText
+        self.paramType    = paramType
+        self.paramMin     = paramMin
+        self.paramMax     = paramMax
+        self.displayGroup = displayGroup
+        self.ruleType     = ruleType
     }
-}
-
-// id
-//"desc"
-//name,ruleType,sortGroup#(or name)
-//*enabled
-//paramLabel, paramType, paramMin, paramMax, *paramText
-//--- rule stored in bundle, *enabled & *param also stored in userdefaults
-// (id, 0/1, paramText)
-public func loadIssues() {
-//    var issue = Issue(id: "??", name: "???", desc: "????", enabled: false)
-//    var issues  = [Issue]()
-//    var dictIssues = [String: Int]()
-
-}
-
-//TODO: Replace setDefaultIssues() with external table
-public func setDefaultIssues() -> ([Issue], [String: Int])  {
-    var issue = Issue(id: "??", name: "???", desc: "????", enabled: false)
-    var issues  = [Issue]()
-    var dictIssues = [String: Int]()
-
-    issue       = Issue(id: "BigFile", name: "Massive File",  desc: "File too large",               enabled: true)
-    issue.paramLabel = "Max: "
-    issue.paramText  = "520"
-    issues.append(issue)
-
-    issue       = Issue(id: "BigFunc",  name: "Massive func", desc: "Function too large",           enabled: true)
-    issue.paramLabel = "Max: "
-    issue.paramText  = "140"
-    issues.append(issue)
-
-    issues.append(Issue(id: "ToDo",     name: "ToDoFixMe",    desc: "\"TODO:\" or \"FIXME:\" line", enabled: true))
-    issues.append(Issue(id: "Naming",   name: "NonCamelCase", desc: "NonCamelCase Variable",        enabled: true))
-    issues.append(Issue(id: "F_Unwrap", name: "Force-Unwrap", desc: "Force-Unwrap",                 enabled: true))
-    issues.append(Issue(id: "VB",       name: "VBCompatCall", desc: "VBCompatability Call",         enabled: false))
-    issues.append(Issue(id: "FreeFunc", name: "FreeFunc",     desc: "Free Function",                enabled: true))
-    issues.append(Issue(id: "Global",   name: "Global",       desc: "Global Variable",              enabled: true))
-    issues.append(Issue(id: "Compound", name: "Compound",     desc: "Compound Line",                enabled: true))
-
-    for (i, issue) in issues.enumerated() {
-        dictIssues[issue.identifier] = i
+    
+    //--- rule stored in bundle, *enabled & *param also stored in userdefaults
+    // (id, 0/1, paramText)static
+    static func loadRules() -> ([Issue], [String: Int]) {
+        //var issue = Issue(id: "??", name: "???", desc: "????", enabled: false)
+        var issues  = [Issue]()
+        var dictIssues = [String: Int]()
+        
+        // File location
+        guard let rulesURL = Bundle.main.path(forResource: "Rules", ofType: "txt") else {
+            print("⛔️ Error in Issues.swift #\(#line) Could not open file: Rules.txt" )
+            return (issues, dictIssues)
+        }
+        // Read from the file
+        var ruleFileContents = ""
+        do {
+            ruleFileContents = try String(contentsOfFile: rulesURL, encoding: String.Encoding.utf8)
+        } catch let error as NSError {
+            print("Failed reading from URL: \(rulesURL), Error: " + error.localizedDescription)
+            return (issues, dictIssues)
+        }
+        print(ruleFileContents)
+        
+        let lines = ruleFileContents.components(separatedBy: "\n").map { $0.trim }.filter { !$0.isEmpty }
+        
+        var itemNames = [String]()
+        for (i, line) in lines.enumerated() {
+            let items = line.components(separatedBy: ",").map { $0.trim }
+            if i == 0 {
+                itemNames = items
+                print(itemNames)
+            } else {
+                let id           = stripQuotes(from: items[0])
+                let name         = stripQuotes(from: items[1])
+                let enabled      = (items[2] == "true" ? true : false)
+                let paramLabel   = stripQuotes(from: items[3])
+                let paramType    = stripQuotes(from: items[4])
+                let paramMin     = Int(stripQuotes(from: items[5]))
+                let paramMax     = Int(stripQuotes(from: items[6]))
+                let paramText    = stripQuotes(from: items[7])
+                let ruleType     = stripQuotes(from: items[8])
+                let displayGroup = stripQuotes(from: items[9])
+                let desc         = stripQuotes(from: items[10])
+                let issue = Issue(id: id, name: name, desc: desc, enabled: enabled, paramLabel: paramLabel,
+                                  paramText: paramText, paramType: paramType, paramMin: paramMin,
+                                  paramMax: paramMax, displayGroup: displayGroup, ruleType: ruleType)
+                issues.append(issue)
+            }
+        }
+        
+        for (i, issue) in issues.enumerated() {
+            dictIssues[issue.identifier] = i
+        }
+        return (issues, dictIssues)
+    }//end func loadRules
+    
+    private static func stripQuotes(from str: String) -> String {
+        if str.hasPrefix("\"") && str.hasSuffix("\"") {
+            let newStr = String(str.dropFirst().dropLast())
+            return newStr
+        } else {
+            return str
+        }
     }
-    return (issues, dictIssues)
-}
-
+}//end struct Issue
