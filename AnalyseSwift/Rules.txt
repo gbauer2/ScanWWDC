@@ -1,7 +1,7 @@
 Identifier,   Name        , Enabled, ParamLabel, ParamType, ParamMin,  ParamMax, ParamText, RuleType, SortGroup, Description
 BigFile   ,  Massive File ,  true ,   "Max: "  ,    Int   ,   60    ,    2000  ,    520   ,         ,          , "File too large"
 BigFunc   ,  Massive func ,  true ,   "Max: "  ,    Int   ,   30    ,    1000  ,    140   ,         ,          , "Function too large"
-ToDo      ,  ToDoFixMe    ,  true ,            ,          ,         ,          ,          ,         ,          , "\"TODO:\" or \"FIXME:\" line"
+ToDo      ,  ToDoFixMe    ,  true ,            ,          ,         ,          ,          ,         ,          , ""TODO:" or "FIXME:" line"
 Naming    ,  NonCamelCase ,  true ,            ,          ,         ,          ,          ,         ,          , "NonCamelCase Variable"
 F_Unwrap  ,  Force-Unwrap ,  true ,            ,          ,         ,          ,          ,         ,          , "Force-Unwrap"
 VB        ,  VBCompatCall ,  true ,            ,          ,         ,          ,          ,         ,          , "VBCompatCall"

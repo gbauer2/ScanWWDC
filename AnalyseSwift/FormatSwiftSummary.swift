@@ -186,14 +186,17 @@ struct SwiftSumAttStr {
         tx = showDivider(title: issuesTitle, font: fontMonoDigitMedium)
         txt.append(tx)
 
+        //FIXME: This section needs to be changed for table-based issues.
         // MARK: File too big.
         title = "Massive file"
-        suffix = " ( >\(CodeRule.maxFileCodeLines) code-lines )"
+        let maxFileCodeLines = getParamInt(from: RuleID.bigFile) ?? 9999
+        suffix = " ( >\(maxFileCodeLines) code-lines )"
         txt.append(showLineItems(title: title, suffix: suffix, items: swiftSummary.massiveFile))
 
         // MARK: Funcs too big.
         title = "Massive func"
-        suffix = " ( >\(CodeRule.maxFuncCodeLines) code-lines )"
+        let maxFuncCodeLines = getParamInt(from: RuleID.bigFunc) ?? 9999
+        suffix = " ( >\(maxFuncCodeLines) code-lines )"
         txt.append(showLineItems(title: title, suffix: suffix, items: swiftSummary.massiveFuncs))
 
         // MARK: TODO's & FIXME's

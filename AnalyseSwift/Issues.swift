@@ -5,41 +5,47 @@
 //  Created by George Bauer on 5/28/19.
 //  Copyright © 2019 Ray Wenderlich. All rights reserved.
 //
-
 import Foundation
 
+// Places to change from CodeRules (maxFuncCodeLines)
+//  MenuRulesVC.swift                                   Issue
+//      static var               23x                static issueArray,dictIssues    24
+//      saveUserDefaults()       61x        67
+//      getUserDefaults()        96x        98
+//      viewDidLoad()           145x        161
+//      btnOkClick()            228x        N/A
+//      txtRuleCodeLinesInFuncChange()  281
+//      txtRuleCodeLinesInFuncChange()  286
+//  AnalyseSwift.swift          867x
+//  AnalyseXcodeproj.swift      719
+//  FormatSwiftSummary.swift    196x
 
-//MARK:- Neww
-// List of SwiftSummary issues - not used
-//private enum IssueIndex {
-//    static let nonCamelVar  = 0
-//    static let compoundLine = 2
-//    static let forceUnwrap  = 3
-//    static let vbCompatCall = 4
-//    static let freeFunc     = 5
-//    static let global       = 6
-//    static let massiveFunc  = 7
-//    static let massiveFile  = 8
-//    static let count        = 9
-//}
+// List of Rule Identifiers
+public enum RuleID {
+    static let bigFunc = "BigFunc"
+    static let bigFile = "BigFile"
+}
 
-//TODO: Add label2, param2, Type1, Type2, 3?, sortGroup#(or name), RuleType, Range1-3
 public struct Issue {
     static var issueArray = [Issue]()          // Holds all the possible issues
     static var dictIssues = [String: Int]()    // Points to element of issueArray
     
-    var identifier: String
-    var name:       String
-    var desc:       String
-    var enabled     = true
-    var paramLabel  = ""
-    var paramText   = ""
-    var paramType   = ""
-    var paramMin:   Int?
-    var paramMax:   Int?
+    var identifier:  String
+    var name:        String
+    var desc:        String
+    var enabled      = true
+    var paramLabel   = ""
+    var paramText    = ""
+    var paramType    = ""
+    var paramMin:    Int?
+    var paramMax:    Int?
     var displayGroup = ""
-    var ruleType    = ""
+    var ruleType     = ""
+    var paramInt: Int? { return Int(paramText)}
+    //TODO: ToDo: Separate issues(items) from rules.
     var items       = [LineItem]()
+
+    //MARK:- Initializers
     init(id: String, name: String, desc: String, enabled: Bool) {
         self.identifier = id
         self.name    = name
@@ -60,20 +66,21 @@ public struct Issue {
         self.displayGroup = displayGroup
         self.ruleType     = ruleType
     }
-    
+
+    //MARK:- static func loadRules() 52-103 = 51-lines
+    //TODO: ToDo: Identify rule-item by header name.
     //--- rule stored in bundle, *enabled & *param also stored in userdefaults
     // (id, 0/1, paramText)static
     static func loadRules() -> ([Issue], [String: Int]) {
-        //var issue = Issue(id: "??", name: "???", desc: "????", enabled: false)
         var issues  = [Issue]()
         var dictIssues = [String: Int]()
         
-        // File location
         guard let rulesURL = Bundle.main.path(forResource: "Rules", ofType: "txt") else {
             print("⛔️ Error in Issues.swift #\(#line) Could not open file: Rules.txt" )
             return (issues, dictIssues)
         }
-        // Read from the file
+
+        // Read contents of Rules.txt
         var ruleFileContents = ""
         do {
             ruleFileContents = try String(contentsOfFile: rulesURL, encoding: String.Encoding.utf8)
@@ -84,7 +91,8 @@ public struct Issue {
         print(ruleFileContents)
         
         let lines = ruleFileContents.components(separatedBy: "\n").map { $0.trim }.filter { !$0.isEmpty }
-        
+
+        // Parse the file
         var itemNames = [String]()
         for (i, line) in lines.enumerated() {
             let items = line.components(separatedBy: ",").map { $0.trim }
@@ -115,7 +123,8 @@ public struct Issue {
         }
         return (issues, dictIssues)
     }//end func loadRules
-    
+
+    //MARK:- Helper funcs
     private static func stripQuotes(from str: String) -> String {
         if str.hasPrefix("\"") && str.hasSuffix("\"") {
             let newStr = String(str.dropFirst().dropLast())

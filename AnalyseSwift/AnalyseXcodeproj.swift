@@ -699,8 +699,10 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
         if isTest || (name != "VBcompatablity.swift" && name != "MyFuncs.swift" && name != "StringExtension.swift") {
             let clCt = swiftSummary.codeLineCount
             totalCodeLine += clCt
-            if clCt > CodeRule.maxFileCodeLines {
-                projIssues.append("\"\(name)\" has \(clCt) code-lines (>\(CodeRule.maxFileCodeLines)).")
+            //FIXME: Thes section needs to be changed for table-based issues.
+            let maxFileCodeLines = getParamInt(from: RuleID.bigFile) ?? 9999
+            if clCt > maxFileCodeLines {
+                projIssues.append("\"\(name)\" has \(clCt) code-lines (>\(maxFileCodeLines)).")
             }
             let tdCt = swiftSummary.toDoFixMe.count
             totalToDoFixMe += tdCt
@@ -716,7 +718,8 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
             totalMisc += mscCt
             let bigCt = swiftSummary.massiveFile.count + swiftSummary.massiveFuncs.count
             for afunc in swiftSummary.massiveFuncs {
-                projIssues.append("\"\(name)\" has a func \"\(afunc.name)\" with \(afunc.codeLineCt) code-lines (>\(CodeRule.maxFuncCodeLines)).")
+                let maxFuncCodeLines = getParamInt(from: RuleID.bigFunc) ?? 9999
+                projIssues.append("\"\(name)\" has a func \"\(afunc.name)\" with \(afunc.codeLineCt) code-lines (>\(maxFuncCodeLines)).")
             }
             totalBig += bigCt
             //text += "\(swiftSummary.url.lastPathComponent)  -  nonCamel \(swiftSummary.nonCamelCases.count)\n"

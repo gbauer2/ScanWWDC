@@ -846,11 +846,14 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
 
     swiftSummary.byteCount = selecFileInfo.size
     swiftSummary.totalLineCount = lineNum
-    if swiftSummary.codeLineCount > CodeRule.maxFileCodeLines {
-        // MARK:  ➡️ Record Issue "massiveFile"
-        swiftSummary.issueCatsCount += 1
-        swiftSummary.totalIssues += 1
-        swiftSummary.massiveFile.append(LineItem(name: swiftSummary.fileName, lineNum: 0, codeLineCt: swiftSummary.codeLineCount))
+    if isEnabled(rule: RuleID.bigFile){
+        let maxFileCodeLines = getParamInt(from: RuleID.bigFile) ?? 9999
+        if swiftSummary.codeLineCount > maxFileCodeLines {
+            // MARK:  ➡️ Record Issue "massiveFile"
+            swiftSummary.issueCatsCount += 1
+            swiftSummary.totalIssues += 1
+            swiftSummary.massiveFile.append(LineItem(name: swiftSummary.fileName, lineNum: 0, codeLineCt: swiftSummary.codeLineCount))
+        }
     }
 
     if deBug && gDebug == .all { print("\n\(namedBlocks.count) named blocks") }         // Sanity Check
@@ -864,11 +867,14 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
 
         switch c.blockType {
         case .isFunc:
-            if c.codeLineCount > CodeRule.maxFuncCodeLines {
-                // MARK:  ➡️ Record Issue "massiveFuncs"
-                if swiftSummary.massiveFuncs.isEmpty { swiftSummary.issueCatsCount += 1 }
-                swiftSummary.totalIssues += 1
-                swiftSummary.massiveFuncs.append(LineItem(name: c.name, lineNum: c.lineNum, codeLineCt: c.codeLineCount))
+            if isEnabled(rule: RuleID.bigFunc){
+                let maxFuncCodeLines = getParamInt(from: RuleID.bigFunc) ?? 9999
+                if c.codeLineCount > maxFuncCodeLines {
+                    // MARK:  ➡️ Record Issue "massiveFuncs"
+                    if swiftSummary.massiveFuncs.isEmpty { swiftSummary.issueCatsCount += 1 }
+                    swiftSummary.totalIssues += 1
+                    swiftSummary.massiveFuncs.append(LineItem(name: c.name, lineNum: c.lineNum, codeLineCt: c.codeLineCount))
+                }
             }
         default: break
         }
@@ -902,3 +908,21 @@ private func getExtraForForceUnwrap(codeLineClean: String, word: String, idx: In
     return prefix + word + suffix
 }//end func
 
+//TODO: Move isEnabled, getIntParam inside a struct
+public func isEnabled(rule key: String) -> Bool {
+    guard let index = Issue.dictIssues[key] else { return false }
+    if index < 0 || index >= Issue.issueArray.count { return false }
+    return Issue.issueArray[index].enabled
+}
+
+public func getParamText(from key: String) -> String {
+    guard let index = Issue.dictIssues[key] else { return "" }
+    if index < 0 || index >= Issue.issueArray.count { return "" }
+    return Issue.issueArray[index].paramText
+}
+
+public func getParamInt(from key: String) -> Int? {
+    guard let index = Issue.dictIssues[key] else { return nil }
+    if index < 0 || index >= Issue.issueArray.count { return nil }
+    return Issue.issueArray[index].paramInt
+}
