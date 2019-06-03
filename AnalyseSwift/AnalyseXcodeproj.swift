@@ -693,6 +693,7 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
     text += "\n------------ \(showCount(count: xcodeProj.swiftURLs.count, name: "Swift file")) in \(xcodeProj.filename) ------------\n"   // "Swift files"
     text += "       FileName            CodeLines  ToDo  Naming F-Unwrap  VB  Global  Misc  Big\n"
 
+    //FIXME: This section needs to be changed for table-based issues.
     for swiftSummary in xcodeProj.swiftSummaries {
         let name = swiftSummary.fileName
         let isTest = swiftSummary.url.path.contains("TestSharedCode")
@@ -726,6 +727,17 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
             text += format2(swiftSummary.url.lastPathComponent,clCt,tdCt,ccCt,fuCt,vbCt,glbCt,mscCt,bigCt)
         } else {
             text += "(\(swiftSummary.url.lastPathComponent))\n"
+        }
+
+        //neww bigFunc
+        for (id, issue) in swiftSummary.dictIssues {    //.sort{ $0.sortOrder }
+            let count = issue.items.count
+            switch id {
+            case RuleID.bigFunc:
+                    totalBig += count
+            default:
+                    totalMisc += count
+            }
         }
     }//next
     text += "\n\(format2("  -- Totals --",totalCodeLine,totalToDoFixMe,totalNonCamelCase,totalForceUnwrap,totalVbCompatCall,totalGlobal,totalMisc,totalBig))\n"

@@ -30,18 +30,18 @@ public struct StoredRule {
     static var storedRuleArray = [StoredRule]()     // Holds all the possible StoredRules
     static var dictStoredRules = [String: Int]()    // Points to element of storedRuleArray
     
-    var identifier:  String
-    var name:        String
-    var desc:        String
-    var enabled      = true
-    var paramLabel   = ""
-    var paramText    = ""
-    var paramType    = ""
-    var paramMin:    Int?
-    var paramMax:    Int?
-    var displayGroup = ""
-    var ruleType     = ""
-    var paramInt: Int? { return Int(paramText)}
+    var identifier: String
+    var name:       String
+    var desc:       String
+    var enabled     = true
+    var paramLabel  = ""
+    var paramText   = ""
+    var paramType   = ""
+    var paramMin:   Int?
+    var paramMax:   Int?
+    var sortOrder   = 0
+    var ruleType    = ""
+    var paramInt:   Int? { return Int(paramText)}
 
     //MARK:- Initializers
     init(id: String, name: String, desc: String, enabled: Bool) {
@@ -51,18 +51,18 @@ public struct StoredRule {
         self.enabled = enabled
     }
     init(id: String, name: String, desc: String, enabled: Bool, paramLabel: String, paramText: String,
-         paramType: String, paramMin: Int?,  paramMax: Int?, displayGroup: String, ruleType: String) {
-        self.identifier   = id
-        self.name         = name
-        self.desc         = desc
-        self.enabled      = enabled
-        self.paramLabel   = paramLabel
-        self.paramText    = paramText
-        self.paramType    = paramType
-        self.paramMin     = paramMin
-        self.paramMax     = paramMax
-        self.displayGroup = displayGroup
-        self.ruleType     = ruleType
+         paramType: String, paramMin: Int?,  paramMax: Int?, sortOrder: Int, ruleType: String) {
+        self.identifier = id
+        self.name       = name
+        self.desc       = desc
+        self.enabled    = enabled
+        self.paramLabel = paramLabel
+        self.paramText  = paramText
+        self.paramType  = paramType
+        self.paramMin   = paramMin
+        self.paramMax   = paramMax
+        self.sortOrder  = sortOrder
+        self.ruleType   = ruleType
     }
 
     //MARK:- static func loadRules() 52-103 = 51-lines
@@ -98,20 +98,20 @@ public struct StoredRule {
                 itemNames = items
                 print(itemNames)
             } else {
-                let id           = stripQuotes(from: items[0])
-                let name         = stripQuotes(from: items[1])
-                let enabled      = (items[2] == "true" ? true : false)
-                let paramLabel   = stripQuotes(from: items[3])
-                let paramType    = stripQuotes(from: items[4])
-                let paramMin     = Int(stripQuotes(from: items[5]))
-                let paramMax     = Int(stripQuotes(from: items[6]))
-                let paramText    = stripQuotes(from: items[7])
-                let ruleType     = stripQuotes(from: items[8])
-                let displayGroup = stripQuotes(from: items[9])
-                let desc         = stripQuotes(from: items[10])
+                let id          = stripQuotes(from: items[0])
+                let name        = stripQuotes(from: items[1])
+                let enabled     = (items[2] == "true" ? true : false)
+                let paramLabel  = stripQuotes(from: items[3])
+                let paramType   = stripQuotes(from: items[4])
+                let paramMin    = Int(stripQuotes(from: items[5]))
+                let paramMax    = Int(stripQuotes(from: items[6]))
+                let paramText   = stripQuotes(from: items[7])
+                let ruleType    = stripQuotes(from: items[8])
+                let sortOrder   = Int(stripQuotes(from: items[9])) ?? 0
+                let desc        = stripQuotes(from: items[10])
                 let rule = StoredRule(id: id, name: name, desc: desc, enabled: enabled, paramLabel: paramLabel,
                                   paramText: paramText, paramType: paramType, paramMin: paramMin,
-                                  paramMax: paramMax, displayGroup: displayGroup, ruleType: ruleType)
+                                  paramMax: paramMax, sortOrder: sortOrder, ruleType: ruleType)
                 rules.append(rule)
             }
         }

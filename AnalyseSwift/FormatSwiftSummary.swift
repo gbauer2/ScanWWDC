@@ -171,7 +171,7 @@ struct SwiftSumAttStr {
 
     //MARK:- --- Show Issues ---
 
-    func showIssues(swiftSummary: SwiftSummary, fileInfo: FileAttributes) -> NSMutableAttributedString  { //173-220 = 47-lines
+    func showIssues(swiftSummary: SwiftSummary, fileInfo: FileAttributes) -> NSMutableAttributedString  { //174-223 = 49-lines
         var tx: NSAttributedString = NSMutableAttributedString(string: "")
         let txt:NSMutableAttributedString = NSMutableAttributedString(string: "")
         var title = ""
@@ -182,6 +182,24 @@ struct SwiftSumAttStr {
         } else {
             issuesTitle = "\(fileInfo.name) - \(swiftSummary.totalIssues) Possible Issues"
         }
+
+        tx = showDivider(title: issuesTitle, font: fontMonoDigitMedium)
+        txt.append(tx)
+
+
+        //MARK:neww table-based
+        for (id, issue) in swiftSummary.dictIssues.sorted(by: { $0.value.sortOrder < $1.value.sortOrder }) {
+            var suffix = ""
+            if let index = StoredRule.dictStoredRules[id] {
+                let rule = StoredRule.storedRuleArray[index]
+                let title = rule.name
+                if id == RuleID.bigFile || id == RuleID.bigFunc {
+                    let maxCodeLines = getParamInt(from: id) ?? 9999
+                    suffix = " ( >\(maxCodeLines) code-lines )"
+                }
+                txt.append(showLineItems(title: title, suffix: suffix, items: issue.items))
+            }
+        }//next issue
 
         tx = showDivider(title: issuesTitle, font: fontMonoDigitMedium)
         txt.append(tx)

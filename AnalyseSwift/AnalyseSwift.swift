@@ -31,6 +31,12 @@ BlockAggregate(blockType: .isProtocol,  codeName: "protocol",  displayName: "Pro
 
 // MARK: - Block Structs & Enums
 
+public struct Issue {
+    var identifier: String
+    var sortOrder   = 0
+    var items = [LineItem]()
+}
+
 // Stuff to be returned by AnalyseSwift
 public struct SwiftSummary {
     var url             = FileManager.default.homeDirectoryForCurrentUser
@@ -65,8 +71,8 @@ public struct SwiftSummary {
     var compoundLines   = [LineItem]()      // 483, 726
     var massiveFile     = [LineItem]()      // 767
     var massiveFuncs    = [LineItem]()      // 785
-    //FIXME: dictIssues should have its own Type
-    var dictIssues      = [String: StoredRule]()     //neww
+
+    var dictIssues      = [String: Issue]()     // StoredRules
 
     var vbCompatCalls   = [String: LineItem]()  // "VB.Left     3    times"
 
@@ -74,7 +80,7 @@ public struct SwiftSummary {
     var totalIssues     = 0         // for display spacing when issuesFirst
 
     mutating func initIssues() {
-        dictIssues = [String: StoredRule]()
+        dictIssues = [String: Issue]()
     }
 }//end struct SwiftSummary
 
@@ -711,7 +717,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             }
         }//endif func
 
-        // FIXME: THIS IS NUTS. Find another way to identify a Block
+        //FIXME: THIS IS NUTS. Find another way to identify a Block
         while !foundNamedBlock {    //for index in 4...8  containers: 4)Struct, 5)Enum, 6)Extension, 7)Class, 8)Protocol
             if words.count < 2 { break }
             let iMax = min(4, words.count)
@@ -846,7 +852,9 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
 
     swiftSummary.byteCount = selecFileInfo.size
     swiftSummary.totalLineCount = lineNum
+
     if isEnabled(rule: RuleID.bigFile){
+        let id = RuleID.bigFile
         let maxFileCodeLines = getParamInt(from: RuleID.bigFile) ?? 9999
         if swiftSummary.codeLineCount > maxFileCodeLines {
             // MARK:  ➡️ Record Issue "massiveFile"
@@ -854,31 +862,56 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             swiftSummary.totalIssues += 1
             swiftSummary.massiveFile.append(LineItem(name: swiftSummary.fileName, lineNum: 0, codeLineCt: swiftSummary.codeLineCount))
         }
-    }
+            let maxCodeLines = getParamInt(from: id) ?? 9999
+            if swiftSummary.codeLineCount > maxCodeLines {
+                // MARK:  ➡️➡️ Record Issue "massiveFile"
+                let lineItem = LineItem(name: swiftSummary.fileName, lineNum: 0, codeLineCt: swiftSummary.codeLineCount)
+                swiftSummary.totalIssues += 1
+                if swiftSummary.dictIssues[id] == nil {
+                    swiftSummary.issueCatsCount += 1
+                    let sortOrder = getSortOrder(from: id)
+                    swiftSummary.dictIssues[id] = Issue(identifier: id, sortOrder: sortOrder, items: [])
+                }
+                swiftSummary.dictIssues[id]!.items.append(lineItem)
+            }
+    }//end RuleID.bigFile
 
     if deBug && gDebug == .all { print("\n\(namedBlocks.count) named blocks") }         // Sanity Check
-    for c in namedBlocks {
+    for bloc in namedBlocks {
 
         if deBug && gDebug == .all {
-            let iBT = Int(c.blockType.rawValue)
-            let cType = "\(c.blockType)".PadRight(14)
-            print("# \(c.lineNum),\t\(c.codeLineCount) lines, \t\(cType)\t\(c.name)  \(c.extra)  \(iBT)")
+            let iBT = Int(bloc.blockType.rawValue)
+            let cType = "\(bloc.blockType)".PadRight(14)
+            print("# \(bloc.lineNum),\t\(bloc.codeLineCount) lines, \t\(cType)\t\(bloc.name)  \(bloc.extra)  \(iBT)")
         }
 
-        switch c.blockType {
+        switch bloc.blockType {
         case .isFunc:
-            if isEnabled(rule: RuleID.bigFunc){
-                let maxFuncCodeLines = getParamInt(from: RuleID.bigFunc) ?? 9999
-                if c.codeLineCount > maxFuncCodeLines {
+            let id = RuleID.bigFunc
+            if isEnabled(rule: id){
+                let maxCodeLines = getParamInt(from: id) ?? 9999
+                if bloc.codeLineCount > maxCodeLines {
                     // MARK:  ➡️ Record Issue "massiveFuncs"
+                    //FIXME: Remove old way
+                    let lineItem = LineItem(name: bloc.name, lineNum: bloc.lineNum, codeLineCt: bloc.codeLineCount)
                     if swiftSummary.massiveFuncs.isEmpty { swiftSummary.issueCatsCount += 1 }
+                    swiftSummary.massiveFuncs.append(lineItem)
+                    // end old way
+
+                    // MARK:  ➡️➡️ Record Issue "massiveFuncs"
                     swiftSummary.totalIssues += 1
-                    swiftSummary.massiveFuncs.append(LineItem(name: c.name, lineNum: c.lineNum, codeLineCt: c.codeLineCount))
+                    if swiftSummary.dictIssues[id] == nil {
+                        swiftSummary.issueCatsCount += 1
+                        let sortOrder = getSortOrder(from: id)
+                        swiftSummary.dictIssues[id] = Issue(identifier: id, sortOrder: sortOrder, items: [])
+                    }
+                    swiftSummary.dictIssues[id]!.items.append(lineItem)
                 }
             }
         default: break
         }
-    }
+    }//next named block
+
     return swiftSummary
 }//end func analyseSwiftFile
 
@@ -908,7 +941,7 @@ private func getExtraForForceUnwrap(codeLineClean: String, word: String, idx: In
     return prefix + word + suffix
 }//end func
 
-//TODO: Move isEnabled, getParamText, getParamInt inside a struct
+//TODO: Move isEnabled, getParamText, etc. inside a struct
 public func isEnabled(rule key: String)    -> Bool {
     guard let index = StoredRule.dictStoredRules[key] else { return false }
     if index < 0 || index >= StoredRule.storedRuleArray.count { return false }
@@ -925,4 +958,10 @@ public func getParamInt(from key: String)  -> Int? {
     guard let index = StoredRule.dictStoredRules[key] else { return nil }
     if index < 0 || index >= StoredRule.storedRuleArray.count { return nil }
     return StoredRule.storedRuleArray[index].paramInt
+}
+
+public func getSortOrder(from key: String) -> Int {
+    guard let index = StoredRule.dictStoredRules[key] else { return 0 }
+    if index < 0 || index >= StoredRule.storedRuleArray.count { return 0 }
+    return StoredRule.storedRuleArray[index].sortOrder
 }
