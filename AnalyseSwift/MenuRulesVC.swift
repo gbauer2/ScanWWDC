@@ -51,7 +51,7 @@ public struct CodeRule {
         defaults.set(allowUnderscore,     forKey: keyRuleUnderScore)    //3
 
         print("Save Default Rules")
-        for issue in Issue.issueArray {
+        for issue in StoredRule.storedRuleArray {
             let key = "Rule_" + issue.identifier
             let value = makeStr(fromBool: issue.enabled) + "," + issue.paramText
             print ("userDefault save  \(key):  \(value)")
@@ -80,15 +80,15 @@ public struct CodeRule {
             allowAllCaps       = defaults.bool(forKey: keyRuleAllCaps)      //2
             allowUnderscore    = defaults.bool(forKey: keyRuleUnderScore)   //3
 
-            for (key, index) in Issue.dictIssues {
+            for (key, index) in StoredRule.dictStoredRules {
                 let udKey = "Rule_" + key
                 if let str = defaults.string(forKey: udKey) {        //7
                     let (enabledText, param) = splitLine(str, atCharacter: ",")
-                    if index >= 0 && index < Issue.dictIssues.count {
+                    if index >= 0 && index < StoredRule.dictStoredRules.count {
                         let enabled = (enabledText == "true")
                         print("userDefault get  \(key): enabled=\(enabled),  paramText=\(param)")
-                        Issue.issueArray[index].enabled   = enabled
-                        Issue.issueArray[index].paramText = param
+                        StoredRule.storedRuleArray[index].enabled   = enabled
+                        StoredRule.storedRuleArray[index].paramText = param
                     } else {
                         print("Error #\(#line) index out of bounds.")
                     }
@@ -109,7 +109,7 @@ class MenuRulesVC: NSViewController {
     var maxFuncCode = 0
     var minSwiftVer = 0.0
     var organizations = ""
-    static var localIssueArray = [Issue]() // Allow user close window without committing changes
+    static var localIssueArray = [StoredRule]() // Allow user close window without committing changes
 
     //MARK:- Lifecycle funcs
 
@@ -132,7 +132,7 @@ class MenuRulesVC: NSViewController {
         txtRuleMinSwiftVer.delegate   = self    // 201
         txtRuleOrganization.delegate  = self    // 301 as NSTextFieldDelegate
 
-        MenuRulesVC.localIssueArray = Issue.issueArray
+        MenuRulesVC.localIssueArray = StoredRule.storedRuleArray
         //btnOk.isEnabled = false
         tableView.delegate   = self
         tableView.dataSource = self
@@ -203,7 +203,7 @@ class MenuRulesVC: NSViewController {
 
         CodeRule.allowedOrganizations = organizations                       //7
 
-        Issue.issueArray = MenuRulesVC.localIssueArray
+        StoredRule.storedRuleArray = MenuRulesVC.localIssueArray
 
         print("✅✅ \(txtRuleMinSwiftVer.stringValue)")
 

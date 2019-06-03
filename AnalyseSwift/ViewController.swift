@@ -228,7 +228,7 @@ class ViewController: NSViewController, NSWindowDelegate {
         popupBaseDir.addItems(withTitles: ["Desktop","Downloads","Documents","All"])
         popupBaseDir.selectItem(at: 0)
 
-        (Issue.issueArray, Issue.dictIssues ) = Issue.loadRules()
+        (StoredRule.storedRuleArray, StoredRule.dictStoredRules ) = StoredRule.loadRules()
         CodeRule.getUserDefaults()
 
     }

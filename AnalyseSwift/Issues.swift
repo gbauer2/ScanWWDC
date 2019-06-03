@@ -1,5 +1,5 @@
 //
-//  Issues.swift
+//  StoredRules.swift
 //  AnalyseSwiftCode
 //
 //  Created by George Bauer on 5/28/19.
@@ -8,8 +8,8 @@
 import Foundation
 
 // Places to change from CodeRules (maxFuncCodeLines)
-//  MenuRulesVC.swift                                   Issue
-//      static var               23x                static issueArray,dictIssues    24
+//  MenuRulesVC.swift
+//      static var               23x                static storedRuleArray,dictStoredRules    24
 //      saveUserDefaults()       61x        67
 //      getUserDefaults()        96x        98
 //      viewDidLoad()           145x        161
@@ -26,9 +26,9 @@ public enum RuleID {
     static let bigFile = "BigFile"
 }
 
-public struct Issue {
-    static var issueArray = [Issue]()          // Holds all the possible issues
-    static var dictIssues = [String: Int]()    // Points to element of issueArray
+public struct StoredRule {
+    static var storedRuleArray = [StoredRule]()     // Holds all the possible StoredRules
+    static var dictStoredRules = [String: Int]()    // Points to element of storedRuleArray
     
     var identifier:  String
     var name:        String
@@ -42,8 +42,6 @@ public struct Issue {
     var displayGroup = ""
     var ruleType     = ""
     var paramInt: Int? { return Int(paramText)}
-    //TODO: ToDo: Separate issues(items) from rules.
-    var items       = [LineItem]()
 
     //MARK:- Initializers
     init(id: String, name: String, desc: String, enabled: Bool) {
@@ -71,13 +69,13 @@ public struct Issue {
     //TODO: ToDo: Identify rule-item by header name.
     //--- rule stored in bundle, *enabled & *param also stored in userdefaults
     // (id, 0/1, paramText)static
-    static func loadRules() -> ([Issue], [String: Int]) {
-        var issues  = [Issue]()
-        var dictIssues = [String: Int]()
+    static func loadRules() -> ([StoredRule], [String: Int]) {
+        var rules       = [StoredRule]()
+        var dictRules   = [String: Int]()
         
         guard let rulesURL = Bundle.main.path(forResource: "Rules", ofType: "txt") else {
-            print("⛔️ Error in Issues.swift #\(#line) Could not open file: Rules.txt" )
-            return (issues, dictIssues)
+            print("⛔️ Error in StoredRules.swift #\(#line) Could not open file: Rules.txt" )
+            return (rules, dictRules)
         }
 
         // Read contents of Rules.txt
@@ -86,7 +84,7 @@ public struct Issue {
             ruleFileContents = try String(contentsOfFile: rulesURL, encoding: String.Encoding.utf8)
         } catch let error as NSError {
             print("Failed reading from URL: \(rulesURL), Error: " + error.localizedDescription)
-            return (issues, dictIssues)
+            return (rules, dictRules)
         }
         print(ruleFileContents)
         
@@ -111,17 +109,17 @@ public struct Issue {
                 let ruleType     = stripQuotes(from: items[8])
                 let displayGroup = stripQuotes(from: items[9])
                 let desc         = stripQuotes(from: items[10])
-                let issue = Issue(id: id, name: name, desc: desc, enabled: enabled, paramLabel: paramLabel,
+                let rule = StoredRule(id: id, name: name, desc: desc, enabled: enabled, paramLabel: paramLabel,
                                   paramText: paramText, paramType: paramType, paramMin: paramMin,
                                   paramMax: paramMax, displayGroup: displayGroup, ruleType: ruleType)
-                issues.append(issue)
+                rules.append(rule)
             }
         }
         
-        for (i, issue) in issues.enumerated() {
-            dictIssues[issue.identifier] = i
+        for (i, rule) in rules.enumerated() {
+            dictRules[rule.identifier] = i
         }
-        return (issues, dictIssues)
+        return (rules, dictRules)
     }//end func loadRules
 
     //MARK:- Helper funcs
@@ -133,4 +131,4 @@ public struct Issue {
             return str
         }
     }
-}//end struct Issue
+}//end struct StoredRule

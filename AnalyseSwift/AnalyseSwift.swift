@@ -65,8 +65,8 @@ public struct SwiftSummary {
     var compoundLines   = [LineItem]()      // 483, 726
     var massiveFile     = [LineItem]()      // 767
     var massiveFuncs    = [LineItem]()      // 785
-
-    var dictIssues      = [String: Issue]()     //neww
+    //FIXME: dictIssues should have its own Type
+    var dictIssues      = [String: StoredRule]()     //neww
 
     var vbCompatCalls   = [String: LineItem]()  // "VB.Left     3    times"
 
@@ -74,7 +74,7 @@ public struct SwiftSummary {
     var totalIssues     = 0         // for display spacing when issuesFirst
 
     mutating func initIssues() {
-        dictIssues = [String: Issue]()
+        dictIssues = [String: StoredRule]()
     }
 }//end struct SwiftSummary
 
@@ -908,21 +908,21 @@ private func getExtraForForceUnwrap(codeLineClean: String, word: String, idx: In
     return prefix + word + suffix
 }//end func
 
-//TODO: Move isEnabled, getIntParam inside a struct
-public func isEnabled(rule key: String) -> Bool {
-    guard let index = Issue.dictIssues[key] else { return false }
-    if index < 0 || index >= Issue.issueArray.count { return false }
-    return Issue.issueArray[index].enabled
+//TODO: Move isEnabled, getParamText, getParamInt inside a struct
+public func isEnabled(rule key: String)    -> Bool {
+    guard let index = StoredRule.dictStoredRules[key] else { return false }
+    if index < 0 || index >= StoredRule.storedRuleArray.count { return false }
+    return StoredRule.storedRuleArray[index].enabled
 }
 
 public func getParamText(from key: String) -> String {
-    guard let index = Issue.dictIssues[key] else { return "" }
-    if index < 0 || index >= Issue.issueArray.count { return "" }
-    return Issue.issueArray[index].paramText
+    guard let index = StoredRule.dictStoredRules[key] else { return "" }
+    if index < 0 || index >= StoredRule.storedRuleArray.count { return "" }
+    return StoredRule.storedRuleArray[index].paramText
 }
 
-public func getParamInt(from key: String) -> Int? {
-    guard let index = Issue.dictIssues[key] else { return nil }
-    if index < 0 || index >= Issue.issueArray.count { return nil }
-    return Issue.issueArray[index].paramInt
+public func getParamInt(from key: String)  -> Int? {
+    guard let index = StoredRule.dictStoredRules[key] else { return nil }
+    if index < 0 || index >= StoredRule.storedRuleArray.count { return nil }
+    return StoredRule.storedRuleArray[index].paramInt
 }
