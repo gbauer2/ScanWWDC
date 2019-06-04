@@ -65,7 +65,9 @@ public struct SwiftSummary {
     //FormatSwiftSummary.swift ~200;        AnalyseXcodeproj.swift ~700
     var dictIssues      = [String: Issue]()     // StoredRules
 
+    //TODO: nonCamelVars: handle multiple Rules for 1 issue
     var nonCamelVars    = [LineItem]()      // 344
+    //TODO: vbCompatCalls: handle dictionary-type issues
     var vbCompatCalls   = [String: LineItem]()  // "VB.Left     3    times"
 
     var issueCatsCount  = 0         // for display spacing when issuesFirst
@@ -74,6 +76,12 @@ public struct SwiftSummary {
     mutating func initIssues() {
         dictIssues = [String: Issue]()
     }
+
+    public func getIssueCount(identifier: String) -> Int {
+        let count = self.dictIssues[identifier]?.items.count ?? 0
+        return count
+    }
+
 }//end struct SwiftSummary
 
 // List of BlockTypes & their index
@@ -400,6 +408,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
     var maxCountError   = 0
     var stillInCompound = false
 
+    //TODO: Needs 4 Rules minLen, maxLen, AllowAllCaps, AllowUnderscore
     func recordNonCamelcase(_ name: String) {
         let lineItem = LineItem(name: name, lineNum: lineNum)
         // MARK:  ➡️ Record Issue "nonCamelVars"
@@ -925,7 +934,7 @@ private func getExtraForForceUnwrap(codeLineClean: String, word: String, idx: In
     return prefix + word + suffix
 }//end func
 
-//TODO: Move isEnabled, getParamText, etc. inside a struct
+//TODO: Move "isEnabled", "getParamText", etc. inside a struct
 public func isEnabled(rule key: String)    -> Bool {
     guard let index = StoredRule.dictStoredRules[key] else { return false }
     if index < 0 || index >= StoredRule.storedRuleArray.count { return false }

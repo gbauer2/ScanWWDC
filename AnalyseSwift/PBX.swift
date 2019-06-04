@@ -13,7 +13,9 @@ import Foundation
 //  1) "var XXX ="         (1 place);
 //  2) func changeProperty (2 places)           case "XXX": self.XXX = vals.first ?? ""
 //  3) "debugDescription"  (3 places) if !self.XXX.isEmpty    { str += ", XXX=" + self.XXX }
-public struct PBX: CustomDebugStringConvertible {       //60-275 = 215-lines
+// MARK:- struct PBX           //17-237 = 220-lines
+public struct PBX: CustomDebugStringConvertible {
+    //MARK: Properties
     var isa         = ""
     var name        = ""
     var path        = ""
@@ -36,7 +38,7 @@ public struct PBX: CustomDebugStringConvertible {       //60-275 = 215-lines
     var remoteGlobalIDString    = ""
     var buildConfigurationList  = ""
 
-    // arrays
+    //MARK: arrays
     var files               = [String]()
     var targets             = [String]()
     var children            = [String]()
@@ -44,12 +46,14 @@ public struct PBX: CustomDebugStringConvertible {       //60-275 = 215-lines
     var dependencies        = [String]()
     var buildConfigurations = [String]()
 
-    // attributes
+    //MARK: attributes
     var LastSwiftUpdateCheck = ""
     var LastUpgradeCheck     = ""
     var ORGANIZATIONNAME     = ""    // ORGANIZATIONNAME = "Ray Wenderlich"
 
-    // buildSettings
+    // MARK:- Methods
+
+    //MARK: buildSettings
     var CreatedOnToolsVersion = ""
     var LastSwiftMigration  = ""
     var TestTargetID        = ""
@@ -67,7 +71,8 @@ public struct PBX: CustomDebugStringConvertible {       //60-275 = 215-lines
     var ENABLE_STRICT_OBJC_MSGSEND = ""
     var PRODUCT_BUNDLE_IDENTIFIER  = ""
 
-    mutating func changeProperty(propertyName: String, vals: [String]) {    //114-185 = 71-lines
+    //MARK: Change a property by Name       //74-146 = 72-lines
+    mutating func changeProperty(propertyName: String, vals: [String]) {
         switch propertyName {
         case "isa":         self.isa        = vals.first ?? ""
         case "name":        self.name       = vals.first ?? ""
@@ -140,8 +145,8 @@ public struct PBX: CustomDebugStringConvertible {       //60-275 = 215-lines
         }//end switch
     }//end func
 
-    //---- debugDescription - used for print
-    public var debugDescription: String {       //188-248 = 60-lines
+    //MARK: debugDescription - used for print        //149-209 = 60-lines
+    public var debugDescription: String {
         //let sep = "\(sep)"
         let sep = "\n\t"
         let selfName = self.name.isEmpty ? "" : " - name: \"\(self.name)\""

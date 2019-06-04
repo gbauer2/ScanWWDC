@@ -93,6 +93,7 @@ private func sampleVBCall() {
     let str = "12345"
     var a = ""
     a = Mid(str, 2, 3)
+    a = Mid(str, 2)
     a = VB.Left(str, 2)
     print(a)
 }

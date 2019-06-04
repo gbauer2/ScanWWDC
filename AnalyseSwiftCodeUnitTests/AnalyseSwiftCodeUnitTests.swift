@@ -343,47 +343,48 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
     //284 AnalyseSwift.swift
     func testAnalyseSwiftFileLong() {
         let fileAtt = FileAttributes(url: URL(fileURLWithPath: "/????"), name: "sampleCodeLong", creationDate: Date(), modificationDate: Date(), size: 1234, isDir: false)
-        let sw = analyseSwiftFile(contentFromFile: sampleCodeLong, selecFileInfo: fileAtt, deBug: true)
-        XCTAssertEqual(sw.byteCount,   1234, "")
-        //XCTAssertEqual(sw.classNames.count,   1, "")
-        //if !sw.classNames.isEmpty { XCTAssertEqual(sw.classNames[0], "MySampleClass", "")}
-        //XCTAssertEqual(sw.enumNames.count,   0, "")
-        //XCTAssertEqual(sw.enumNames[0], "SortType", "")
-        //XCTAssertEqual(sw.extensionNames.count,   0, "")
-        //XCTAssertEqual(sw.extensionNames[0], "ViewController", "")
-        XCTAssertEqual(sw.fileName, "sampleCodeLong", "")
-        //XCTAssertEqual(sw.funcs.count,    5, "")
-        XCTAssertEqual(sw.codeLineCount, 71, "")
-        XCTAssertEqual(sw.nonCamelVars.count, 14, "")
-        XCTAssertEqual(sw.forceUnwraps.count,  15, "")
-        XCTAssertEqual(sw.vbCompatCalls.count,  3, "")
-        print(sw.codeLineCount)
+        let swSumry = analyseSwiftFile(contentFromFile: sampleCodeLong, selecFileInfo: fileAtt, deBug: true)
+        XCTAssertEqual(swSumry.byteCount,   1234, "")
+        //XCTAssertEqual(swSumry.classNames.count,   1, "")
+        //if !swSumry.classNames.isEmpty { XCTAssertEqual(swSumry.classNames[0], "MySampleClass", "")}
+        //XCTAssertEqual(swSumry.enumNames.count,   0, "")
+        //XCTAssertEqual(swSumry.enumNames[0], "SortType", "")
+        //XCTAssertEqual(swSumry.extensionNames.count,   0, "")
+        //XCTAssertEqual(swSumry.extensionNames[0], "ViewController", "")
+        XCTAssertEqual(swSumry.fileName, "sampleCodeLong", "")
+        //XCTAssertEqual(swSumry.funcs.count,    5, "")
+        XCTAssertEqual(swSumry.codeLineCount, 71, "")
+        XCTAssertEqual(swSumry.nonCamelVars.count, 14, "")
+        let fuCt = swSumry.dictIssues[RuleID.forceUnwrap]?.items.count ?? 0
+        XCTAssertEqual(fuCt,  15, "")
+        XCTAssertEqual(swSumry.vbCompatCalls.count,  3, "")
+        print(swSumry.codeLineCount)
         //SampleCode.swift                89       13        15        3      -
     }
 
     //284 AnalyseSwift.swift
     func testAnalyseSwiftFileShort() {
         let fileAtt = FileAttributes(url: URL(fileURLWithPath: "/????"), name: "sampleCodeShort", creationDate: Date(), modificationDate: Date(), size: 1234, isDir: false)
-        let sw = analyseSwiftFile(contentFromFile: sampleCodeShort, selecFileInfo: fileAtt, deBug: true)
-        XCTAssertEqual(sw.byteCount,   1234, "")
+        let swSumry = analyseSwiftFile(contentFromFile: sampleCodeShort, selecFileInfo: fileAtt, deBug: true)
+        XCTAssertEqual(swSumry.byteCount,   1234, "")
 
-//        XCTAssertEqual(sw.classNames.count,     1, "")
-//        if !sw.classNames.isEmpty { XCTAssertEqual(sw.classNames[0], "ViewController", "")}
+//        XCTAssertEqual(swSumry.classNames.count,     1, "")
+//        if !swSumry.classNames.isEmpty { XCTAssertEqual(swSumry.classNames[0], "ViewController", "")}
 //
-//        XCTAssertEqual(sw.enumNames.count,      1, "")
-//        if !sw.enumNames.isEmpty { XCTAssertEqual(sw.enumNames[0], "Enum1", "")}
+//        XCTAssertEqual(swSumry.enumNames.count,      1, "")
+//        if !swSumry.enumNames.isEmpty { XCTAssertEqual(swSumry.enumNames[0], "Enum1", "")}
 //
-//        XCTAssertEqual(sw.extensionNames.count, 1, "")
-//        if !sw.extensionNames.isEmpty { XCTAssertEqual(sw.extensionNames[0], "ViewController", "") }
+//        XCTAssertEqual(swSumry.extensionNames.count, 1, "")
+//        if !swSumry.extensionNames.isEmpty { XCTAssertEqual(swSumry.extensionNames[0], "ViewController", "") }
 //
 //        //funcs
-//        //XCTAssertEqual(sw.funcs.count,          2, "")
-//        if !sw.funcs.isEmpty   { XCTAssertEqual(sw.funcs[0].name, "ViewController.MyFuncVC", "")}
-//        if sw.funcs.count >= 2 { XCTAssertEqual(sw.funcs[1].name, "MyFreeFunc", "")}
+//        //XCTAssertEqual(swSumry.funcs.count,          2, "")
+//        if !swSumry.funcs.isEmpty   { XCTAssertEqual(swSumry.funcs[0].name, "ViewController.MyFuncVC", "")}
+//        if swSumry.funcs.count >= 2 { XCTAssertEqual(swSumry.funcs[1].name, "MyFreeFunc", "")}
 
         // ibActionFuncs
-//        XCTAssertEqual(sw.ibActionFuncs.count,          1, "")
-//        if !sw.ibActionFuncs.isEmpty   { XCTAssertEqual(sw.ibActionFuncs[0].name, "saveInfoClicked", "")}
+//        XCTAssertEqual(swSumry.ibActionFuncs.count,          1, "")
+//        if !swSumry.ibActionFuncs.isEmpty   { XCTAssertEqual(swSumry.ibActionFuncs[0].name, "saveInfoClicked", "")}
 /*
          var codeLineCount     = 0   // includes compound line & "if x {code}"   384 -> 400
          var continueLineCount = 0
@@ -395,40 +396,41 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
          var totalLineCount    = 0
  */
         // codeLine
-        XCTAssertEqual(sw.codeLineCount,      21, "codeLineCount != 21")
+        XCTAssertEqual(swSumry.codeLineCount,      21, "codeLineCount != 21")
 
         // continueLineCount
-        XCTAssertEqual(sw.continueLineCount,   2, "continueLineCount != 2")
+        XCTAssertEqual(swSumry.continueLineCount,   2, "continueLineCount != 2")
 
         // blankLineCount
-        XCTAssertEqual(sw.blankLineCount,     11, "blankLineCount != 11")
+        XCTAssertEqual(swSumry.blankLineCount,     11, "blankLineCount != 11")
 
         // commentLineCount
-        XCTAssertEqual(sw.commentLineCount,    3, "commentLineCount != 3")
+        XCTAssertEqual(swSumry.commentLineCount,    3, "commentLineCount != 3")
 
         // quoteLineCount
-        XCTAssertEqual(sw.quoteLineCount,      3, "quoteLineCount != 3")
+        XCTAssertEqual(swSumry.quoteLineCount,      3, "quoteLineCount != 3")
 
         // markupLineCount
-        XCTAssertEqual(sw.markupLineCount,     3, "markupLineCount != 3")
+        XCTAssertEqual(swSumry.markupLineCount,     3, "markupLineCount != 3")
 
         // compoundLineCount
-        XCTAssertEqual(sw.compoundLineCount,   2, "compoundLineCount != 2")
+        XCTAssertEqual(swSumry.compoundLineCount,   2, "compoundLineCount != 2")
 
         // totalLineCount
-        let total = sw.codeLineCount + sw.continueLineCount + sw.blankLineCount + sw.commentLineCount +
-            sw.quoteLineCount + sw.markupLineCount - sw.compoundLineCount
-        XCTAssertEqual(sw.totalLineCount,      total, "totalLineCount != \(total)")
-
+        let total = swSumry.codeLineCount + swSumry.continueLineCount +
+            swSumry.blankLineCount + swSumry.commentLineCount + swSumry.quoteLineCount +
+            swSumry.markupLineCount - swSumry.compoundLineCount
+        XCTAssertEqual(swSumry.totalLineCount,      total, "totalLineCount != \(total)")
 
         // nonCamelCases
-        XCTAssertEqual(sw.nonCamelVars.count,  9, "")
+        XCTAssertEqual(swSumry.nonCamelVars.count,  9, "")
 
         // forceUnwraps.count
-        XCTAssertEqual(sw.forceUnwraps.count,  4, "")
+        let forceUnwrapCount = swSumry.getIssueCount(identifier: RuleID.forceUnwrap)
+        XCTAssertEqual(forceUnwrapCount,  4, "")
 
         // vbCompatCalls.count
-        XCTAssertEqual(sw.vbCompatCalls.count, 1, "")
+        XCTAssertEqual(swSumry.vbCompatCalls.count, 1, "")
     }
 
 /* Still needed in sampleCodeShort
@@ -444,50 +446,16 @@ RawString
         var result = false
         result = WordLookup.isKeyword(word: "let")
         XCTAssertTrue(result)
-        result =  WordLookup.isKeyword(word: "super")
+        result = WordLookup.isKeyword(word: "super")
         XCTAssertTrue(result)
 
-        result =  WordLookup.isKeyword(word: "Let")
+        result = WordLookup.isKeyword(word: "Let")
         XCTAssertFalse(result)
-        result =  WordLookup.isKeyword(word: "gwb")
+        result = WordLookup.isKeyword(word: "gwb")
         XCTAssertFalse(result)
     }
 
     // MenuRulesVC.swift
-    func testCR() {
-        //Int
-        var cr = CR(tag: 1, idx: 64, name: "Sample # 1 Int", key: "", helpMsg: "This is a test", dfault: "12.33", int: 1234, minV: 1232, maxV: 1235, dp: 2)
-        XCTAssertEqual(cr.bitVal,       1)
-        XCTAssertEqual(cr.name,         "Sample # 1 Int")
-        XCTAssertEqual(cr.type,         .int)
-        XCTAssertEqual(cr.keyUsrDefault, "RuleSample1Int")
-        XCTAssertEqual(cr.msgError,     "Must be a value beween 12.32 and 12.35")
-        XCTAssertEqual(cr.intVal,       1234)
-        XCTAssertEqual(cr.textVal,      "12.34")
-
-        //Text
-        var cs = CR(tag: 2, idx: 10, name: "Samp # 2", key: "SampNo2", helpMsg: "Test 2", errMsg: "MyBad", dfault: "default", txt: "Samp2Data")
-        XCTAssertEqual(cs.bitVal,       1024)
-        XCTAssertEqual(cs.name,         "Samp # 2")
-        XCTAssertEqual(cs.type,         .text)
-        XCTAssertEqual(cs.keyUsrDefault, "RuleSampNo2")
-        XCTAssertEqual(cs.msgError,     "MyBad")
-        XCTAssertEqual(cs.textVal,      "Samp2Data")
-
-        //bool
-        var cb = CR(tag: 3, idx: 63, name: "Samp$ # 3", key: "", helpMsg: "Test 3", dfault: "true", bool: true)
-        XCTAssertEqual(cb.bitVal, 9_223_372_036_854_775_808)
-        XCTAssertEqual(cb.name,         "Samp$ # 3")
-        XCTAssertEqual(cb.type,         .bool)
-        XCTAssertEqual(cb.keyUsrDefault, "RuleSamp3")
-        XCTAssertEqual(cb.msgError,     "")
-        XCTAssertEqual(cb.boolVal,      true)
-        XCTAssertEqual(cb.textVal,      "true")
-
-        cr.intVal = 4321
-        cb.boolVal = false
-        cs.textVal = "New Text"
-    }
 
     // MARK: - Sample Data
 
