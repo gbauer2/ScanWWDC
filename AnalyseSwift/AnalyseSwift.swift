@@ -63,17 +63,9 @@ public struct SwiftSummary {
 
     // swift file issues
     //FormatSwiftSummary.swift ~200;        AnalyseXcodeproj.swift ~700
-    var nonCamelVars    = [LineItem]()      // 344
-    var toDoFixMe       = [LineItem]()      // 425
-    var forceUnwraps    = [LineItem]()      // 560
-    var freeFuncs       = [LineItem]()      // 634
-    var globals         = [LineItem]()      // 743
-    var compoundLines   = [LineItem]()      // 483, 726
-    var massiveFile     = [LineItem]()      // 767
-    var massiveFuncs    = [LineItem]()      // 785
-
     var dictIssues      = [String: Issue]()     // StoredRules
 
+    var nonCamelVars    = [LineItem]()      // 344
     var vbCompatCalls   = [String: LineItem]()  // "VB.Left     3    times"
 
     var issueCatsCount  = 0         // for display spacing when issuesFirst
@@ -366,9 +358,9 @@ internal func needsContinuation(codeLineDetail: CodeLineDetail, nextLine: String
             }
         }
     }
-//    if !"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789{}[]()!\"?:;".contains(lastChar) {
-//        print("\(codeLine)")
-//    }
+    //    if !"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789{}[]()!\"?:;".contains(lastChar) {
+    //        print("\(codeLine)")
+    //    }
     return false
 }
 
@@ -416,6 +408,19 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         swiftSummary.nonCamelVars.append(lineItem)
     }
 
+    func recordIssue(id: String, lineItem: LineItem) {
+        if isEnabled(rule: id) {
+            swiftSummary.totalIssues += 1
+
+            if swiftSummary.dictIssues[id] == nil {
+                swiftSummary.issueCatsCount += 1
+                let sortOrder = getSortOrder(from: id)
+                swiftSummary.dictIssues[id] = Issue(identifier: id, sortOrder: sortOrder, items: [])
+            }
+            swiftSummary.dictIssues[id]!.items.append(lineItem)
+        }
+    }
+
     // MARK: Main Loop 353-757 = 404-lines
     while iLine < lines.count {
         //        // Multitasking Check
@@ -443,7 +448,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             line = fromPrevLine.trim
             fromPrevLine = ""
             if line.isEmpty { continue }
-        }
+        }//end get-line
 
         // Line Continution
         if !partialLine.isEmpty {
@@ -501,13 +506,14 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             if line.count >= 7 {
                 let bareLine = String(line.dropFirst(2).trim)
                 if bareLine.hasPrefix("TODO:") ||  bareLine.hasPrefix("FIXME:") {
-                    // MARK:  ➡️ Record Issue "toDoFixMe"
-                    if swiftSummary.toDoFixMe.isEmpty { swiftSummary.issueCatsCount += 1 }
-                    swiftSummary.totalIssues += 1
-                    swiftSummary.toDoFixMe.append(LineItem(name: bareLine, lineNum: lineNum))
-                }
+                    // MARK:  ➡️➡️ Record Issue "toDoFixMe"                     //@@
+                    let id = RuleID.toDo                                        //@@
+                    let lineItem = LineItem(name: bareLine, lineNum: lineNum)   //@@
+                    recordIssue(id: id, lineItem: lineItem)
+                }//end RuleID.toDo //@@
             }
-            continue
+            continue    // end comment line
+
         } else if inMultiLine == .tripleQuote && !line.contains("\"\"\"") {
             swiftSummary.quoteLineCount += 1    //5/10/2019
             continue                                                // bypass further processing???
@@ -539,12 +545,12 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             // Split compound line
             if firstSplitter == ";" {
                 if !stillInCompound && !lineTuple.lhs.isEmpty && !lineTuple.rhs.isEmpty {
-                    // MARK:  ➡️ Record Issue "compoundLines"
-                    if swiftSummary.compoundLines.isEmpty { swiftSummary.issueCatsCount += 1 }
-                    swiftSummary.totalIssues += 1
-                    swiftSummary.compoundLines.append(LineItem(name: codeLineFull, lineNum: lineNum))
+                    // MARK:  ➡️➡️ Record Issue "compoundLine"                      //@@
+                    let id = RuleID.compoundLine                                    //@@
+                    let lineItem = LineItem(name: codeLineFull, lineNum: lineNum)   //@@
+                    recordIssue(id: id, lineItem: lineItem)
                     stillInCompound = true
-                }
+                }//end RuleID.compoundLine
                 swiftSummary.compoundLineCount += 1
                 codeLine     = lineTuple.lhs
                 fromPrevLine = lineTuple.rhs
@@ -615,6 +621,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             if (word.hasSuffix("!") && firstWord != "@IBOutlet") || word.contains("!.") {
                 let idx = codeLine.firstIntIndexOf(word)                         // idx is pointer to word
                 let isForce = word.count > 1 || idx == 0 || codeLine[idx-1] != " "    // must not have whitespace before "!"
+
                 if isForce {
                     let extra = getExtraForForceUnwrap(codeLineClean: codeLine, word: word, idx: idx)
                     if deBug && gDebug == .all {
@@ -632,11 +639,14 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                         }
                         //xword = "." + (comps.last ?? "")
                     }
-                    // MARK:  ➡️ Record Issue "forceUnwraps"
-                    if swiftSummary.forceUnwraps.isEmpty { swiftSummary.issueCatsCount += 1 }
-                    swiftSummary.totalIssues += 1
-                    swiftSummary.forceUnwraps.append(LineItem(name: xword, lineNum: lineNum, extra: extra))
-                }
+
+                    // MARK:  ➡️➡️ Record Issue "forceUnwrap"                               //@@
+                    let id = RuleID.forceUnwrap                                                 //@@
+                    let lineItem = LineItem(name: xword, lineNum: lineNum, extra: extra)    //@@
+                    recordIssue(id: id, lineItem: lineItem)
+
+                }// end isForce
+
             } else if !word.hasPrefix("!") && word.contains("!") && firstWord != "@IBOutlet" {
                 print(" ⛔️ Error (#line) unexplained '!' in \(codeLine)")
             }
@@ -710,10 +720,11 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                 containerName = blockStack.last?.name ?? "???"
                 blockOnDeck.name = "\(containerName).\(blockOnDeck.name)"
             } else {
-                // MARK:  ➡️ Record Issue "freeFuncs"
-                if swiftSummary.freeFuncs.isEmpty { swiftSummary.issueCatsCount += 1 }
-                swiftSummary.totalIssues += 1
-                swiftSummary.freeFuncs.append(LineItem(name: blockOnDeck.name, lineNum: lineNum))
+
+                let id = RuleID.freeFunc                                            //@@
+                // MARK:  ➡️➡️ Record Issue "global"                                //@@
+                let lineItem = LineItem(name: blockOnDeck.name, lineNum: lineNum)   //@@
+                recordIssue(id: id, lineItem: lineItem)
             }
         }//endif func
 
@@ -812,10 +823,10 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             let assignees = assigneeList.components(separatedBy: ",").map { $0.trim }
 
             if assignees.count > 1 && !assignees[0].hasPrefix("(") {
-                // MARK:  ➡️ Record Issue "compoundLines" (2)
-                if swiftSummary.compoundLines.isEmpty { swiftSummary.issueCatsCount += 1 }
-                swiftSummary.totalIssues += 1
-                swiftSummary.compoundLines.append(LineItem(name: codeLineFull, lineNum: lineNum))
+                // MARK:  ➡️➡️ Record Issue "compoundLine"                      //@@
+                let id = RuleID.compoundLine                                    //@@
+                let lineItem = LineItem(name: codeLineFull, lineNum: lineNum)   //@@
+                recordIssue(id: id, lineItem: lineItem)
             }
 
             let isGlobal = blockStack.isEmpty ? true : false
@@ -829,11 +840,13 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                     name = String(name.dropLast()).trim
                 }
                 if isGlobal {
-                    // MARK:  ➡️ Record Issue "globals"
-                    if swiftSummary.globals.isEmpty { swiftSummary.issueCatsCount += 1 }
-                    swiftSummary.totalIssues += 1
-                    swiftSummary.globals.append(LineItem(name: name, lineNum: lineNum))
-                }
+
+                    // MARK:  ➡️➡️ Record Issue "global"                        //@@
+                    let lineItem = LineItem(name: name, lineNum: lineNum)       //@@
+                    let id = RuleID.global                                          //@@
+                    recordIssue(id: id, lineItem: lineItem)
+                }//end isGlobal
+
                 if !isCamelCase(name) {
                     recordNonCamelcase(name)
                 }
@@ -853,28 +866,13 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
     swiftSummary.byteCount = selecFileInfo.size
     swiftSummary.totalLineCount = lineNum
 
-    if isEnabled(rule: RuleID.bigFile){
-        let id = RuleID.bigFile
-        let maxFileCodeLines = getParamInt(from: RuleID.bigFile) ?? 9999
-        if swiftSummary.codeLineCount > maxFileCodeLines {
-            // MARK:  ➡️ Record Issue "massiveFile"
-            swiftSummary.issueCatsCount += 1
-            swiftSummary.totalIssues += 1
-            swiftSummary.massiveFile.append(LineItem(name: swiftSummary.fileName, lineNum: 0, codeLineCt: swiftSummary.codeLineCount))
-        }
-            let maxCodeLines = getParamInt(from: id) ?? 9999
-            if swiftSummary.codeLineCount > maxCodeLines {
-                // MARK:  ➡️➡️ Record Issue "massiveFile"
-                let lineItem = LineItem(name: swiftSummary.fileName, lineNum: 0, codeLineCt: swiftSummary.codeLineCount)
-                swiftSummary.totalIssues += 1
-                if swiftSummary.dictIssues[id] == nil {
-                    swiftSummary.issueCatsCount += 1
-                    let sortOrder = getSortOrder(from: id)
-                    swiftSummary.dictIssues[id] = Issue(identifier: id, sortOrder: sortOrder, items: [])
-                }
-                swiftSummary.dictIssues[id]!.items.append(lineItem)
-            }
-    }//end RuleID.bigFile
+    // MARK:  ➡️➡️ Record Issue "massiveFile"
+    let id = RuleID.bigFile
+    let maxCodeLines = getParamInt(from: id) ?? 9999
+    if swiftSummary.codeLineCount > maxCodeLines {
+        let lineItem = LineItem(name: swiftSummary.fileName, lineNum: 0, codeLineCt: swiftSummary.codeLineCount)
+        recordIssue(id: id, lineItem: lineItem)
+    }
 
     if deBug && gDebug == .all { print("\n\(namedBlocks.count) named blocks") }         // Sanity Check
     for bloc in namedBlocks {
@@ -887,26 +885,12 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
 
         switch bloc.blockType {
         case .isFunc:
+            // MARK:  ➡️➡️ Record Issue "massiveFuncs"
             let id = RuleID.bigFunc
-            if isEnabled(rule: id){
-                let maxCodeLines = getParamInt(from: id) ?? 9999
-                if bloc.codeLineCount > maxCodeLines {
-                    // MARK:  ➡️ Record Issue "massiveFuncs"
-                    //FIXME: Remove old way
-                    let lineItem = LineItem(name: bloc.name, lineNum: bloc.lineNum, codeLineCt: bloc.codeLineCount)
-                    if swiftSummary.massiveFuncs.isEmpty { swiftSummary.issueCatsCount += 1 }
-                    swiftSummary.massiveFuncs.append(lineItem)
-                    // end old way
-
-                    // MARK:  ➡️➡️ Record Issue "massiveFuncs"
-                    swiftSummary.totalIssues += 1
-                    if swiftSummary.dictIssues[id] == nil {
-                        swiftSummary.issueCatsCount += 1
-                        let sortOrder = getSortOrder(from: id)
-                        swiftSummary.dictIssues[id] = Issue(identifier: id, sortOrder: sortOrder, items: [])
-                    }
-                    swiftSummary.dictIssues[id]!.items.append(lineItem)
-                }
+            let maxCodeLines = getParamInt(from: id) ?? 9999
+            if bloc.codeLineCount > maxCodeLines {
+                let lineItem = LineItem(name: bloc.name, lineNum: bloc.lineNum, codeLineCt: bloc.codeLineCount)
+                recordIssue(id: id, lineItem: lineItem)
             }
         default: break
         }

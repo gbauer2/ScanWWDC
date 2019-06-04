@@ -1,12 +1,12 @@
-Identifier,   Name        , Enabled, ParamLabel, ParamType, ParamMin,  ParamMax, ParamText, RuleType, SortOrder, Description
-BigFile   ,  Massive File ,  true ,   "Max: "  ,    Int   ,   60    ,    2000  ,    520   ,         ,        10, "File too large"
-BigFunc   ,  Massive func ,  true ,   "Max: "  ,    Int   ,   30    ,    1000  ,    140   ,         ,        20, "Function too large"
-ToDo      ,  ToDoFixMe    ,  true ,            ,          ,         ,          ,          ,         ,        30, ""TODO:" or "FIXME:" line"
-F_Unwrap  ,  Force-Unwrap ,  true ,            ,          ,         ,          ,          ,         ,        40, "Force-Unwrap"
-Naming    ,  NonCamelCase ,  true ,            ,          ,         ,          ,          ,         ,        50, "NonCamelCase Variable"
-Global    ,  Global       ,  true ,            ,          ,         ,          ,          ,         ,        60, "Global Variable"
-FreeFunc  ,  FreeFunc     ,  true ,            ,          ,         ,          ,          ,         ,        70, "Free Function"
-Compound  ,  Compound     ,  true ,            ,          ,         ,          ,          ,         ,        80, "Compound Line"
-VB        ,  VBCompatCall ,  true ,            ,          ,         ,          ,          ,         ,        90, "VBCompatCall"
+Identifier  ,  Name          , Enabled, ParamLabel, ParamType, ParamMin,  ParamMax, ParamText, RuleType, SortOrder, Description
+BigFile     , Massive File   ,  true ,   "Max: "  ,    Int   ,   60    ,    2000  ,    520   ,         ,        10, "File too large"
+BigFunc     , Massive func   ,  true ,   "Max: "  ,    Int   ,   30    ,    1000  ,    140   ,         ,        20, "Function too large"
+ToDo        , TODO/FIXME mark,  true ,            ,          ,         ,          ,          ,         ,        30, ""TODO:" or "FIXME:" line"
+ForceUnwrap , Force-Unwrap   ,  true ,            ,          ,         ,          ,          ,         ,        40, "Force-Unwrap"
+Global      , Global         ,  true ,            ,          ,         ,          ,          ,         ,        50, "Global Variable"
+FreeFunc    , FreeFunc       ,  true ,            ,          ,         ,          ,          ,         ,        60, "Free Function"
+NonCamel    , NonCamelCase   ,  true ,            ,          ,         ,          ,          ,         ,        70, "NonCamelCase Variable"
+CompoundLine, Compound Line  ,  true ,            ,          ,         ,          ,          ,         ,        80, "Compound Line"
+VB          , VBCompat Call  ,  true ,            ,          ,         ,          ,          ,         ,        90, "VBCompatCall"
 
 

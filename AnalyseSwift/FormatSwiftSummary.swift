@@ -174,8 +174,6 @@ struct SwiftSumAttStr {
     func showIssues(swiftSummary: SwiftSummary, fileInfo: FileAttributes) -> NSMutableAttributedString  { //174-223 = 49-lines
         var tx: NSAttributedString = NSMutableAttributedString(string: "")
         let txt:NSMutableAttributedString = NSMutableAttributedString(string: "")
-        var title = ""
-        var suffix = ""
         let issuesTitle: String
         if swiftSummary.totalIssues == 0 {
             issuesTitle = fileInfo.name + " - No Issues"
@@ -201,39 +199,15 @@ struct SwiftSumAttStr {
             }
         }//next issue
 
-        tx = showDivider(title: issuesTitle, font: fontMonoDigitMedium)
-        txt.append(tx)
-
+        let ct = swiftSummary.nonCamelVars.count + swiftSummary.vbCompatCalls.count
+        if ct > 0 {
+            tx = showDivider(title: "\(ct) more issues", font: fontMonoDigitMedium)
+            txt.append(tx)
+        }
         //FIXME: This section needs to be changed for table-based issues.
-        // MARK: File too big.
-        title = "Massive file"
-        let maxFileCodeLines = getParamInt(from: RuleID.bigFile) ?? 9999
-        suffix = " ( >\(maxFileCodeLines) code-lines )"
-        txt.append(showLineItems(title: title, suffix: suffix, items: swiftSummary.massiveFile))
-
-        // MARK: Funcs too big.
-        title = "Massive func"
-        let maxFuncCodeLines = getParamInt(from: RuleID.bigFunc) ?? 9999
-        suffix = " ( >\(maxFuncCodeLines) code-lines )"
-        txt.append(showLineItems(title: title, suffix: suffix, items: swiftSummary.massiveFuncs))
-
-        // MARK: TODO's & FIXME's
-        txt.append(showLineItems(title: "ToDo/FixMe marker", items: swiftSummary.toDoFixMe))
-
-        // MARK: Compound Lines
-        txt.append(showLineItems(title: "Compound Line", items: swiftSummary.compoundLines))
-
-        // MARK: Globals
-        txt.append(showLineItems(title: "Global", items: swiftSummary.globals))
-
-        // MARK: Free Funcs
-        txt.append(showLineItems(title: "Free Function", items: swiftSummary.freeFuncs))
 
         // MARK: non-camelCased variables
         txt.append(showLineItems(title: "Non-CamelCased Var", items: swiftSummary.nonCamelVars))
-
-        // MARK: forced unwraps
-        txt.append(showLineItems(title: "Forced Unwrap", items: swiftSummary.forceUnwraps))
 
         // MARK: VBCompatability calls
         txt.append(showBadCalls(title: "VBCompatability", calls: swiftSummary.vbCompatCalls))

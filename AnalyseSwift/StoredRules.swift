@@ -20,12 +20,18 @@ import Foundation
 //  AnalyseXcodeproj.swift      719
 //  FormatSwiftSummary.swift    196x
 
-// List of Rule Identifiers
+// MARK:- enum RuleID List of Rule Identifiers
 public enum RuleID {
-    static let bigFunc = "BigFunc"
-    static let bigFile = "BigFile"
+    static let bigFunc      = "BigFunc"
+    static let bigFile      = "BigFile"
+    static let toDo         = "ToDo"
+    static let forceUnwrap  = "ForceUnwrap"
+    static let global       = "Global"
+    static let freeFunc     = "FreeFunc"
+    static let compoundLine = "CompoundLine"
 }
 
+// MARK:- StoredRule struct
 public struct StoredRule {
     static var storedRuleArray = [StoredRule]()     // Holds all the possible StoredRules
     static var dictStoredRules = [String: Int]()    // Points to element of storedRuleArray
@@ -43,7 +49,7 @@ public struct StoredRule {
     var ruleType    = ""
     var paramInt:   Int? { return Int(paramText)}
 
-    //MARK:- Initializers
+    //MARK: Initializers
     init(id: String, name: String, desc: String, enabled: Bool) {
         self.identifier = id
         self.name    = name
@@ -65,7 +71,7 @@ public struct StoredRule {
         self.ruleType   = ruleType
     }
 
-    //MARK:- static func loadRules() 52-103 = 51-lines
+    //MARK: static func loadRules() 52-103 = 51-lines
     //TODO: ToDo: Identify rule-item by header name.
     //--- rule stored in bundle, *enabled & *param also stored in userdefaults
     // (id, 0/1, paramText)static
@@ -122,7 +128,7 @@ public struct StoredRule {
         return (rules, dictRules)
     }//end func loadRules
 
-    //MARK:- Helper funcs
+    //MARK: Helper funcs
     private static func stripQuotes(from str: String) -> String {
         if str.hasPrefix("\"") && str.hasSuffix("\"") {
             let newStr = String(str.dropFirst().dropLast())

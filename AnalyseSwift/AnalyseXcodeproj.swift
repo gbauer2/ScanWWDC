@@ -700,46 +700,47 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
         if isTest || (name != "VBcompatablity.swift" && name != "MyFuncs.swift" && name != "StringExtension.swift") {
             let clCt = swiftSummary.codeLineCount
             totalCodeLine += clCt
+            var bigCt   = 0
+            var tdCt    = 0
+            var fuCt    = 0
+            var glbCt   = 0
+            var mscCt   = 0
+            //MARK: neww bigFunc
+            for (id, issue) in swiftSummary.dictIssues {    //.sort{ $0.sortOrder }
+                let count = issue.items.count
+                switch id {
+                case RuleID.bigFunc, RuleID.bigFile:
+                    bigCt           += count
+                    totalBig        += count
+                case RuleID.toDo:
+                    tdCt            += count
+                    totalToDoFixMe  += count
+                case RuleID.forceUnwrap:
+                    fuCt            += count
+                    totalForceUnwrap += count
+                case RuleID.global, RuleID.freeFunc:
+                    glbCt           += count
+                    totalGlobal     += count
+                default:
+                    mscCt           += count
+                    totalMisc       += count
+                }
+            }
+
             //FIXME: Thes section needs to be changed for table-based issues.
             let maxFileCodeLines = getParamInt(from: RuleID.bigFile) ?? 9999
             if clCt > maxFileCodeLines {
                 projIssues.append("\"\(name)\" has \(clCt) code-lines (>\(maxFileCodeLines)).")
             }
-            let tdCt = swiftSummary.toDoFixMe.count
-            totalToDoFixMe += tdCt
             let ccCt  = swiftSummary.nonCamelVars.count
             totalNonCamelCase += ccCt
-            let fuCt  = swiftSummary.forceUnwraps.count
-            totalForceUnwrap += fuCt
             let vbCt  = swiftSummary.vbCompatCalls.count
             totalVbCompatCall += vbCt
-            let glbCt = swiftSummary.globals.count + swiftSummary.freeFuncs.count
-            totalGlobal += glbCt
-            let mscCt = swiftSummary.compoundLines.count
-            totalMisc += mscCt
-            let bigCt = swiftSummary.massiveFile.count + swiftSummary.massiveFuncs.count
-            for afunc in swiftSummary.massiveFuncs {
-                let maxFuncCodeLines = getParamInt(from: RuleID.bigFunc) ?? 9999
-                projIssues.append("\"\(name)\" has a func \"\(afunc.name)\" with \(afunc.codeLineCt) code-lines (>\(maxFuncCodeLines)).")
-            }
-            totalBig += bigCt
-            //text += "\(swiftSummary.url.lastPathComponent)  -  nonCamel \(swiftSummary.nonCamelCases.count)\n"
             text += format2(swiftSummary.url.lastPathComponent,clCt,tdCt,ccCt,fuCt,vbCt,glbCt,mscCt,bigCt)
         } else {
             text += "(\(swiftSummary.url.lastPathComponent))\n"
         }
-
-        //neww bigFunc
-        for (id, issue) in swiftSummary.dictIssues {    //.sort{ $0.sortOrder }
-            let count = issue.items.count
-            switch id {
-            case RuleID.bigFunc:
-                    totalBig += count
-            default:
-                    totalMisc += count
-            }
-        }
-    }//next
+    }//next swiftSummary
     text += "\n\(format2("  -- Totals --",totalCodeLine,totalToDoFixMe,totalNonCamelCase,totalForceUnwrap,totalVbCompatCall,totalGlobal,totalMisc,totalBig))\n"
 
     //------------------------------------------------------------------
