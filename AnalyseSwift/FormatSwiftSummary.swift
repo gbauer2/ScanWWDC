@@ -188,8 +188,7 @@ struct SwiftSumAttStr {
         //MARK:neww table-based
         for (id, issue) in swiftSummary.dictIssues.sorted(by: { $0.value.sortOrder < $1.value.sortOrder }) {
             var suffix = ""
-            if let index = StoredRule.dictStoredRules[id] {
-                let rule = StoredRule.storedRuleArray[index]
+            if let rule = StoredRule.dictStoredRules[id] {
                 let title = rule.name
                 if id == RuleID.bigFile || id == RuleID.bigFunc {
                     let maxCodeLines = getParamInt(from: id) ?? 9999

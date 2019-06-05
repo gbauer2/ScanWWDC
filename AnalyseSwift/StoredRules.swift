@@ -33,8 +33,7 @@ public enum RuleID {
 
 // MARK:- StoredRule struct 35-140 = 105-lines
 public struct StoredRule {
-    static var storedRuleArray = [StoredRule]()     // Holds all the possible StoredRules
-    static var dictStoredRules = [String: Int]()    // Points to element of storedRuleArray
+    static var dictStoredRules = [String: StoredRule]()    // Points to element of storedRuleArray
     
     var identifier: String
     var name:       String
@@ -75,13 +74,12 @@ public struct StoredRule {
     //TODO: ToDo: Identify rule-item by header name.
     //--- rule stored in bundle, *enabled & *param also stored in userdefaults
     // (id, 0/1, paramText)static
-    static func loadRules() -> ([StoredRule], [String: Int]) {
-        var rules       = [StoredRule]()
-        var dictRules   = [String: Int]()
+    static func loadRules() -> [String: StoredRule] {
+        var dictRules = [String: StoredRule]()
         
         guard let rulesURL = Bundle.main.path(forResource: "Rules", ofType: "txt") else {
             print("⛔️ Error in StoredRules.swift #\(#line) Could not open file: Rules.txt" )
-            return (rules, dictRules)
+            return dictRules
         }
 
         // Read contents of Rules.txt
@@ -90,7 +88,7 @@ public struct StoredRule {
             ruleFileContents = try String(contentsOfFile: rulesURL, encoding: String.Encoding.utf8)
         } catch let error as NSError {
             print("Failed reading from URL: \(rulesURL), Error: " + error.localizedDescription)
-            return (rules, dictRules)
+            return dictRules
         }
         print(ruleFileContents)
         
@@ -118,14 +116,10 @@ public struct StoredRule {
                 let rule = StoredRule(id: id, name: name, desc: desc, enabled: enabled, paramLabel: paramLabel,
                                   paramText: paramText, paramType: paramType, paramMin: paramMin,
                                   paramMax: paramMax, sortOrder: sortOrder, ruleType: ruleType)
-                rules.append(rule)
+                dictRules[id] = rule
             }
         }
-        
-        for (i, rule) in rules.enumerated() {
-            dictRules[rule.identifier] = i
-        }
-        return (rules, dictRules)
+        return dictRules
     }//end func loadRules
 
     //MARK: Helper funcs

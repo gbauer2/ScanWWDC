@@ -731,7 +731,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             } else {
 
                 let id = RuleID.freeFunc                                            //@@
-                // MARK:  ➡️➡️ Record Issue "global"                                //@@
+                // MARK:  ➡️➡️ Record Issue "freeFunc"                              //@@
                 let lineItem = LineItem(name: blockOnDeck.name, lineNum: lineNum)   //@@
                 recordIssue(id: id, lineItem: lineItem)
             }
@@ -936,25 +936,21 @@ private func getExtraForForceUnwrap(codeLineClean: String, word: String, idx: In
 
 //TODO: Move "isEnabled", "getParamText", etc. inside a struct
 public func isEnabled(rule key: String)    -> Bool {
-    guard let index = StoredRule.dictStoredRules[key] else { return false }
-    if index < 0 || index >= StoredRule.storedRuleArray.count { return false }
-    return StoredRule.storedRuleArray[index].enabled
+    guard let rule = StoredRule.dictStoredRules[key] else { return false }
+    return rule.enabled
 }
 
 public func getParamText(from key: String) -> String {
-    guard let index = StoredRule.dictStoredRules[key] else { return "" }
-    if index < 0 || index >= StoredRule.storedRuleArray.count { return "" }
-    return StoredRule.storedRuleArray[index].paramText
+    guard let rule = StoredRule.dictStoredRules[key] else { return "" }
+    return rule.paramText
 }
 
 public func getParamInt(from key: String)  -> Int? {
-    guard let index = StoredRule.dictStoredRules[key] else { return nil }
-    if index < 0 || index >= StoredRule.storedRuleArray.count { return nil }
-    return StoredRule.storedRuleArray[index].paramInt
+    guard let rule = StoredRule.dictStoredRules[key] else { return nil }
+    return rule.paramInt
 }
 
 public func getSortOrder(from key: String) -> Int {
-    guard let index = StoredRule.dictStoredRules[key] else { return 0 }
-    if index < 0 || index >= StoredRule.storedRuleArray.count { return 0 }
-    return StoredRule.storedRuleArray[index].sortOrder
+    guard let rule = StoredRule.dictStoredRules[key] else { return 0 }
+    return rule.sortOrder
 }

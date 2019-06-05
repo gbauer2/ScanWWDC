@@ -51,11 +51,11 @@ public struct CodeRule {
         defaults.set(allowUnderscore,     forKey: keyRuleUnderScore)    //3
 
         print("Save Default Rules")
-        for issue in StoredRule.storedRuleArray {
-            let key = "Rule_" + issue.identifier
-            let value = makeStr(fromBool: issue.enabled) + "," + issue.paramText
-            print ("userDefault save  \(key):  \(value)")
-            defaults.set(value, forKey: key)
+        for (key, rule) in StoredRule.dictStoredRules {
+            let udKey = "Rule_" + key
+            let value = makeStr(fromBool: rule.enabled) + "," + rule.paramText
+            print ("userDefault save  \(udKey):  \(value)")
+            defaults.set(value, forKey: udKey)
         }
 
         //UserDefaults.standard.removeObject(forKey: "name")
@@ -80,18 +80,14 @@ public struct CodeRule {
             allowAllCaps       = defaults.bool(forKey: keyRuleAllCaps)      //2
             allowUnderscore    = defaults.bool(forKey: keyRuleUnderScore)   //3
 
-            for (key, index) in StoredRule.dictStoredRules {
+            for (key, _) in StoredRule.dictStoredRules {
                 let udKey = "Rule_" + key
                 if let str = defaults.string(forKey: udKey) {        //7
                     let (enabledText, param) = splitLine(str, atCharacter: ",")
-                    if index >= 0 && index < StoredRule.dictStoredRules.count {
                         let enabled = (enabledText == "true")
                         print("userDefault get  \(key): enabled=\(enabled),  paramText=\(param)")
-                        StoredRule.storedRuleArray[index].enabled   = enabled
-                        StoredRule.storedRuleArray[index].paramText = param
-                    } else {
-                        print("Error #\(#line) index out of bounds.")
-                    }
+                        StoredRule.dictStoredRules[key]!.enabled   = enabled
+                        StoredRule.dictStoredRules[key]!.paramText = param
                 } else {
                     print("Error #\(#line) No UserDefault for \(key)")
                 }
@@ -132,7 +128,11 @@ class MenuRulesVC: NSViewController {
         txtRuleMinSwiftVer.delegate   = self    // 201
         txtRuleOrganization.delegate  = self    // 301 as NSTextFieldDelegate
 
-        MenuRulesVC.localIssueArray = StoredRule.storedRuleArray
+        //MenuRulesVC.localIssueArray = StoredRule.dictStoredRules
+        MenuRulesVC.localIssueArray = []
+        for (_, rule) in StoredRule.dictStoredRules.sorted(by: { $0.value.sortOrder < $1.value.sortOrder }) {
+            MenuRulesVC.localIssueArray.append(rule)
+        }
         //btnOk.isEnabled = false
         tableView.delegate   = self
         tableView.dataSource = self
@@ -142,7 +142,7 @@ class MenuRulesVC: NSViewController {
     }//end func
 
     override func viewWillAppear() {
-        print("MenuRulesVC:", #line, MenuRulesVC.localIssueArray[0])
+        //print("MenuRulesVC:", #line, MenuRulesVC.dictStoredRules[0])
     }
 
     //MARK:- @IBOutlets
@@ -203,7 +203,11 @@ class MenuRulesVC: NSViewController {
 
         CodeRule.allowedOrganizations = organizations                       //7
 
-        StoredRule.storedRuleArray = MenuRulesVC.localIssueArray
+        StoredRule.dictStoredRules = [:]
+        for rule in MenuRulesVC.localIssueArray {
+            let id = rule.identifier
+            StoredRule.dictStoredRules[id] = rule
+        }
 
         print("✅✅ \(txtRuleMinSwiftVer.stringValue)")
 

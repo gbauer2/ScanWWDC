@@ -54,9 +54,9 @@
 // Separate out FileIO and Base1Sting funcs in VBwords
 
 //MenuRulesVC:
-// Refresh analysis when user changes rules
-// Change MenuRulesVC to use a TableView
-// Bug: textfield not triggering "Change" when Save button clicked
+// Refresh analysis when user changes rules.
+// Change CamelCase & VBCompat to use table-driven rules
+// Disable Save button until a change is made.
 // More Issues to Flag:
 //   singletons (dependency injection?)
 //   Public func without markup
@@ -228,7 +228,7 @@ class ViewController: NSViewController, NSWindowDelegate {
         popupBaseDir.addItems(withTitles: ["Desktop","Downloads","Documents","All"])
         popupBaseDir.selectItem(at: 0)
 
-        (StoredRule.storedRuleArray, StoredRule.dictStoredRules ) = StoredRule.loadRules()
+        StoredRule.dictStoredRules = StoredRule.loadRules()
         CodeRule.getUserDefaults()
 
     }
