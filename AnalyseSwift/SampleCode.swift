@@ -21,7 +21,7 @@ import Cocoa    /* ????? partial-line Block Comment does not work.*/
 
 enum Enum1 { case Good, Bad, Ugly }
 enum enum2
-{    case GoodGuy
+{   case GoodGuy
     case BadBoy
 }
 enum EnumStatic {
@@ -162,12 +162,12 @@ private func testNSString() {
                                range: NSRange(location: 27, length: 7))
 
     //: Appending the String with !!! and an Attributed String
-    let myAddedStringAttributes:[NSAttributedString.Key:Any]? = [
+    let myAddedStringAttributesLong:[NSAttributedString.Key:Any]? = [
         NSAttributedString.Key.font: NSFont(name: "AvenirNext-Heavy", size: 48.0)!,
         NSAttributedString.Key.foregroundColor: NSColor.red,
         NSAttributedString.Key.shadow: shadow
     ]
-    let myAddedString = NSAttributedString(string: "!!!", attributes: myAddedStringAttributes)
+    let myAddedString = NSAttributedString(string: "!!!", attributes: myAddedStringAttributesLong)
     myMuAttString.append(myAddedString)
 }//end func testNSString
 

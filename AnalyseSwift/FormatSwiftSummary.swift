@@ -198,15 +198,12 @@ struct SwiftSumAttStr {
             }
         }//next issue
 
-        let ct = swiftSummary.nonCamelVars.count + swiftSummary.vbCompatCalls.count
+        let ct = swiftSummary.vbCompatCalls.count
         if ct > 0 {
             tx = showDivider(title: "\(ct) more issues", font: fontMonoDigitMedium)
             txt.append(tx)
         }
         //FIXME: This section needs to be changed for table-based issues.
-
-        // MARK: non-camelCased variables
-        txt.append(showLineItems(title: "Non-CamelCased Var", items: swiftSummary.nonCamelVars))
 
         // MARK: VBCompatability calls
         txt.append(showBadCalls(title: "VBCompatability", calls: swiftSummary.vbCompatCalls))

@@ -355,7 +355,7 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         //XCTAssertEqual(swSumry.funcs.count,    5, "")
         XCTAssertEqual(swSumry.codeLineCount, 71, "")
         let vnCt = swSumry.dictIssues[RuleID.varNaming]?.items.count ?? 0
-        XCTAssertEqual(vnCt, 16, "")
+        XCTAssertEqual(vnCt, 14, "")    //Varies with NameLenMaxV
         let fuCt = swSumry.dictIssues[RuleID.forceUnwrap]?.items.count ?? 0
         XCTAssertEqual(fuCt,  15, "")
         XCTAssertEqual(swSumry.vbCompatCalls.count,  3, "")

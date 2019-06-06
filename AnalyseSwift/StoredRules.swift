@@ -37,7 +37,7 @@ public enum RuleID {
     static let compoundLine  = "CompoundLine"
 }
 
-// MARK:- StoredRule struct 35-140 = 105-lines
+// MARK:- StoredRule struct 41-140 = 99-lines
 public struct StoredRule {
     static var dictStoredRules = [String: StoredRule]()    // Points to element of storedRuleArray
     
@@ -76,7 +76,7 @@ public struct StoredRule {
         self.ruleType   = ruleType
     }
 
-    //MARK: static func loadRules() 78-129 = 51-lines
+    //MARK: static func loadRules() 83-129 = 46-lines
     //TODO: ToDo: Identify rule-item by header name.
     //--- rule stored in bundle, *enabled & *param also stored in userdefaults
     // (id, 0/1, paramText)static

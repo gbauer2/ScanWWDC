@@ -7,7 +7,7 @@
 
 import Foundation
 
-//MARK:- Word Lookup for keyWords & VBWords 12-92 = 80-lines
+//MARK:- Word Lookup for keyWords & VBWords 11-92 = 81-lines
 public struct WordLookup {
 
     //MARK:- List of Swift KeyWords
@@ -44,7 +44,7 @@ public struct WordLookup {
 
     //MARK: List of VB Words
     // Last group ("associativity",..."willSet") are keywords only in context
-    //TODO: Sepatate out groups
+    //TODO: Separate out groups
     static var dictVBwords = [String: Int]()
 
     private static let varVBs  = ["vbCr", "vbLf", "VBcompPrintToLog", "knownProblems"]

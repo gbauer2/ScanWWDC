@@ -21,7 +21,7 @@ public enum ValType {
 //      minumumSwiftVersion  = 6     //6
 //      allowedOrganizations = 7     //7
 
-// MARK: - CodeRule struct 29-115 = 86-lines
+// MARK: - CodeRule struct 25-84 = 59-lines
 public struct CodeRule {
     // --- Rules ---                                    //Rules
     static var flagProductNameDif   = true                  //1
@@ -83,7 +83,7 @@ public struct CodeRule {
 
 }//end struct CodeRules
 
-// MARK: - MenuRulesVC class - UI for changing CodeRules 118-351 = 333-lines
+// MARK: - MenuRulesVC class - UI for changing CodeRules 87-285 = 198-lines
 class MenuRulesVC: NSViewController {
 
     //MARK:- Instance Variables

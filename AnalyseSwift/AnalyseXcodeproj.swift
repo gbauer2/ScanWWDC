@@ -57,9 +57,9 @@ struct PBXNativeTarget {
 
 //MARK:- funcs
 
-//MARK: analyseXcodeproj 38-lines
+//MARK: analyseXcodeproj    62-100 = 38-lines
 //---- analyseXcodeproj - Analyse a .xcodeproj file, returning an errorText and an XcodeProj instance
-public func analyseXcodeproj(url: URL, goDeep: Bool, deBug: Bool = true) -> (String, XcodeProj) {   //62-100 = 38-lines
+public func analyseXcodeproj(url: URL, goDeep: Bool, deBug: Bool = true) -> (String, XcodeProj) {
     xcodeProj = XcodeProj()
     xcodeProj.url       = url
     xcodeProj.filename  = url.lastPathComponent
@@ -99,9 +99,9 @@ public func analyseXcodeproj(url: URL, goDeep: Bool, deBug: Bool = true) -> (Str
 
 }//end func analyseXcodeproj
 
-//MARK: pbxToXcodeProj 223-lines
+//MARK: pbxToXcodeProj        104-327 = 223-lines
 //TODO: pbxToXcodeProj should return xcodeProj, errorMsg, pbxObjects, rootObjectKey
-func pbxToXcodeProj(_ xcodeprojRaw: String, deBug: Bool = true) {        //104-327 = 223-lines
+func pbxToXcodeProj(_ xcodeprojRaw: String, deBug: Bool = true) {
     if deBug {
         print("Start pbxToXcodeProj")
         print("🏄‍♂️")
@@ -681,14 +681,14 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
         }
     }
     var totalCodeLine     = 0
-    var totalNonCamelCase = 0
+    var totalVarNaming    = 0
     var totalForceUnwrap  = 0
     var totalVbCompatCall = 0
     var totalBig          = 0
     var totalToDoFixMe    = 0
-    //var totalCompound     = 0
     var totalGlobal       = 0
     var totalMisc         = 0
+    //var totalCompound     = 0
 
     text += "\n------------ \(showCount(count: xcodeProj.swiftURLs.count, name: "Swift file")) in \(xcodeProj.filename) ------------\n"   // "Swift files"
     text += "       FileName            CodeLines  ToDo  Naming F-Unwrap  VB  Global  Misc  Big\n"
@@ -700,11 +700,12 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
         if isTest || (name != "VBcompatablity.swift" && name != "MyFuncs.swift" && name != "StringExtension.swift") {
             let clCt = swiftSummary.codeLineCount
             totalCodeLine += clCt
-            var bigCt   = 0
-            var tdCt    = 0
-            var fuCt    = 0
-            var glbCt   = 0
-            var mscCt   = 0
+            var bigCt    = 0
+            var todoCt   = 0
+            var unwrapCt = 0
+            var vnameCt  = 0
+            var globlCt  = 0
+            var miscCt   = 0
             //MARK: neww bigFunc
             for (id, issue) in swiftSummary.dictIssues {    //.sort{ $0.sortOrder }
                 let count = issue.items.count
@@ -713,16 +714,19 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
                     bigCt           += count
                     totalBig        += count
                 case RuleID.toDo:
-                    tdCt            += count
+                    todoCt          += count
                     totalToDoFixMe  += count
                 case RuleID.forceUnwrap:
-                    fuCt            += count
+                    unwrapCt        += count
                     totalForceUnwrap += count
+                case RuleID.varNaming:
+                    vnameCt         += count
+                    totalVarNaming  += count
                 case RuleID.global, RuleID.freeFunc:
-                    glbCt           += count
+                    globlCt         += count
                     totalGlobal     += count
                 default:
-                    mscCt           += count
+                    miscCt          += count
                     totalMisc       += count
                 }
             }
@@ -732,27 +736,25 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
             if clCt > maxFileCodeLines {
                 projIssues.append("\"\(name)\" has \(clCt) code-lines (>\(maxFileCodeLines)).")
             }
-            let ccCt  = swiftSummary.nonCamelVars.count
-            totalNonCamelCase += ccCt
             let vbCt  = swiftSummary.vbCompatCalls.count
             totalVbCompatCall += vbCt
-            text += format2(swiftSummary.url.lastPathComponent,clCt,tdCt,ccCt,fuCt,vbCt,glbCt,mscCt,bigCt)
+            text += format2(swiftSummary.url.lastPathComponent,clCt,todoCt,vnameCt,unwrapCt,vbCt,globlCt,miscCt,bigCt)
         } else {
             text += "(\(swiftSummary.url.lastPathComponent))\n"
         }
     }//next swiftSummary
-    text += "\n\(format2("  -- Totals --",totalCodeLine,totalToDoFixMe,totalNonCamelCase,totalForceUnwrap,totalVbCompatCall,totalGlobal,totalMisc,totalBig))\n"
+    text += "\n\(format2("  -- Totals --",totalCodeLine,totalToDoFixMe,totalVarNaming,totalForceUnwrap,totalVbCompatCall,totalGlobal,totalMisc,totalBig))\n"
 
     //------------------------------------------------------------------
     //------------- Issues --------------
-    let totalIssueCount = totalToDoFixMe + totalNonCamelCase + totalForceUnwrap + totalVbCompatCall + totalGlobal + totalMisc + totalBig + projIssues.count
+    let totalIssueCount = totalToDoFixMe + totalVarNaming + totalForceUnwrap + totalVbCompatCall + totalGlobal + totalMisc + totalBig + projIssues.count
 
     if totalIssueCount == 0 {
         text += "\n-------- No Issues --------\n"
     } else {
         text += "\n--------- \(totalIssueCount) Possible \("Issue".pluralize(totalIssueCount)) in \(xcodeProj.filename) ---------\n"
         if totalToDoFixMe    > 0 {text += "\(showCount(count: totalToDoFixMe,    name: "TODO: or FIXME: comment")).\n"}
-        if totalNonCamelCase > 0 {text += "\(showCount(count: totalNonCamelCase, name: "NonCamelCase Variable")).\n"}
+        if totalVarNaming    > 0 {text += "\(showCount(count: totalVarNaming, name: "NonCamelCase Variable")).\n"}
         if totalForceUnwrap  > 0 {text += "\(showCount(count: totalForceUnwrap,  name: "ForceUnwrap")).\n"}
         if totalVbCompatCall > 0 {text += "\(showCount(count: totalVbCompatCall, name: "VBcompatability Call")).\n"}
         if totalGlobal       > 0 {text += "\(showCount(count: totalGlobal,       name: "Global & Free Function")).\n"}

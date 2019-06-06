@@ -38,7 +38,7 @@ public struct CodeLineDetail {
     ///   - lineNum: Swift source line number
     ///   - prevCodeLineDetail: provides: inMultiLine: none, tripleQuote, blockComment, or blockMarkup
     /// - Returns: CodeLineDetail
-    init(fullLine: String, inMultiLine: InMultiLine, lineNum: Int) { //38-219 = 181-lines
+    init(fullLine: String, inMultiLine: InMultiLine, lineNum: Int) { //41-222 = 181-lines
         //TODO: Raw-string delimiters with more than 1 asterisk **"..."**
         //TODO: Raw-triple-quote    *"""
         //TODO: Mark-up detection   ///     /**.../*

@@ -65,8 +65,6 @@ public struct SwiftSummary {
     //FormatSwiftSummary.swift ~200;        AnalyseXcodeproj.swift ~700
     var dictIssues      = [String: Issue]()     // StoredRules
 
-    //TODO: nonCamelVars: handle multiple Rules for 1 issue
-    var nonCamelVars    = [LineItem]()      // 344
     //TODO: vbCompatCalls: handle dictionary-type issues
     var vbCompatCalls   = [String: LineItem]()  // "VB.Left     3    times"
 
@@ -340,8 +338,7 @@ internal func needsContinuation(codeLineDetail: CodeLineDetail, nextLine: String
     return false
 }
 
-// MARK: - the main event 308-794 = 486-lines
-
+// MARK: - the main event 342-912 = 570-lines
 public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, deBug: Bool) -> (SwiftSummary) {
     let lines = contentFromFile.components(separatedBy: "\n")
     if gTrace != .none {
@@ -390,10 +387,10 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
 
         if name == "_"    { return ""  }
         if let minLen = StoredRule.dictStoredRules[RuleID.NameLenMinV]?.paramInt {
-            if name.count < minLen { return "too short" }
+            if name.count < minLen { return "too short (\(name.count) < \(minLen))" }
         }
         if let maxLen = StoredRule.dictStoredRules[RuleID.NameLenMaxV]?.paramInt {
-            if name.count > maxLen { return "too long" }
+            if name.count > maxLen { return "too long (\(name.count) > \(maxLen))" }
         }
 
         //Allow AllCaps
@@ -444,7 +441,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         }
     }
 
-    // MARK: Main Loop 353-757 = 404-lines
+    // MARK: Main Loop 445-871 = 426-lines
     while iLine < lines.count {
         //        // Multitasking Check
         //        if selecFileInfo.url != ViewController.latestUrl {
@@ -554,7 +551,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             continue
         }
 
-        // MARK: Code!  444-757 = 313-lines
+        // MARK: Code!  556-871 = 315-lines
 
         // Call CodeLineDetail.init
         let codeLineDetail = CodeLineDetail(fullLine: line, inMultiLine: inMultiLine, lineNum: lineNum)
@@ -637,7 +634,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         let words = wordsWithEmpty.filter { !$0.isEmpty }                   // Use filter to eliminate empty strings.
         let firstWord = words.first ?? ""
 
-        // MARK: Check each word 535-575 = 40-lines
+        // MARK: Check each word 638-682 = 44-lines
         for word in words {
 
             // Find Force Unwraps
