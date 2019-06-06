@@ -251,9 +251,9 @@ struct SwiftSumAttStr {
             NSTextTab(textAlignment: .left,  location: 52),     // "@ line #"
             NSTextTab(textAlignment: .right, location: 150),    // rt edge of LineNumber
             NSTextTab(textAlignment: .left,  location: 170),    // name
-            NSTextTab(textAlignment: .left,  location: 250),    // start of xtra column
-            NSTextTab(textAlignment: .left,  location: 290),    // start of xtra column
-            NSTextTab(textAlignment: .left,  location: 330)     // start of xtra column
+            NSTextTab(textAlignment: .left,  location: 350),    // start of xtra column
+            NSTextTab(textAlignment: .left,  location: 390),    // start of xtra column
+            NSTextTab(textAlignment: .left,  location: 440)     // start of xtra column
         ]
     }
 

@@ -55,12 +55,13 @@
 
 //MenuRulesVC:
 // Refresh analysis when user changes rules.
-// Change CamelCase & VBCompat to use table-driven rules
+// Change VBCompat to use table-driven rules.
 // Disable Save button until a change is made.
+// Differentiate rules & sub-rules
+
 // More Issues to Flag:
 //   singletons (dependency injection?)
 //   Public func without markup
-//   Var name too short or too long
 //   CodeLine too long
 //   Missing Unit-Test
 //   Type-Names must Start with Uppercase
@@ -71,8 +72,36 @@
 //  Globals
 //  Compound Lines
 
-//  Done:
-//  Fixed BUG: enum cases with associated values now tested for camelCase
+/*
+Public Structs
+ AnalyseSwift
+   3    lines @     34     Issue
+  29    lines @     41     SwiftSummary
+   5    lines @    102     BlockAggregate
+   6    lines @    112     BlockInfo
+  16    lines @    122     LineItem
+
+ AnalyseXcodeproj
+  22 lines @ 18     XcodeProj
+  10 lines @ 44     PBXNativeTarget
+
+ CodeLineDetail
+ 140 lines @ 17     CodeLineDetail
+
+ MenuRulesVC
+  37 lines @ 25     CodeRule                        for editing rules (includes userDefaults)
+
+ PBX
+ 194 lines @ 17     PBX (CustomDebugStringConvertible)  for Xcodeproj
+
+ StoredRules
+  75 lines @ 41     StoredRule                      for AnalyseSwift
+
+ WordLookup
+  31 lines @ 11     WordLookup
+
+*/
+
 
 import Cocoa    /* partial-line Block Comment does work.*/
 /* single-line Block Comment does work. */

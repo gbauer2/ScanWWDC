@@ -28,16 +28,10 @@ public struct CodeRule {
     static var minumumSwiftVersion  = 4.0                   //3
     static var allowedOrganizations = "GeorgeBauer,GB"      //4
 
-    static var allowAllCaps         = true                  //2
-    static var allowUnderscore      = true                  //3
-
     // --- keys for UserDefaults ---                            //keys
     static var keyProductName       = "RuleProductName"             //1
     static var keyMinSwiftVersion   = "RuleMinSwiftVersion"         //3
     static var keyOrganizations     = "RuleOrganizations"           //4
-
-    static var keyRuleAllCaps       = "RuleAllCaps"                 //2
-    static var keyRuleUnderScore    = "RuleUnderScore"              //3
 
     //---- CodeRule.saveUserDefaults - Save the Rules in UserDefaults
     static func saveUserDefaults() {
@@ -46,9 +40,6 @@ public struct CodeRule {
         defaults.set(flagProductNameDif,  forKey: keyProductName)       //1
         defaults.set(minumumSwiftVersion, forKey: keyMinSwiftVersion)   //6
         defaults.set(allowedOrganizations,forKey: keyOrganizations)     //7
-
-        defaults.set(allowAllCaps,        forKey: keyRuleAllCaps)       //2
-        defaults.set(allowUnderscore,     forKey: keyRuleUnderScore)    //3
 
         print("Save Default Rules")
         for (key, rule) in StoredRule.dictStoredRules {
@@ -76,10 +67,6 @@ public struct CodeRule {
                 allowedOrganizations = str
             }
 
-
-            allowAllCaps       = defaults.bool(forKey: keyRuleAllCaps)      //2
-            allowUnderscore    = defaults.bool(forKey: keyRuleUnderScore)   //3
-
             for (key, _) in StoredRule.dictStoredRules {
                 let udKey = "Rule_" + key
                 if let str = defaults.string(forKey: udKey) {        //7
@@ -105,7 +92,7 @@ class MenuRulesVC: NSViewController {
     var maxFuncCode = 0
     var minSwiftVer = 0.0
     var organizations = ""
-    static var localIssueArray = [StoredRule]() // Allow user close window without committing changes
+    static var localRuleArray = [StoredRule]() // Allow user close window without committing changes
 
     //MARK:- Lifecycle funcs
 
@@ -118,10 +105,6 @@ class MenuRulesVC: NSViewController {
         organizations = CodeRule.allowedOrganizations.trim
         txtRuleOrganization.stringValue = organizations                         //7
 
-
-        chkRuleAllCaps.state      = CodeRule.allowAllCaps       ? .on : .off    //2
-        chkRuleUnderscore.state   = CodeRule.allowUnderscore    ? .on : .off    //3
-
         // Fill in Current TextField Values
 
         // Set TextField delegates
@@ -129,9 +112,9 @@ class MenuRulesVC: NSViewController {
         txtRuleOrganization.delegate  = self    // 301 as NSTextFieldDelegate
 
         //MenuRulesVC.localIssueArray = StoredRule.dictStoredRules
-        MenuRulesVC.localIssueArray = []
+        MenuRulesVC.localRuleArray = []
         for (_, rule) in StoredRule.dictStoredRules.sorted(by: { $0.value.sortOrder < $1.value.sortOrder }) {
-            MenuRulesVC.localIssueArray.append(rule)
+            MenuRulesVC.localRuleArray.append(rule)
         }
         //btnOk.isEnabled = false
         tableView.delegate   = self
@@ -196,15 +179,13 @@ class MenuRulesVC: NSViewController {
         }
         //                                                          //Save Changes
         CodeRule.flagProductNameDif = (chkRuleAppVsProduct.state == .on)    //1
-        CodeRule.allowAllCaps       = (chkRuleAllCaps.state      == .on)    //2
-        CodeRule.allowUnderscore    = (chkRuleUnderscore.state   == .on)    //3
 
         CodeRule.minumumSwiftVersion = minSwiftVer                          //6
 
         CodeRule.allowedOrganizations = organizations                       //7
 
         StoredRule.dictStoredRules = [:]
-        for rule in MenuRulesVC.localIssueArray {
+        for rule in MenuRulesVC.localRuleArray {
             let id = rule.identifier
             StoredRule.dictStoredRules[id] = rule
         }
@@ -223,18 +204,6 @@ class MenuRulesVC: NSViewController {
         lblError.stringValue = ""
         let isChange = CodeRule.flagProductNameDif != (chkRuleAppVsProduct.state == .on)
         setOkButton(isChange: isChange, bitVal: 0x1)
-    }
-
-    @IBAction func chkRuleAllCapsClick(_ sender: Any) {             //2
-        lblError.stringValue = ""
-        let isChange = CodeRule.allowAllCaps != (chkRuleAllCaps.state == .on)
-        setOkButton(isChange: isChange, bitVal: 0x2)
-    }
-
-    @IBAction func chkRuleUnderscoreClick(_ sender: Any) {          //3
-        lblError.stringValue = ""
-        let isChange = CodeRule.allowUnderscore != (chkRuleUnderscore.state == .on)
-        setOkButton(isChange: isChange, bitVal: 0x4)
     }
 
     //MARK: textField IBActions
@@ -365,7 +334,7 @@ let sample = [0,1,2]
 extension MenuRulesVC: NSTableViewDataSource {
 
     func numberOfRows(in tableView: NSTableView) -> Int {
-        return MenuRulesVC.localIssueArray.count
+        return MenuRulesVC.localRuleArray.count
     }//end func
 
 }//end extension
@@ -377,20 +346,20 @@ extension MenuRulesVC: NSTableViewDelegate {
     func tableView(_ tableView: NSTableView,
                    viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
 
-        let issue = MenuRulesVC.localIssueArray[row]
-        let desc = issue.desc
+        let rule = MenuRulesVC.localRuleArray[row]
+        let desc = rule.desc
 
-        if let cell = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "RuleCell"), owner: nil) as? viewIssue {
+        if let cell = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "RuleCell"), owner: nil) as? viewRule {
             cell.row = row
             cell.lblRuleName.stringValue = desc
-            cell.chkEnabled.state = issue.enabled ? .on : .off
+            cell.chkEnabled.state = rule.enabled ? .on : .off
             //cell.textField?.stringValue = "Label#1: "
-            cell.lblParam.stringValue = issue.paramLabel
-            if issue.paramLabel.isEmpty {
+            cell.lblParam.stringValue = rule.paramLabel
+            if rule.paramLabel.isEmpty {
                 cell.txtParam.isHidden = true
             } else {
                 cell.txtParam.isHidden = false
-                cell.txtParam.stringValue = issue.paramText
+                cell.txtParam.stringValue = rule.paramText
             }
             return cell
         }
@@ -407,8 +376,8 @@ extension MenuRulesVC: NSTableViewDelegate {
 
 }//end extension
 
-    //MARK:- class viewIssue: NSTableCellView
-    class viewIssue: NSTableCellView {
+    //MARK:- class viewRule: NSTableCellView
+    class viewRule: NSTableCellView {
         var row = -1
         @IBOutlet weak var chkEnabled: NSButton!
         @IBOutlet weak var lblParam: NSTextField!
@@ -418,13 +387,13 @@ extension MenuRulesVC: NSTableViewDelegate {
 
         @IBAction func chkEnabledClick(_ sender: NSButton) {
             //print("chkEnabled = \(chkEnabled.state)")
-            MenuRulesVC.localIssueArray[row].enabled = (chkEnabled.state == .on)
+            MenuRulesVC.localRuleArray[row].enabled = (chkEnabled.state == .on)
         }
 
         // Triggered by "Enter", or Loss-of-focus
         @IBAction func paramTextChange(_ sender: Any) {
             print("paramText = \(txtParam.stringValue)")
-            MenuRulesVC.localIssueArray[row].paramText = txtParam.stringValue
+            MenuRulesVC.localRuleArray[row].paramText = txtParam.stringValue
 
         }
     }//end class

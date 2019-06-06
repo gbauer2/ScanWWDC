@@ -306,7 +306,7 @@
                                                     </textFieldCell>
                                                     <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                                     <prototypeCellViews>
-                                                        <tableCellView identifier="RuleCell" id="KLN-hd-ist" customClass="viewIssue" customModule="AnalyseSwiftCode" customModuleProvider="target">
+                                                        <tableCellView identifier="RuleCell" id="KLN-hd-ist" customClass="viewRule" customModule="AnalyseSwiftCode" customModuleProvider="target">
                                                             <rect key="frame" x="1" y="1" width="315" height="34"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                             <subviews>
@@ -469,45 +469,6 @@
                                                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                                     </textFieldCell>
                                                 </textField>
-                                                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="CyC-J4-qdZ">
-                                                    <rect key="frame" x="113" y="130" width="77" height="17"/>
-                                                    <textFieldCell key="cell" lineBreakMode="clipping" title="Swift Rules" id="8xk-vN-9MT">
-                                                        <font key="font" metaFont="systemBold"/>
-                                                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
-                                                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                                    </textFieldCell>
-                                                </textField>
-                                                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ioh-hF-Lwe">
-                                                    <rect key="frame" x="18" y="55" width="137" height="18"/>
-                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                                    <buttonCell key="cell" type="check" title="Allow UnderScores" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="UPd-WJ-yen">
-                                                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                                                        <font key="font" metaFont="system"/>
-                                                    </buttonCell>
-                                                    <connections>
-                                                        <action selector="chkRuleUnderscoreClick:" target="RT9-oM-Bp7" id="ckq-ly-TBj"/>
-                                                    </connections>
-                                                </button>
-                                                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="jFO-Zc-K9l">
-                                                    <rect key="frame" x="18" y="75" width="111" height="18"/>
-                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                                    <buttonCell key="cell" type="check" title="Allow All-Caps" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="djA-cc-ecG">
-                                                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                                                        <font key="font" metaFont="system"/>
-                                                    </buttonCell>
-                                                    <connections>
-                                                        <action selector="chkRuleAllCapsClick:" target="RT9-oM-Bp7" id="cQM-ct-Iq2"/>
-                                                    </connections>
-                                                </button>
-                                                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="nJa-9P-aJ8">
-                                                    <rect key="frame" x="37" y="99" width="76" height="17"/>
-                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                                    <textFieldCell key="cell" lineBreakMode="clipping" title="CamelCode" id="UGP-XO-1WO">
-                                                        <font key="font" metaFont="systemMedium" size="13"/>
-                                                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
-                                                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                                    </textFieldCell>
-                                                </textField>
                                             </subviews>
                                             <constraints>
                                                 <constraint firstItem="kfI-2i-pCp" firstAttribute="top" secondItem="mD2-b1-0rI" secondAttribute="bottom" constant="14" id="1Wk-O1-Zh4"/>
@@ -517,7 +478,6 @@
                                                 <constraint firstItem="Ifb-yg-GUL" firstAttribute="leading" secondItem="ulr-6f-5JG" secondAttribute="leading" constant="14" id="G53-Yh-c22"/>
                                                 <constraint firstItem="NJV-W2-Dna" firstAttribute="top" secondItem="02l-mD-uLD" secondAttribute="bottom" constant="10" id="GEl-VH-EcM"/>
                                                 <constraint firstItem="02l-mD-uLD" firstAttribute="top" secondItem="ulr-6f-5JG" secondAttribute="top" constant="4" id="GHL-bm-Zgi"/>
-                                                <constraint firstItem="CyC-J4-qdZ" firstAttribute="top" secondItem="Pha-KU-wTK" secondAttribute="bottom" constant="20" id="HSX-Ht-SqO"/>
                                                 <constraint firstItem="kfI-2i-pCp" firstAttribute="leading" secondItem="ulr-6f-5JG" secondAttribute="leading" constant="14" id="N2z-2C-v0w"/>
                                                 <constraint firstAttribute="height" constant="300" id="Ond-3O-AYr"/>
                                                 <constraint firstItem="Pha-KU-wTK" firstAttribute="top" secondItem="Ifb-yg-GUL" secondAttribute="bottom" constant="2" id="S4a-eR-u1a"/>
@@ -526,7 +486,6 @@
                                                 <constraint firstAttribute="trailing" secondItem="kfI-2i-pCp" secondAttribute="trailing" constant="14" id="k3G-UU-YCu"/>
                                                 <constraint firstItem="Pha-KU-wTK" firstAttribute="leading" secondItem="ulr-6f-5JG" secondAttribute="leading" constant="14" id="kyY-s4-6lF"/>
                                                 <constraint firstItem="02l-mD-uLD" firstAttribute="centerX" secondItem="ulr-6f-5JG" secondAttribute="centerX" id="uuh-c0-rwJ"/>
-                                                <constraint firstItem="CyC-J4-qdZ" firstAttribute="centerX" secondItem="ulr-6f-5JG" secondAttribute="centerX" id="wne-pF-Rzd"/>
                                             </constraints>
                                         </customView>
                                     </subviews>
@@ -543,7 +502,7 @@
                                     <rect key="frame" x="1" y="284" width="303" height="15"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
-                                <scroller key="verticalScroller" verticalHuggingPriority="750" doubleValue="1" horizontal="NO" id="LdP-dS-yuv">
+                                <scroller key="verticalScroller" verticalHuggingPriority="750" horizontal="NO" id="LdP-dS-yuv">
                                     <rect key="frame" x="304" y="1" width="15" height="283"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
@@ -565,9 +524,7 @@
                     <connections>
                         <outlet property="btnOk" destination="vzP-kx-aso" id="fIT-O4-YXk"/>
                         <outlet property="chkDefault" destination="ogD-rj-DgL" id="zAo-Yc-FcL"/>
-                        <outlet property="chkRuleAllCaps" destination="jFO-Zc-K9l" id="q7D-cv-ih1"/>
                         <outlet property="chkRuleAppVsProduct" destination="kfI-2i-pCp" id="ASI-oi-YJ1"/>
-                        <outlet property="chkRuleUnderscore" destination="ioh-hF-Lwe" id="lXJ-Uv-Z1F"/>
                         <outlet property="lblError" destination="031-nL-Hgl" id="pvR-b3-H6e"/>
                         <outlet property="menuView" destination="ulr-6f-5JG" id="7UW-vh-hyL"/>
                         <outlet property="tableView" destination="TGo-3e-2a8" id="Eeb-QI-gW7"/>

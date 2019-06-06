@@ -354,7 +354,8 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         XCTAssertEqual(swSumry.fileName, "sampleCodeLong", "")
         //XCTAssertEqual(swSumry.funcs.count,    5, "")
         XCTAssertEqual(swSumry.codeLineCount, 71, "")
-        XCTAssertEqual(swSumry.nonCamelVars.count, 14, "")
+        let vnCt = swSumry.dictIssues[RuleID.varNaming]?.items.count ?? 0
+        XCTAssertEqual(vnCt, 16, "")
         let fuCt = swSumry.dictIssues[RuleID.forceUnwrap]?.items.count ?? 0
         XCTAssertEqual(fuCt,  15, "")
         XCTAssertEqual(swSumry.vbCompatCalls.count,  3, "")
@@ -423,7 +424,9 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         XCTAssertEqual(swSumry.totalLineCount,      total, "totalLineCount != \(total)")
 
         // nonCamelCases
-        XCTAssertEqual(swSumry.nonCamelVars.count,  9, "")
+        //XCTAssertEqual(swSumry.nonCamelVars.count,  9, "")
+        let vnCt = swSumry.dictIssues[RuleID.varNaming]?.items.count ?? 0
+        XCTAssertEqual(vnCt, 9, "")
 
         // forceUnwraps.count
         let forceUnwrapCount = swSumry.getIssueCount(identifier: RuleID.forceUnwrap)

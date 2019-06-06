@@ -260,38 +260,6 @@ internal func getEnumCaseList(_ line: String) -> [String] {
     return list
 }
 
-//---- isCamelCase
-// Uses CodeRule
-internal func isCamelCase(_ word: String) -> Bool {
-
-    //TODO: Make minimum name length an IssuePreference
-    if word == "_"    { return true  }
-    if word.count < 2 { return false }
-
-    //Allow AllCaps
-    if CodeRule.allowAllCaps {
-        var isAllCaps = true
-        for char in word {
-            if !char.isUppercase {
-                if !CodeRule.allowUnderscore || char != "_" {
-                    isAllCaps = false
-                    break
-                }
-            }
-        }//next
-        if isAllCaps { return true }
-    }
-
-    // AllCaps not allowed or Not AllCaps
-    if  !CodeRule.allowUnderscore && word.contains("_") { return false }
-
-    // AllCaps not allowed and either no underscores or they are allowed
-    let firstLetter = word[0]
-    if !firstLetter.isLowercase && firstLetter != "_"   { return false }
-
-    return true
-}//end func
-
 internal func getParamNames(line: String) -> [String] {
     let open = line.firstIntIndexOf("(")
     if open < 0 {
@@ -408,13 +376,59 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
     var maxCountError   = 0
     var stillInCompound = false
 
-    //TODO: Needs 4 Rules minLen, maxLen, AllowAllCaps, AllowUnderscore
-    func recordNonCamelcase(_ name: String) {
-        let lineItem = LineItem(name: name, lineNum: lineNum)
-        // MARK:  ➡️ Record Issue "nonCamelVars"
-        if swiftSummary.nonCamelVars.isEmpty { swiftSummary.issueCatsCount += 1 }
-        swiftSummary.totalIssues += 1
-        swiftSummary.nonCamelVars.append(lineItem)
+    func recordAnyVarIssue(_ name: String) {
+        let issue = checkVarName(name)
+        if issue.isEmpty { return }
+        if StoredRule.dictStoredRules[RuleID.varNaming]?.enabled ?? true {
+            recordVarNameIssue(name: name, issue: issue)
+        }
+    }
+
+    //---- checkVarName
+    // Uses CodeRule
+    func checkVarName(_ name: String) -> String {
+
+        if name == "_"    { return ""  }
+        if let minLen = StoredRule.dictStoredRules[RuleID.NameLenMinV]?.paramInt {
+            if name.count < minLen { return "too short" }
+        }
+        if let maxLen = StoredRule.dictStoredRules[RuleID.NameLenMaxV]?.paramInt {
+            if name.count > maxLen { return "too long" }
+        }
+
+        //Allow AllCaps
+        if !isEnabled(rule: RuleID.NoAllCapsV) {      // CodeRule.allowAllCaps
+            var isAllCaps = true
+            for char in name {
+                if !char.isUppercase && !char.isNumber {
+                    if StoredRule.dictStoredRules[RuleID.NoUnderscoreV]!.enabled || char != "_" {
+                        isAllCaps = false
+                        break
+                    }
+                }
+            }//next
+            if isAllCaps { return "" }
+        }
+
+        // AllCaps not allowed or Not AllCaps
+        if StoredRule.dictStoredRules[RuleID.NoUnderscoreV]!.enabled && name.contains("_") {
+            return "Underscore in Name"
+        }
+
+        // AllCaps not allowed and either no underscores or they are allowed
+        let firstLetter = name[0]
+        if !firstLetter.isLowercase && firstLetter != "_"   { return "Non-camelCase" }
+
+        return ""
+    }//end func
+
+    // nonCamelVars needs 4 Rules minLen, maxLen, AllowAllCaps, AllowUnderscore
+    func recordVarNameIssue(name: String, issue: String) {
+        // MARK:  ➡️➡️ Record Issue "NamingVar"
+        let id = RuleID.varNaming
+        let lineItem = LineItem(name: name, lineNum: lineNum, extra: issue)
+        recordIssue(id: id, lineItem: lineItem)
+
     }
 
     func recordIssue(id: String, lineItem: LineItem) {
@@ -699,12 +713,10 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             var funcName = "????"
             if posFunc < words.count {
                 funcName = words[posFunc + 1]   // get the word that follows "func"
-                if !isCamelCase(funcName) {
-                    recordNonCamelcase(funcName)
-                }
+                recordAnyVarIssue(funcName)
                 let paramNames = getParamNames(line: codeLine)
                 for name in paramNames {
-                    if !isCamelCase(name) { recordNonCamelcase(name) }
+                    recordAnyVarIssue(name)
                 }
             } else {
                 print("⛔️ AnalyseSwift.swift #\(#line) Probable line-continuation (end with 'func')")
@@ -730,8 +742,8 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                 blockOnDeck.name = "\(containerName).\(blockOnDeck.name)"
             } else {
 
-                let id = RuleID.freeFunc                                            //@@
                 // MARK:  ➡️➡️ Record Issue "freeFunc"                              //@@
+                let id = RuleID.freeFunc                                            //@@
                 let lineItem = LineItem(name: blockOnDeck.name, lineNum: lineNum)   //@@
                 recordIssue(id: id, lineItem: lineItem)
             }
@@ -807,10 +819,8 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                     print()
                 } else {
                     for item in list {
-                        if !isCamelCase(item) {
-                            recordNonCamelcase(item)
-                        }
-                    }//next item
+                        recordAnyVarIssue(item)
+                    }
                 }//endif list.isEmpty
             }//endif in enum
         }//endif "case"
@@ -849,16 +859,12 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                     name = String(name.dropLast()).trim
                 }
                 if isGlobal {
-
                     // MARK:  ➡️➡️ Record Issue "global"                        //@@
+                    let id = RuleID.global                                      //@@
                     let lineItem = LineItem(name: name, lineNum: lineNum)       //@@
-                    let id = RuleID.global                                          //@@
                     recordIssue(id: id, lineItem: lineItem)
                 }//end isGlobal
-
-                if !isCamelCase(name) {
-                    recordNonCamelcase(name)
-                }
+                recordAnyVarIssue(name)
             }//next assignee
         } else { // "let " or "var " not at beginning if line ?????
             if codeLine.contains(" let ") || codeLine.contains(" var ") {
@@ -936,21 +942,17 @@ private func getExtraForForceUnwrap(codeLineClean: String, word: String, idx: In
 
 //TODO: Move "isEnabled", "getParamText", etc. inside a struct
 public func isEnabled(rule key: String)    -> Bool {
-    guard let rule = StoredRule.dictStoredRules[key] else { return false }
-    return rule.enabled
+    return StoredRule.dictStoredRules[key]?.enabled ?? false
 }
 
 public func getParamText(from key: String) -> String {
-    guard let rule = StoredRule.dictStoredRules[key] else { return "" }
-    return rule.paramText
+    return StoredRule.dictStoredRules[key]?.paramText ?? ""
 }
 
 public func getParamInt(from key: String)  -> Int? {
-    guard let rule = StoredRule.dictStoredRules[key] else { return nil }
-    return rule.paramInt
+    return StoredRule.dictStoredRules[key]?.paramInt
 }
 
 public func getSortOrder(from key: String) -> Int {
-    guard let rule = StoredRule.dictStoredRules[key] else { return 0 }
-    return rule.sortOrder
+    return StoredRule.dictStoredRules[key]?.sortOrder ?? 0
 }

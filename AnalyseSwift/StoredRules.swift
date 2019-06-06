@@ -22,13 +22,19 @@ import Foundation
 
 // MARK:- enum RuleID List of Rule Identifiers
 public enum RuleID {
-    static let bigFunc      = "BigFunc"
-    static let bigFile      = "BigFile"
-    static let toDo         = "ToDo"
-    static let forceUnwrap  = "ForceUnwrap"
-    static let global       = "Global"
-    static let freeFunc     = "FreeFunc"
-    static let compoundLine = "CompoundLine"
+    static let bigFunc       = "BigFunc"
+    static let bigFile       = "BigFile"
+    static let toDo          = "ToDo"
+    static let forceUnwrap   = "ForceUnwrap"
+    static let global        = "Global"
+    static let freeFunc      = "FreeFunc"
+    static let varNaming     = "varNaming"
+    static let nonCamelVar   = "NonCamelVar"
+    static let NameLenMinV   = "NameLenMinV"
+    static let NameLenMaxV   = "NameLenMaxV"
+    static let NoUnderscoreV = "NoUnderscoreV"
+    static let NoAllCapsV    = "NoAllCapsV"
+    static let compoundLine  = "CompoundLine"
 }
 
 // MARK:- StoredRule struct 35-140 = 105-lines
