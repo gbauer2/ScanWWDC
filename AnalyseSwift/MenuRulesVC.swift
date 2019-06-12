@@ -44,16 +44,12 @@ public struct CodeRule {
         print("Save Default Rules")
         for (key, rule) in StoredRule.dictStoredRules {
             let udKey = "Rule_" + key
-            let value = makeStr(fromBool: rule.enabled) + "," + rule.paramText
+            let value = (rule.enabled ? "true" : "false") + "," + rule.paramText
             print ("userDefault save  \(udKey):  \(value)")
             defaults.set(value, forKey: udKey)
         }
 
         //UserDefaults.standard.removeObject(forKey: "name")
-    }
-
-    static func makeStr(fromBool: Bool ) -> String {
-        return fromBool ? "true" : "false"
     }
 
     //---- getUserDefaults - Get the Rules from UserDefaults

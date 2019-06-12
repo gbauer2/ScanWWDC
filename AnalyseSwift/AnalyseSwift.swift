@@ -338,7 +338,7 @@ internal func needsContinuation(codeLineDetail: CodeLineDetail, nextLine: String
     return false
 }
 
-// MARK: - the main event 342-912 = 570-lines
+// MARK: - The Main Event 342-912 = 570-lines
 public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, deBug: Bool) -> (SwiftSummary) {
     let lines = contentFromFile.components(separatedBy: "\n")
     if gTrace != .none {
@@ -373,7 +373,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
     var maxCountError   = 0
     var stillInCompound = false
 
-    func recordAnyVarIssue(_ name: String) {
+    func recordAnyVarNameIssue(_ name: String) {
         let issue = checkVarName(name)
         if issue.isEmpty { return }
         if StoredRule.dictStoredRules[RuleID.varNaming]?.enabled ?? true {
@@ -661,7 +661,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                     }
 
                     // MARK:  ➡️➡️ Record Issue "forceUnwrap"                               //@@
-                    let id = RuleID.forceUnwrap                                                 //@@
+                    let id = RuleID.forceUnwrap                                             //@@
                     let lineItem = LineItem(name: xword, lineNum: lineNum, extra: extra)    //@@
                     recordIssue(id: id, lineItem: lineItem)
 
@@ -710,10 +710,10 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             var funcName = "????"
             if posFunc < words.count {
                 funcName = words[posFunc + 1]   // get the word that follows "func"
-                recordAnyVarIssue(funcName)
+                recordAnyVarNameIssue(funcName)
                 let paramNames = getParamNames(line: codeLine)
                 for name in paramNames {
-                    recordAnyVarIssue(name)
+                    recordAnyVarNameIssue(name)
                 }
             } else {
                 print("⛔️ AnalyseSwift.swift #\(#line) Probable line-continuation (end with 'func')")
@@ -807,7 +807,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         if words.isEmpty { continue }
 
         //find NonCamelCase in enum
-        if words[0] == "case" {
+        if firstWord == "case" {
             let containerType = blockStack.last?.blockType ?? .none
             if containerType == .isEnum {
                 let list = getEnumCaseList(codeLine)
@@ -816,7 +816,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                     print()
                 } else {
                     for item in list {
-                        recordAnyVarIssue(item)
+                        recordAnyVarNameIssue(item)
                     }
                 }//endif list.isEmpty
             }//endif in enum
@@ -861,7 +861,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                     let lineItem = LineItem(name: name, lineNum: lineNum)       //@@
                     recordIssue(id: id, lineItem: lineItem)
                 }//end isGlobal
-                recordAnyVarIssue(name)
+                recordAnyVarNameIssue(name)
             }//next assignee
         } else { // "let " or "var " not at beginning if line ?????
             if codeLine.contains(" let ") || codeLine.contains(" var ") {

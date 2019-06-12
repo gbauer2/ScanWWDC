@@ -45,7 +45,8 @@
 // BUG: CodeLineDetail: Do not change inMultiLine if change occurs after firstSplitter
 // BUG: Trailing Comment Count
 // BUG: Counts don't add up
-
+// BUG: lineNum wrong - on continuation line, shows last lineNum of entire line.
+// separate min/max len for func vs var
 // dependency
 // computed variables, var observer
 // show commentLinesCount(dead code?) vs MarkupLineCount (///) (/**)
@@ -57,7 +58,8 @@
 // Refresh analysis when user changes rules.
 // Change VBCompat to use table-driven rules.
 // Disable Save button until a change is made.
-// Differentiate rules & sub-rules
+// Differentiate rules & sub-rules.
+// Add "Reset Rules"
 
 // More Issues to Flag:
 //   singletons (dependency injection?)
@@ -65,7 +67,6 @@
 //   CodeLine too long
 //   Missing Unit-Test
 //   Type-Names must Start with Uppercase
-//   Find "NS..." or "UI..." to check OS
 
 // Need User-Selected Rules & AnalyseXcodeproj table columns & UnitTests for:
 //  Free functions
@@ -203,7 +204,7 @@ class ViewController: NSViewController, NSWindowDelegate {
                 if gTrace != .none {
                     print("🔷 ViewController #\(#line) selectedItemUrl is Swift File: \(selectedUrl.lastPathComponent)")
                 }
-                    analyseContentsButtonClicked(self)
+                analyseContentsButtonClicked(self)
 
             } else if selectedUrl.lastPathComponent.hasPrefix("WWDC-20") && selectedUrl.pathExtension == "txt" {
                 readContentsButton.isEnabled = true
@@ -212,6 +213,8 @@ class ViewController: NSViewController, NSWindowDelegate {
                 if gTrace != .none {
                     print("🔷 ViewController #\(#line) selectedItemUrl is WWDC20xx.txt File: \(selectedUrl.lastPathComponent)")
                 }
+                analyseContentsButtonClicked(self)
+
             } else if selecFileInfo.isDir {                     // isDir
                 if selectedUrl.pathExtension == "xcodeproj" {
                     analyseMode = .xcodeproj                    //  3) analyse FileName.xcodeproj
@@ -707,7 +710,7 @@ extension ViewController {
                         DispatchQueue.main.async {
                             // --- Load infoTextView with formattedText ---
                             self.infoTextView.textStorage?.setAttributedString(txt) // Show txt in infoTextView
-                            self.analyseFuncLocked = false                          // Unlock the button...
+                            self.analyseFuncLocked = false                          // Unlock the button
                             self.analyseContentsButton.isEnabled = true             // and Enable it.
                             if url != self.selectedItemUrl {
                                 self.urlMismatch = self.selectedItemUrl
