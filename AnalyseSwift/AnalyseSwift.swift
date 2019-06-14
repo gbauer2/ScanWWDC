@@ -65,8 +65,10 @@ public struct SwiftSummary {
     //FormatSwiftSummary.swift ~200;        AnalyseXcodeproj.swift ~700
     var dictIssues      = [String: Issue]()     // StoredRules
 
-    //TODO: vbCompatCalls: handle dictionary-type issues
-    var vbCompatCalls   = [String: LineItem]()  // "VB.Left     3    times"
+    //FIXME: This section needs to be changed for table-based issues.
+    var vbCompatCalls       = [String: LineItem]()  // "VB.Left     3    times"
+    var vbCompatStringCalls = [String: LineItem]()
+    var vbCompatFileCalls   = [String: LineItem]()
 
     var issueCatsCount  = 0         // for display spacing when issuesFirst
     var totalIssues     = 0         // for display spacing when issuesFirst
@@ -516,11 +518,11 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             // File Header
             if swiftSummary.codeLineCount == 0 {
                 if line.contains("Copyright") {
-                    swiftSummary.copyright = line
+                    swiftSummary.copyright = String(line.dropFirst(2)).trim
                 } else if line.contains("Created by ") {
-                    swiftSummary.createdBy = line
+                    swiftSummary.createdBy = String(line.dropFirst(2)).trim
                 } else if line.contains("Ver") {
-                    swiftSummary.version = line
+                    swiftSummary.version = String(line.dropFirst(2)).trim
                 }
             }
             if line.count >= 7 {
@@ -677,6 +679,22 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                 if swiftSummary.vbCompatCalls.isEmpty       { swiftSummary.issueCatsCount += 1 }
                 if swiftSummary.vbCompatCalls[word] == nil  { swiftSummary.totalIssues    += 1 }
                 swiftSummary.vbCompatCalls[word, default: LineItem(name: word, lineNum: lineNum)].timesUsed += 1
+            }
+
+            // Find VBCompatability String calls
+            if WordLookup.isVBstringWord(word: word) {
+                // MARK:  ➡️ Record Issue "vbCompatCalls" - Dictionary
+                if swiftSummary.vbCompatStringCalls.isEmpty       { swiftSummary.issueCatsCount += 1 }
+                if swiftSummary.vbCompatStringCalls[word] == nil  { swiftSummary.totalIssues    += 1 }
+                swiftSummary.vbCompatStringCalls[word, default: LineItem(name: word, lineNum: lineNum)].timesUsed += 1
+            }
+
+            // Find VBCompatability File I/O calls
+            if WordLookup.isVBfileWord(word: word) {
+                // MARK:  ➡️ Record Issue "vbCompatCalls" - Dictionary
+                if swiftSummary.vbCompatFileCalls.isEmpty       { swiftSummary.issueCatsCount += 1 }
+                if swiftSummary.vbCompatFileCalls[word] == nil  { swiftSummary.totalIssues    += 1 }
+                swiftSummary.vbCompatFileCalls[word, default: LineItem(name: word, lineNum: lineNum)].timesUsed += 1
             }
 
         }//next word

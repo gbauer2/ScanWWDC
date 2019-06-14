@@ -309,6 +309,14 @@ class ViewController: NSViewController, NSWindowDelegate {
         alert.beginSheetModal(for: window, completionHandler: nil)
     }
 
+    func showDialogIn(window: NSWindow, title: String, message: String, style: NSAlert.Style) {
+        let alert = NSAlert()
+        alert.messageText       = title
+        alert.informativeText   = message
+        alert.alertStyle        = style
+        alert.beginSheetModal(for: window, completionHandler: nil)
+    }
+
     // Recursive func to find .xcodeproj files & list them in Global var xcodprojURLs
     func findAllXcodeprojFiles(_ folder: URL) {
         do {
@@ -703,7 +711,25 @@ extension ViewController {
                             let attStr = SwiftSumAttStr(swiftSummary: swiftSummary, fileInfo: self.selecFileInfo, issuesFirst: issuesFirst)
                             txt = attStr.completeAttText
                         } else if self.analyseMode == .WWDC {
-                            txt = analyseWWDC(contentFromFile, selecFileInfo: self.selecFileInfo)
+                            var msg = ""
+                            (txt, msg) = analyseWWDC(contentFromFile, selecFileInfo: self.selecFileInfo)
+                            if !msg.isEmpty {
+                                DispatchQueue.main.async {
+                                    if let window = self.view.window {
+                                        let comps = msg.components(separatedBy: "|")
+                                        let title: String
+                                        let message: String
+                                        if comps.count >= 2 {
+                                            title = comps[0]
+                                            message = comps[1]
+                                        } else {
+                                            title = "Complete"
+                                            message = msg
+                                        }
+                                        self.showDialogIn(window: window, title: title, message: message, style: .informational)
+                                    }
+                                }
+                            }
                         } else {
                             txt = NSAttributedString()
                         }

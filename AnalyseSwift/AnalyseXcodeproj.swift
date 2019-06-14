@@ -706,7 +706,7 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
             var vnameCt  = 0
             var globlCt  = 0
             var miscCt   = 0
-            //MARK: neww bigFunc
+            //MARK: neww bigFunc - Aggregate Columns with 1 or more issues
             for (id, issue) in swiftSummary.dictIssues {    //.sort{ $0.sortOrder }
                 let count = issue.items.count
                 switch id {
@@ -731,12 +731,15 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
                 }
             }
 
-            //FIXME: Thes section needs to be changed for table-based issues.
-            let maxFileCodeLines = getParamInt(from: RuleID.bigFile) ?? 9999
-            if clCt > maxFileCodeLines {
-                projIssues.append("\"\(name)\" has \(clCt) code-lines (>\(maxFileCodeLines)).")
+            if let bigFile = swiftSummary.dictIssues[RuleID.bigFile] {
+                if bigFile.items.count > 0 {
+                    let maxFileCodeLines = getParamInt(from: RuleID.bigFile) ?? 9999
+                    projIssues.append("\"\(bigFile.items[0].name)\" has \(clCt) code-lines (>\(maxFileCodeLines)).")
+                }
             }
-            let vbCt  = swiftSummary.vbCompatCalls.count
+
+            //FIXME: This section needs to be changed for table-based issues.
+            let vbCt  = swiftSummary.vbCompatCalls.count + swiftSummary.vbCompatStringCalls.count + swiftSummary.vbCompatFileCalls.count
             totalVbCompatCall += vbCt
             text += format2(swiftSummary.url.lastPathComponent,clCt,todoCt,vnameCt,unwrapCt,vbCt,globlCt,miscCt,bigCt)
         } else {
@@ -754,10 +757,11 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
     } else {
         text += "\n--------- \(totalIssueCount) Possible \("Issue".pluralize(totalIssueCount)) in \(xcodeProj.filename) ---------\n"
         if totalToDoFixMe    > 0 {text += "\(showCount(count: totalToDoFixMe,    name: "TODO: or FIXME: comment")).\n"}
-        if totalVarNaming    > 0 {text += "\(showCount(count: totalVarNaming, name: "NonCamelCase Variable")).\n"}
+        if totalVarNaming    > 0 {text += "\(showCount(count: totalVarNaming,    name: "NonCamelCase Variable")).\n"}
         if totalForceUnwrap  > 0 {text += "\(showCount(count: totalForceUnwrap,  name: "ForceUnwrap")).\n"}
         if totalVbCompatCall > 0 {text += "\(showCount(count: totalVbCompatCall, name: "VBcompatability Call")).\n"}
         if totalGlobal       > 0 {text += "\(showCount(count: totalGlobal,       name: "Global & Free Function")).\n"}
+        if totalBig          > 0 {text += "\(showCount(count: totalBig,          name: "Massive func/file")).\n"}
         if totalMisc         > 0 {text += "\(showCount(count: totalMisc,         name: "miscellaneous issue")).\n"}
     }
     for issue in projIssues {

@@ -198,16 +198,17 @@ struct SwiftSumAttStr {
             }
         }//next issue
 
-        let ct = swiftSummary.vbCompatCalls.count
+        //FIXME: This section needs to be changed for table-based issues.
+        let ct = swiftSummary.vbCompatCalls.count + swiftSummary.vbCompatStringCalls.count + swiftSummary.vbCompatFileCalls.count
         if ct > 0 {
             tx = showDivider(title: "\(ct) more issues", font: fontMonoDigitMedium)
             txt.append(tx)
         }
-        //FIXME: This section needs to be changed for table-based issues.
 
         // MARK: VBCompatability calls
         txt.append(showBadCalls(title: "VBCompatability", calls: swiftSummary.vbCompatCalls))
-
+        txt.append(showBadCalls(title: "VBCompatability Base 1 String", calls: swiftSummary.vbCompatStringCalls))
+        txt.append(showBadCalls(title: "VBCompatability File I/O", calls: swiftSummary.vbCompatFileCalls))
         return (txt)
     }
 

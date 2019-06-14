@@ -29,9 +29,10 @@ public struct WordLookup {
     "lazy","left","mutating","none","nonmutating", "optional","override","postfix","precedence","prefix",
     "required","right","set","Type","unowned","weak","willSet"
     ]
-    static var dictKeyWords = [String: Int]()
 
     //MARK: init Swift KeyWords
+
+    static var dictKeyWords = [String: Int]()
 
     static func initKeyWords() {
         let zipped = zip(keyWords, Array(repeating: 0, count: keyWords.count) )
@@ -45,25 +46,29 @@ public struct WordLookup {
     //MARK: List of VB Words
     // Last group ("associativity",..."willSet") are keywords only in context
     //TODO: Separate out groups
-    static var dictVBwords = [String: Int]()
 
     private static let varVBs  = ["vbCr", "vbLf", "VBcompPrintToLog", "knownProblems"]
     private static let funcVBs = ["UCase", "LCase", "Left", "Right", "Trim", "LTrim", "RTrim",
                    "IsNumeric", "Len", "Space", "CInt", "CDbl", "CSng", "Val", "Sign", "Round", "Split", "Weekday",
                    "DateString", "CDate", "ChangeExtension", "PathCombine", "GetFileNameWithoutExtension", "GetFileName",
                    "GetParentPath", "Format", "Str", "Ljust", "Rjust", "Asc", "Char", "Like", "MsgBox"]
-    private static let string1VBs = ["Mid", "MidEquals", "InStr", "InStrRev", ]
-    private static let fileIOVBs  = ["FileOpen", "GetNumberOfLines", "FileClose", "LineInput", "EOF",
-                      "WriteLine", "Print", "PrintLine", "FreeFile"]
+
     private static let vbVBs      = ["VB.Left", "VB.Right", "VB.DirectoryExists", "VB.FileExists", "VB.CreateDirectory",
                       "VB.CreateFile", "VB.DeleteFile", "VB.Rename", "VB.CopyFile",
                       "VB.Month", "VB.Day", "VB.Year", "VB.Hour", "VB.Minute", "VB.Second"]
     private static let pseudoBoxVBs = ["ListBox", "RichTextBox"]
     private static let strExtVBs    = [".Substring", ".Split"]
 
+    private static let string1VBs = ["Mid", "MidEquals", "InStr", "InStrRev", ]
+    private static let fileIOVBs  = ["FileOpen", "GetNumberOfLines", "FileClose", "LineInput", "EOF",
+                                     "WriteLine", "Print", "PrintLine", "FreeFile"]
+
     //MARK: initVBwords
 
-    public static func initVBwords() {
+    static var dictVBwords = [String: Int]()
+    static var dictVBstringWords = [String: Int]()
+    static var dictVBfileWords = [String: Int]()
+    static func initVBwords() {
         dictVBwords = [:]
         for word in varVBs {
             dictVBwords[word] = 1
@@ -71,22 +76,33 @@ public struct WordLookup {
         for word in funcVBs {
             dictVBwords[word] = 2
         }
-        for word in string1VBs {
-            dictVBwords[word] = -3
-        }
-        for word in fileIOVBs {
-            dictVBwords[word] = -4
-        }
         for word in vbVBs {
             dictVBwords[word] = 5
         }
         for word in strExtVBs {
             dictVBwords[word] = 6
         }
-    }
+
+
+        for word in string1VBs {
+            dictVBstringWords[word] = -3
+        }
+
+        for word in fileIOVBs {
+            dictVBfileWords[word] = -4
+        }
+    }//end initVBwords
 
     static func isVBword(word: String) -> Bool {
         return dictVBwords[word] != nil
+    }
+
+    static func isVBstringWord(word: String) -> Bool {
+        return dictVBstringWords[word] != nil
+    }
+
+    static func isVBfileWord(word: String) -> Bool {
+        return dictVBfileWords[word] != nil
     }
 
 }//end struct WordLookup
