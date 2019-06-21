@@ -20,7 +20,6 @@
 // Show signatures for funcs & inits
 
 // Code:
-// change state storage to userDefaults
 // Unit-Test CodeLineDetail for tripleQuote
 
 // showContents - Swift file:
@@ -47,12 +46,10 @@
 // BUG: Counts don't add up
 // BUG: lineNum wrong - on continuation line, shows last lineNum of entire line.
 // separate min/max len for func vs var
-// dependency
 // computed variables, var observer
 // show commentLinesCount(dead code?) vs MarkupLineCount (///) (/**)
 // organize by MARK: or by extension
 // allow extensions other than class - esp protocols & structs
-// Separate out FileIO and Base1Sting funcs in VBwords
 
 //MenuRulesVC:
 // Refresh analysis when user changes rules.
@@ -62,7 +59,6 @@
 // Add "Reset Rules"
 
 // More Issues to Flag:
-//   singletons (dependency injection?)
 //   Public func without markup
 //   CodeLine too long
 //   Missing Unit-Test

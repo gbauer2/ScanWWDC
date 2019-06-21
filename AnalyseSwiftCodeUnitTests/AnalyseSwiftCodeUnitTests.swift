@@ -353,12 +353,14 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         //XCTAssertEqual(swSumry.extensionNames[0], "ViewController", "")
         XCTAssertEqual(swSumry.fileName, "sampleCodeLong", "")
         //XCTAssertEqual(swSumry.funcs.count,    5, "")
-        XCTAssertEqual(swSumry.codeLineCount, 71, "")
+        XCTAssertEqual(swSumry.codeLineCount, 72, "")
         let vnCt = swSumry.dictIssues[RuleID.varNaming]?.items.count ?? 0
         XCTAssertEqual(vnCt, 14, "")    //Varies with NameLenMaxV
         let fuCt = swSumry.dictIssues[RuleID.forceUnwrap]?.items.count ?? 0
         XCTAssertEqual(fuCt,  15, "")
-        XCTAssertEqual(swSumry.vbCompatCalls.count,  3, "")
+        XCTAssertEqual(swSumry.vbCompatCalls.count,  2, "")
+        XCTAssertEqual(swSumry.vbCompatFileCalls.count,  1, "")
+        XCTAssertEqual(swSumry.vbCompatStringCalls.count,  1, "")
         print(swSumry.codeLineCount)
         //SampleCode.swift                89       13        15        3      -
     }
@@ -544,12 +546,13 @@ private func DoCamelCase(p1: Int, p2: Int , Param3:String) {
 This is a Block Mark-up
 */
 private func sampleVBCall() {
-    let i = CInt("123")
+    var i = CInt("123")
     print(i)
     let str = "12345"
     var a = ""
     a = Mid(str, 2, 3)
     a = VB.Left(str, 2)
+    i = FreeFile()
     print(a)
 }
 

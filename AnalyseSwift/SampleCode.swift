@@ -88,13 +88,16 @@ private func DoCamelCase(p1: Int, p2: Int , Param3:String) {
 }
 
 private func sampleVBCall() {
-    let i = CInt("123")
+    var i = CInt("123")
     print(i)
     let str = "12345"
     var a = ""
     a = Mid(str, 2, 3)
     a = Mid(str, 2)
     a = VB.Left(str, 2)
+    a = vbCr
+    i = FreeFile()
+    MsgBox(str)
     print(a)
 }
 

@@ -45,7 +45,6 @@ public struct WordLookup {
 
     //MARK: List of VB Words
     // Last group ("associativity",..."willSet") are keywords only in context
-    //TODO: Separate out groups
 
     private static let varVBs  = ["vbCr", "vbLf", "VBcompPrintToLog", "knownProblems"]
     private static let funcVBs = ["UCase", "LCase", "Left", "Right", "Trim", "LTrim", "RTrim",
@@ -59,7 +58,9 @@ public struct WordLookup {
     private static let pseudoBoxVBs = ["ListBox", "RichTextBox"]
     private static let strExtVBs    = [".Substring", ".Split"]
 
+    // VBCompatability funcs using base-1 String indices
     private static let string1VBs = ["Mid", "MidEquals", "InStr", "InStrRev", ]
+    // VBCompatability funcs doing file I/O
     private static let fileIOVBs  = ["FileOpen", "GetNumberOfLines", "FileClose", "LineInput", "EOF",
                                      "WriteLine", "Print", "PrintLine", "FreeFile"]
 
@@ -69,7 +70,7 @@ public struct WordLookup {
     static var dictVBstringWords = [String: Int]()
     static var dictVBfileWords = [String: Int]()
     static func initVBwords() {
-        dictVBwords = [:]
+        dictVBwords = [:]               // Most VBCompatability funcs
         for word in varVBs {
             dictVBwords[word] = 1
         }
@@ -84,10 +85,12 @@ public struct WordLookup {
         }
 
 
+        dictVBstringWords = [:]         // VBCompatability funcs using base-1 String indices
         for word in string1VBs {
             dictVBstringWords[word] = -3
         }
 
+        dictVBfileWords = [:]           // VBCompatability funcs doing file I/O
         for word in fileIOVBs {
             dictVBfileWords[word] = -4
         }

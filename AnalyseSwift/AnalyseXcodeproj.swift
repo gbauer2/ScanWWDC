@@ -694,10 +694,11 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
     text += "       FileName            CodeLines  ToDo  Naming F-Unwrap  VB  Global  Misc  Big\n"
 
     //FIXME: This section needs to be changed for table-based issues.
+    var todos = [String]()
     for swiftSummary in xcodeProj.swiftSummaries {
-        let name = swiftSummary.fileName
+        let fileName = swiftSummary.fileName
         let isTest = swiftSummary.url.path.contains("TestSharedCode")
-        if isTest || (name != "VBcompatablity.swift" && name != "MyFuncs.swift" && name != "StringExtension.swift") {
+        if isTest || (fileName != "VBcompatablity.swift" && fileName != "MyFuncs.swift" && fileName != "StringExtension.swift") {
             let clCt = swiftSummary.codeLineCount
             totalCodeLine += clCt
             var bigCt    = 0
@@ -716,6 +717,10 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
                 case RuleID.toDo:
                     todoCt          += count
                     totalToDoFixMe  += count
+                    for item in issue.items {
+                        let x = "\(fileName) \(item.lineNum) \(item.name)"
+                        todos.append(x)
+                    }
                 case RuleID.forceUnwrap:
                     unwrapCt        += count
                     totalForceUnwrap += count
@@ -757,6 +762,7 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
     } else {
         text += "\n--------- \(totalIssueCount) Possible \("Issue".pluralize(totalIssueCount)) in \(xcodeProj.filename) ---------\n"
         if totalToDoFixMe    > 0 {text += "\(showCount(count: totalToDoFixMe,    name: "TODO: or FIXME: comment")).\n"}
+        for todo in todos { text += "  \(todo)\n" }
         if totalVarNaming    > 0 {text += "\(showCount(count: totalVarNaming,    name: "NonCamelCase Variable")).\n"}
         if totalForceUnwrap  > 0 {text += "\(showCount(count: totalForceUnwrap,  name: "ForceUnwrap")).\n"}
         if totalVbCompatCall > 0 {text += "\(showCount(count: totalVbCompatCall, name: "VBcompatability Call")).\n"}
