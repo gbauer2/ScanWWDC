@@ -140,11 +140,11 @@ func analyseWWDC(_ str: String, selecFileInfo: FileAttributes) -> (NSAttributedS
     attTx  = NSMutableAttributedString(string: text, attributes: attributesSmallFont)
     attTxt.append(attTx)
 //    pasteBoard.writeObjects([text as NSString])
-    let msg = "\(totalSessions) Total Sessions\n \(sessionsWithNoKeyword) with no Keyword"
+    let msg = "\(totalSessions) Total Sessions\n \(sessionsWithNoKeyword) with no Keyword\n\nResults are in Clipboard.\nPaste into blank spreadsheet cell A1"
     print("\(totalSessions) Total Sessions")
     //alertW("\(totalSessions) Total Sessions", title: "Done")
     copyToClipBoard(textToCopy: attTxt.string)
-    return (attTxt, "Success|" + msg)
+    return (attTxt, "WWDC-\(year) Done|" + msg)
 }//end func analyseWWDC
 
 //MARK:- printHeaderCount
@@ -173,19 +173,17 @@ func getKeyWordVal(title: String, desc: String, year: Int) -> [String] {
         static var airPrint     = "AirPrint"
         static var applePay     = "ApplePay"
         static var appStore     = "AppStore"
-
-        static var catalyst     = "Catalyst"
-        static var combine      = "Combine"
-        static var swiftUI      = "SwiftUI"
-
+        static var AR           = "AR"
         static var careKit      = "CareKit"
         static var debugging    = "Debugging"
+        static var dragnDrop    = "Drag&Drop"
         static var file         = "File"
         static var font         = "font"
-        static var GCD          = "GCD"
         static var game         = "Game"
+        static var GCD          = "GCD"
         static var haptics      = "Haptics"
         static var HTTPLIVE     = "HTTPLive"
+        static var iCloud       = "iCloud"
         static var localization = "Localization"
         static var mapKit       = "MapKit"
         static var metal        = "Metal"
@@ -194,16 +192,21 @@ func getKeyWordVal(title: String, desc: String, year: Int) -> [String] {
         static var pencil       = "Pencil"
         static var performance  = "Performance"
         static var photo        = "Photo"
-        static var siri         = "Siri"
         static var security     = "Security"
+        static var siri         = "Siri"
         static var swift        = "Swift"
         static var swiftPackage = "SwiftPackage"
         static var testing      = "Testing"
+        static var textKit      = "TextKit"
         static var uiKit        = "UIKit"
         static var watchOS      = "WatchOS"
         static var web          = "Web"
         static var xcode        = "Xcode"
         static var xcodePreview = "XcodePreview"
+        // WWDC-2019
+        static var catalyst     = "Catalyst"
+        static var combine      = "Combine"
+        static var swiftUI      = "SwiftUI"
     }
     var dictKeyWord = [String: Int]()
 
@@ -228,7 +231,6 @@ func getKeyWordVal(title: String, desc: String, year: Int) -> [String] {
     if allText.contains("AirPlay")          { recordKeyWord(keyWord: kw.airPlay,        weight:  8) }
     if allText.contains("AirPrint")         { recordKeyWord(keyWord: kw.airPrint,       weight: 10) }
     if allText.contains("App Store")        { recordKeyWord(keyWord: kw.appStore,       weight: 12) }
-    if allText.contains("App Store")        { recordKeyWord(keyWord: kw.appStore,       weight: 12) }
     if allText.contains("Apple Watch")      { recordKeyWord(keyWord: kw.watchOS,        weight: 16) }
     if allText.contains("Wallet")           { recordKeyWord(keyWord: kw.applePay,       weight: 16) }
     if allText.contains("iAd")              { recordKeyWord(keyWord: kw.appStore,       weight: 18) }
@@ -238,7 +240,7 @@ func getKeyWordVal(title: String, desc: String, year: Int) -> [String] {
     if allText.contains("Accelerate")       { recordKeyWord(keyWord: kw.accelerate,     weight: 26) }
     if allText.contains("Auto Layout")      { recordKeyWord(keyWord: "AutoLayout",  weight: 28) }
     if allText.contains("AV")               { recordKeyWord(keyWord: "AV",          weight: 30) }
-    if allText.contains("AR")               { recordKeyWord(keyWord: "AR",          weight: 32) }
+    if allText.contains("AR")               { recordKeyWord(keyWord: kw.AR,             weight: 32) }
     if allText.contains("CarPlay")          { recordKeyWord(keyWord: "CarPlay",     weight: 34) }
     if allText.contains("Cocoa")            { recordKeyWord(keyWord: "Cocoa",       weight: 36) }
     if allText.contains("Cocoa Touch")      { recordKeyWord(keyWord: "CocoaTouch",  weight: 38) }
@@ -272,6 +274,8 @@ func getKeyWordVal(title: String, desc: String, year: Int) -> [String] {
     if title.contains("Apple Pay")          { recordKeyWord(keyWord: kw.applePay,       weight: 115) }
     if title.contains("Wallet")             { recordKeyWord(keyWord: kw.applePay,       weight: 115) }
     if title.contains("Game")               { recordKeyWord(keyWord: kw.game,           weight: 109) }
+    if title.contains("CloudKit")           { recordKeyWord(keyWord: kw.iCloud,         weight: 122) }
+    if title.contains("Drag and Drop")      { recordKeyWord(keyWord: kw.dragnDrop,      weight: 122) }
     if titleLc.contains("font")             { recordKeyWord(keyWord: kw.font,           weight: 110) }
     if titleLc.contains("watch")            { recordKeyWord(keyWord: kw.watchOS,        weight: 108) }
     if titleLc.contains("watchos")          { recordKeyWord(keyWord: kw.watchOS,        weight: 150) }
@@ -289,16 +293,22 @@ func getKeyWordVal(title: String, desc: String, year: Int) -> [String] {
     if title.contains("CareKit")            { recordKeyWord(keyWord: kw.careKit,        weight: 115) }
     if title.contains("ResearchKit")        { recordKeyWord(keyWord: kw.careKit,        weight: 115) }
     if title.contains("HomeKit")            { recordKeyWord(keyWord: "HomeKit",       weight: 116) }
+    if title.contains("SceneKit")           { recordKeyWord(keyWord: kw.game,           weight: 116)}
+    if title.contains("Sprite Kit")         { recordKeyWord(keyWord: kw.game,           weight: 116)}
     if title.contains("SpriteKit")          { recordKeyWord(keyWord: kw.game,           weight: 116)}
+    if title.contains("Scene Kit")          { recordKeyWord(keyWord: kw.game,           weight: 116)}
     if title.contains("NFC")                { recordKeyWord(keyWord: kw.NFC,            weight: 116) }
     if title.contains("Notification")       { recordKeyWord(keyWord: "Notifications", weight: 118) }
     if title.contains("Global")             { recordKeyWord(keyWord: kw.localization,   weight: 120) }
     if title.contains("International")      { recordKeyWord(keyWord: kw.localization,   weight: 122) }
-    if title.contains("TextKit")            { recordKeyWord(keyWord: "TextKit",       weight: 124) }
+    if title.contains("TextKit")            { recordKeyWord(keyWord: kw.textKit,        weight: 124) }
+    if title.contains("Text Kit")           { recordKeyWord(keyWord: kw.textKit,        weight: 124) }
     if title.contains("AVKit")              { recordKeyWord(keyWord: "AV",            weight: 124) }
     if title.contains("AirPlay")            { recordKeyWord(keyWord: kw.airPlay,        weight: 124) }
     if title.contains("Maps")               { recordKeyWord(keyWord: kw.mapKit,         weight: 125) }
+    if title.contains("Map Kit")            { recordKeyWord(keyWord: kw.mapKit,         weight: 125) }
     if titleLc.contains("mapkit")           { recordKeyWord(keyWord: kw.mapKit,         weight: 125) }
+    if title.contains("RealityKit")         { recordKeyWord(keyWord: kw.AR,             weight: 125) }
 
     if year >= 2018 {
         if title.contains("Shortcut")       { recordKeyWord(keyWord: kw.siri,           weight: 101)}
@@ -331,7 +341,7 @@ func getKeyWordVal(title: String, desc: String, year: Int) -> [String] {
     if title.contains("App Store")          { recordKeyWord(keyWord: kw.appStore,       weight: 140) }
     if title.contains("New in Swift")       { recordKeyWord(keyWord: kw.swift,          weight: 142) }
     if title.contains("HTTP Live")          { recordKeyWord(keyWord: kw.HTTPLIVE,       weight: 134) }
-    if title.contains("Dynamic Type")       { recordKeyWord(keyWord: kw.font,           weight: 134)}
+    if title.contains("Dynamic Type")       { recordKeyWord(keyWord: kw.font,           weight: 134) }
 
     // These override the above titles
     if title.contains("Keynote")            { recordKeyWord(keyWord: "01",          weight: 206) }
@@ -343,6 +353,9 @@ func getKeyWordVal(title: String, desc: String, year: Int) -> [String] {
     var keyWords = [String]()
     for (key, _) in  dictKeyWord.sorted(by: {$0.value > $1.value}) {
         keyWords.append(key)
+    }
+    if keyWords.isEmpty && title.contains("Kit") {
+        print("😡 No keyword in \(title)")
     }
     return keyWords
 

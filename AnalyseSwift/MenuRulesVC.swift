@@ -15,7 +15,6 @@ public enum ValType {
 }
 
 // RuleType to change
-//      flagProductNameDif   = 1     //1
 //      allowAllCaps         = 2     //2
 //      allowUnderscore      = 3     //3
 //      minumumSwiftVersion  = 6     //6
@@ -24,12 +23,10 @@ public enum ValType {
 // MARK: - CodeRule struct 25-84 = 59-lines
 public struct CodeRule {
     // --- Rules ---                                    //Rules
-    static var flagProductNameDif   = true                  //1
     static var minumumSwiftVersion  = 4.0                   //3
     static var allowedOrganizations = "GeorgeBauer,GB"      //4
 
     // --- keys for UserDefaults ---                            //keys
-    static var keyProductName       = "RuleProductName"             //1
     static var keyMinSwiftVersion   = "RuleMinSwiftVersion"         //3
     static var keyOrganizations     = "RuleOrganizations"           //4
 
@@ -37,7 +34,6 @@ public struct CodeRule {
     static func saveUserDefaults() {
         let defaults = UserDefaults.standard                    //Save UserDefaults
 
-        defaults.set(flagProductNameDif,  forKey: keyProductName)       //1
         defaults.set(minumumSwiftVersion, forKey: keyMinSwiftVersion)   //6
         defaults.set(allowedOrganizations,forKey: keyOrganizations)     //7
 
@@ -56,7 +52,6 @@ public struct CodeRule {
     static func getUserDefaults() {
         let defaults = UserDefaults.standard
 
-            flagProductNameDif = defaults.bool(forKey: keyProductName )     //1
             let ver = defaults.double(forKey: keyMinSwiftVersion)
             if ver > 0 { minumumSwiftVersion = ver }                        //6
             if let str = defaults.string(forKey: keyOrganizations) {        //7
@@ -83,9 +78,6 @@ public struct CodeRule {
 class MenuRulesVC: NSViewController {
 
     //MARK:- Instance Variables
-    var changeBits: UInt = 0
-    var maxFileCode = 0
-    var maxFuncCode = 0
     var minSwiftVer = 0.0
     var organizations = ""
     static var localRuleArray = [StoredRule]() // Allow user close window without committing changes
@@ -95,7 +87,6 @@ class MenuRulesVC: NSViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do view setup here.                                          //Load controls
-        chkRuleAppVsProduct.state = CodeRule.flagProductNameDif ? .on : .off    //1
         minSwiftVer = CodeRule.minumumSwiftVersion
         txtRuleMinSwiftVer.stringValue   = String(format:"%.1f", minSwiftVer)   //6
         organizations = CodeRule.allowedOrganizations.trim
@@ -132,7 +123,6 @@ class MenuRulesVC: NSViewController {
     @IBOutlet weak var chkRuleAllCaps:      NSButton!       //2
     @IBOutlet weak var chkRuleUnderscore:   NSButton!       //3
 
-    @IBOutlet weak var txtRuleFileCodelines: NSTextField!   //4 101
     @IBOutlet weak var txtRuleMinSwiftVer:   NSTextField!   //6 201
     @IBOutlet weak var txtRuleOrganization:  NSTextField!   //7 301
 
@@ -149,17 +139,12 @@ class MenuRulesVC: NSViewController {
 
     //---- "Save as Defaults" checkBox change ----
     @IBAction func chkDefaultClicked(_ sender: Any) {
-        let isChange =  chkDefault.state == .on
-        setOkButton(isChange: isChange, bitVal: 0x1000)
-    }//end func
+
+    }
 
     //---- OK Button Clicked ----
     @IBAction func btnOkClick(_ sender: Any) {
         //                                                      //Validate
-//        if maxFileCode != (Int(txtRuleFileCodelines.stringValue)) {     //4
-//            lblError.stringValue = "Max FileCode not \"entered\""
-//            return
-//        }
         if let val = (Double(txtRuleMinSwiftVer.stringValue)) {         //6
             if abs(val - minSwiftVer) > 0.001 {
                 lblError.stringValue = "Min SwiftVer not \"entered\""
@@ -174,7 +159,6 @@ class MenuRulesVC: NSViewController {
             return
         }
         //                                                          //Save Changes
-        CodeRule.flagProductNameDif = (chkRuleAppVsProduct.state == .on)    //1
 
         CodeRule.minumumSwiftVersion = minSwiftVer                          //6
 
@@ -198,32 +182,14 @@ class MenuRulesVC: NSViewController {
     //                                                          //@IBActions
     @IBAction func chkRuleAppVsProductClick(_ sender: Any) {        //1
         lblError.stringValue = ""
-        let isChange = CodeRule.flagProductNameDif != (chkRuleAppVsProduct.state == .on)
-        setOkButton(isChange: isChange, bitVal: 0x1)
     }
 
     //MARK: textField IBActions
-    @IBAction func txtRuleCodeLinesInFileChange(_ sender: Any) {    //4 101
-//        lblError.stringValue = ""
-//        let txt = removeNonDigits(txtRuleFileCodelines.stringValue)
-//        if let val = Int(txt), val >= 200, val <= 1000 {
-//            let isChange = val != CodeRule.maxFileCodeLines
-//            setOkButton(isChange: isChange, bitVal: 0x8)
-//            txtRuleFileCodelines.stringValue = txt
-//            maxFileCode = val
-//        } else {
-//            let maxFileCodeLines = getIntParam(of: RuleID.bigFile) ?? 9999
-//            txtRuleFileCodelines.stringValue = "\(maxFileCodeLines)"
-//            lblError.stringValue = "File CodeLine limit 200-1000"
-//        }
-    }//end func
 
     @IBAction func txtRuleMinSwiftVerChange(_ sender: Any) {        //6 201
         lblError.stringValue = ""
         let txt = processVer(from: txtRuleMinSwiftVer.stringValue)
         if let val = Double(txt), val >= 3.0, val <= 9.0 {
-            let isChange = val != CodeRule.minumumSwiftVersion
-            setOkButton(isChange: isChange, bitVal: 0x20)
             txtRuleMinSwiftVer.stringValue = String(format:"%.1f", val)
             minSwiftVer = val
         } else {
@@ -235,23 +201,12 @@ class MenuRulesVC: NSViewController {
     @IBAction func txtRuleOrganizationChange(_ sender: Any) {       //7 301
         lblError.stringValue = ""
         organizations = txtRuleOrganization.stringValue
-        let isChange = organizations != CodeRule.allowedOrganizations
-        setOkButton(isChange: isChange, bitVal: 0x40)
         organizations = txtRuleOrganization.stringValue.trim
         txtRuleOrganization.stringValue = organizations
         print(organizations, txtRuleOrganization.stringValue)
     }
 
     //MARK:- Helper funcs
-
-    func setOkButton(isChange: Bool, bitVal: UInt) {
-        if isChange {
-            changeBits |= bitVal
-        } else {
-            changeBits &= ~bitVal
-        }
-        //btnOk.isEnabled = changeBits != 0
-    }//end func
 
     func removeNonDigits(_ str: String) -> String {
         var newStr = ""
@@ -285,16 +240,13 @@ extension MenuRulesVC: NSTextFieldDelegate {
     func controlTextDidChange(_ obj: Notification) {
         if let txtFld = obj.object as? NSTextField {
             print("🔷 \(txtFld.tag) \(txtFld.stringValue)")
-            switch txtFld.tag {
-            case 101:
-                //self.txtRuleOrganization.stringValue = txtFld.stringValue
-                break
-            case 102:
-                //self.txtRuleFileCodelines.stringValue = txtFld.stringValue
-                break
+            let tag = txtFld.tag
+            switch tag {
             case 201:
+                //self.txtRuleMinSwiftVer.stringValue = txtFld.stringValue
                 break
             case 301:
+                //self.txtOrganization.stringValue = txtFld.stringValue
                 break
             default:
                 break

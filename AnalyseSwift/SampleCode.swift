@@ -1,5 +1,5 @@
 /*
- eNum RuleType {case flagProductNameDif = 0, allowAllCaps=1, etc
+ eNum RuleType {case flagProductName = 0, allowAllCaps=1, etc
  */
 //
 //  SampleCode.swift

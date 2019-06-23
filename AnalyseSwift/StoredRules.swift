@@ -35,6 +35,8 @@ public enum RuleID {
     static let NoUnderscoreV = "NoUnderscoreV"
     static let NoAllCapsV    = "NoAllCapsV"
     static let compoundLine  = "CompoundLine"
+    //project rules
+    static let ProductDif    = "ProductDif"
 }
 
 // MARK:- StoredRule struct 41-140 = 99-lines

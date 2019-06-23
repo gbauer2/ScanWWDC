@@ -644,7 +644,10 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
     text += "Application Name         = \(xcodeProj.appName)\n"
     if xcodeProj.appName != xcodeProj.productName {
         text += "Product Name             = \(xcodeProj.productName)\n"
-        if CodeRule.flagProductNameDif {
+//        if (StoredRule.dictStoredRules[RuleID.ProductDif]?.enabled ?? true) != CodeRule.flagProductNameDif {
+//            print("⛔️ showXcodeproj #\(#line) RuleID.ProductDif != CodeRule.flagProductNameDif")
+//        }
+        if (StoredRule.dictStoredRules[RuleID.ProductDif]?.enabled ?? true) {
             projIssues.append("AppName: \"\(xcodeProj.appName)\" != ProductName: \"\(xcodeProj.productName)\"")
         }
     }
