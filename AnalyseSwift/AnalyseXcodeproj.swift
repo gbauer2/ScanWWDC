@@ -662,8 +662,12 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
             text += "\(issue)!\n"
             projIssues.append(issue)
         } else {
-            if xcodeProj.swiftVerMin < CodeRule.minumumSwiftVersion {
-                projIssues.append("Obsolete Swift Version \(xcodeProj.swiftVerMin)")
+            if let minVerRule = StoredRule.dictStoredRules[RuleID.MinVerSwift] {
+                if let minVer = Double(minVerRule.paramText) {
+                    if minVerRule.enabled && xcodeProj.swiftVerMin < minVer {
+                        projIssues.append("Obsolete Swift Version \(xcodeProj.swiftVerMin)")
+                    }
+                }
             }
             text += "Swift Version used       = \(xcodeProj.swiftVerMin)\n"
         }
@@ -678,8 +682,8 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
     text += "SDK Root                 = \(xcodeProj.sdkRoot)\n"
     text += "\(xcodeProj.deploymentTarget)\n"    // deploymentTarget
 
-    if !CodeRule.allowedOrganizations.isEmpty {
-        if !CodeRule.allowedOrganizations.contains(xcodeProj.organizationName) {
+    if let org = StoredRule.dictStoredRules[RuleID.Organization] {
+        if org.enabled && !org.desc.isEmpty && !org.desc.contains(xcodeProj.organizationName) {
             projIssues.append("External Organization \"\(xcodeProj.organizationName)\"")
         }
     }

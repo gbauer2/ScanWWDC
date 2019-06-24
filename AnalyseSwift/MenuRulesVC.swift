@@ -14,28 +14,12 @@ public enum ValType {
     case bool, int, text
 }
 
-// RuleType to change
-//      allowAllCaps         = 2     //2
-//      allowUnderscore      = 3     //3
-//      minumumSwiftVersion  = 6     //6
-//      allowedOrganizations = 7     //7
-
 // MARK: - CodeRule struct 25-84 = 59-lines
 public struct CodeRule {
-    // --- Rules ---                                    //Rules
-    static var minumumSwiftVersion  = 4.0                   //3
-    static var allowedOrganizations = "GeorgeBauer,GB"      //4
-
-    // --- keys for UserDefaults ---                            //keys
-    static var keyMinSwiftVersion   = "RuleMinSwiftVersion"         //3
-    static var keyOrganizations     = "RuleOrganizations"           //4
 
     //---- CodeRule.saveUserDefaults - Save the Rules in UserDefaults
     static func saveUserDefaults() {
         let defaults = UserDefaults.standard                    //Save UserDefaults
-
-        defaults.set(minumumSwiftVersion, forKey: keyMinSwiftVersion)   //6
-        defaults.set(allowedOrganizations,forKey: keyOrganizations)     //7
 
         print("Save Default Rules")
         for (key, rule) in StoredRule.dictStoredRules {
@@ -52,24 +36,18 @@ public struct CodeRule {
     static func getUserDefaults() {
         let defaults = UserDefaults.standard
 
-            let ver = defaults.double(forKey: keyMinSwiftVersion)
-            if ver > 0 { minumumSwiftVersion = ver }                        //6
-            if let str = defaults.string(forKey: keyOrganizations) {        //7
-                allowedOrganizations = str
+        for (key, _) in StoredRule.dictStoredRules {
+            let udKey = "Rule_" + key
+            if let str = defaults.string(forKey: udKey) {        //7
+                let (enabledText, param) = splitLine(str, atCharacter: ",")
+                let enabled = (enabledText == "true")
+                print("userDefault get  \(key): enabled=\(enabled),  paramText=\(param)")
+                StoredRule.dictStoredRules[key]!.enabled   = enabled
+                StoredRule.dictStoredRules[key]!.paramText = param
+            } else {
+                print("Error #\(#line) No UserDefault for \(key)")
             }
-
-            for (key, _) in StoredRule.dictStoredRules {
-                let udKey = "Rule_" + key
-                if let str = defaults.string(forKey: udKey) {        //7
-                    let (enabledText, param) = splitLine(str, atCharacter: ",")
-                        let enabled = (enabledText == "true")
-                        print("userDefault get  \(key): enabled=\(enabled),  paramText=\(param)")
-                        StoredRule.dictStoredRules[key]!.enabled   = enabled
-                        StoredRule.dictStoredRules[key]!.paramText = param
-                } else {
-                    print("Error #\(#line) No UserDefault for \(key)")
-                }
-            }
+        }
     }//end func
 
 }//end struct CodeRules
@@ -78,25 +56,12 @@ public struct CodeRule {
 class MenuRulesVC: NSViewController {
 
     //MARK:- Instance Variables
-    var minSwiftVer = 0.0
-    var organizations = ""
     static var localRuleArray = [StoredRule]() // Allow user close window without committing changes
 
     //MARK:- Lifecycle funcs
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do view setup here.                                          //Load controls
-        minSwiftVer = CodeRule.minumumSwiftVersion
-        txtRuleMinSwiftVer.stringValue   = String(format:"%.1f", minSwiftVer)   //6
-        organizations = CodeRule.allowedOrganizations.trim
-        txtRuleOrganization.stringValue = organizations                         //7
-
-        // Fill in Current TextField Values
-
-        // Set TextField delegates
-        txtRuleMinSwiftVer.delegate   = self    // 201
-        txtRuleOrganization.delegate  = self    // 301 as NSTextFieldDelegate
 
         //MenuRulesVC.localIssueArray = StoredRule.dictStoredRules
         MenuRulesVC.localRuleArray = []
@@ -119,12 +84,6 @@ class MenuRulesVC: NSViewController {
 
     @IBOutlet weak var lblError:            NSTextField!
     //                                              //@IBOutlets
-    @IBOutlet weak var chkRuleAppVsProduct: NSButton!       //1
-    @IBOutlet weak var chkRuleAllCaps:      NSButton!       //2
-    @IBOutlet weak var chkRuleUnderscore:   NSButton!       //3
-
-    @IBOutlet weak var txtRuleMinSwiftVer:   NSTextField!   //6 201
-    @IBOutlet weak var txtRuleOrganization:  NSTextField!   //7 301
 
     @IBOutlet weak var chkDefault:          NSButton!
     @IBOutlet weak var btnOk:               NSButton!
@@ -144,33 +103,11 @@ class MenuRulesVC: NSViewController {
 
     //---- OK Button Clicked ----
     @IBAction func btnOkClick(_ sender: Any) {
-        //                                                      //Validate
-        if let val = (Double(txtRuleMinSwiftVer.stringValue)) {         //6
-            if abs(val - minSwiftVer) > 0.001 {
-                lblError.stringValue = "Min SwiftVer not \"entered\""
-                return
-            }
-        } else {
-            lblError.stringValue = "MinSwiftVer not valid"
-            return
-        }
-        if organizations != txtRuleOrganization.stringValue {             //7
-            lblError.stringValue = "Allowed Organizations not \"entered\""
-            return
-        }
-        //                                                          //Save Changes
-
-        CodeRule.minumumSwiftVersion = minSwiftVer                          //6
-
-        CodeRule.allowedOrganizations = organizations                       //7
-
         StoredRule.dictStoredRules = [:]
         for rule in MenuRulesVC.localRuleArray {
             let id = rule.identifier
             StoredRule.dictStoredRules[id] = rule
         }
-
-        print("✅✅ \(txtRuleMinSwiftVer.stringValue)")
 
         if chkDefault.state == .on {
             CodeRule.saveUserDefaults()
@@ -178,33 +115,6 @@ class MenuRulesVC: NSViewController {
 
         self.view.window?.close()
     }//end func btnOkClick
-
-    //                                                          //@IBActions
-    @IBAction func chkRuleAppVsProductClick(_ sender: Any) {        //1
-        lblError.stringValue = ""
-    }
-
-    //MARK: textField IBActions
-
-    @IBAction func txtRuleMinSwiftVerChange(_ sender: Any) {        //6 201
-        lblError.stringValue = ""
-        let txt = processVer(from: txtRuleMinSwiftVer.stringValue)
-        if let val = Double(txt), val >= 3.0, val <= 9.0 {
-            txtRuleMinSwiftVer.stringValue = String(format:"%.1f", val)
-            minSwiftVer = val
-        } else {
-            txtRuleMinSwiftVer.stringValue = "\(CodeRule.minumumSwiftVersion)"
-            lblError.stringValue = "Min. Swift Ver. 3.0 to 9.0"
-        }
-    }//end func
-
-    @IBAction func txtRuleOrganizationChange(_ sender: Any) {       //7 301
-        lblError.stringValue = ""
-        organizations = txtRuleOrganization.stringValue
-        organizations = txtRuleOrganization.stringValue.trim
-        txtRuleOrganization.stringValue = organizations
-        print(organizations, txtRuleOrganization.stringValue)
-    }
 
     //MARK:- Helper funcs
 
@@ -218,6 +128,7 @@ class MenuRulesVC: NSViewController {
         return newStr
     }//end func
 
+    // not used
     func processVer(from str: String) -> String {
         var newStr = ""
         var gotDot = false
@@ -235,7 +146,7 @@ class MenuRulesVC: NSViewController {
 
 }//end class MenuRulesVC
 
-//MARK:- MenuRulesVC: NSTextFieldDelegate
+//MARK:- MenuRulesVC: NSTextFieldDelegate - not used
 extension MenuRulesVC: NSTextFieldDelegate {
     func controlTextDidChange(_ obj: Notification) {
         if let txtFld = obj.object as? NSTextField {
@@ -243,10 +154,10 @@ extension MenuRulesVC: NSTextFieldDelegate {
             let tag = txtFld.tag
             switch tag {
             case 201:
-                //self.txtRuleMinSwiftVer.stringValue = txtFld.stringValue
+                //self.txtRule201.stringValue = txtFld.stringValue
                 break
             case 301:
-                //self.txtOrganization.stringValue = txtFld.stringValue
+                //self.txt301.stringValue = txtFld.stringValue
                 break
             default:
                 break

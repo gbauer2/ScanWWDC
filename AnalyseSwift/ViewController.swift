@@ -34,6 +34,9 @@
 // Show MainGroup.Children {Framework}
 // Bug: "mainSourceKey = childKey", "Most likely child" may pick wrong child.
 // Bug: AnalyseXcodeproj called twice on startup
+// Align all issues using right-justified count.
+// Align issues containing filename.swift
+// Move project issues to top
 
 // Fix Unhandled
 
@@ -53,7 +56,6 @@
 
 //MenuRulesVC:
 // Refresh analysis when user changes rules.
-// Change VBCompat to use table-driven rules.
 // Disable Save button until a change is made.
 // Differentiate rules & sub-rules.
 // Add "Reset Rules"

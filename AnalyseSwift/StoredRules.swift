@@ -22,6 +22,7 @@ import Foundation
 
 // MARK:- enum RuleID List of Rule Identifiers
 public enum RuleID {
+    //swift rules
     static let bigFunc       = "BigFunc"
     static let bigFile       = "BigFile"
     static let toDo          = "ToDo"
@@ -37,6 +38,8 @@ public enum RuleID {
     static let compoundLine  = "CompoundLine"
     //project rules
     static let ProductDif    = "ProductDif"
+    static let Organization  = "Organization"
+    static let MinVerSwift   = "MinVerSwift"
 }
 
 // MARK:- StoredRule struct 41-140 = 99-lines
