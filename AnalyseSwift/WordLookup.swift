@@ -7,7 +7,7 @@
 
 import Foundation
 
-//MARK:- Word Lookup for keyWords & VBWords 11-92 = 81-lines
+//MARK:- Word Lookup for keyWords & VBWords 11-111 = 100-lines
 public struct WordLookup {
 
     //MARK:- List of Swift KeyWords

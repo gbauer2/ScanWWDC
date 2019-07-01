@@ -340,7 +340,7 @@ internal func needsContinuation(codeLineDetail: CodeLineDetail, nextLine: String
     return false
 }
 
-// MARK: - The Main Event 342-912 = 570-lines
+// MARK: - The Main Event 344-930 = 586-lines
 public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, deBug: Bool) -> (SwiftSummary) {
     let lines = contentFromFile.components(separatedBy: "\n")
     if gTrace != .none {
@@ -443,7 +443,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         }
     }
 
-    // MARK: Main Loop 445-871 = 426-lines
+    // MARK: Main Loop 447-889 = 442-lines
     while iLine < lines.count {
         //        // Multitasking Check
         //        if selecFileInfo.url != ViewController.latestUrl {
@@ -487,8 +487,8 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             swiftSummary.codeLineCount + 1
         let countError = abs(sum - lineNum)
         if countError != maxCountError {
-//            print("⛔️ Error#\(#line), lineNum \(lineNum), \"\(line)\"\nsum=\(sum) dif=\(sum-lineNum): code=\(swiftSummary.codeLineCount) blank=\(swiftSummary.blankLineCount) comment=\(swiftSummary.commentLineCount) continuation=\(swiftSummary.continueLineCount)",
-//                   -swiftSummary.compoundLineCount, swiftSummary.markupLineCount, swiftSummary.quoteLineCount)
+            //            print("⛔️ Error#\(#line), lineNum \(lineNum), \"\(line)\"\nsum=\(sum) dif=\(sum-lineNum): code=\(swiftSummary.codeLineCount) blank=\(swiftSummary.blankLineCount) comment=\(swiftSummary.commentLineCount) continuation=\(swiftSummary.continueLineCount)",
+            //                   -swiftSummary.compoundLineCount, swiftSummary.markupLineCount, swiftSummary.quoteLineCount)
             maxCountError = countError
         }
         //---------------------------
@@ -553,7 +553,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             continue
         }
 
-        // MARK: Code!  556-871 = 315-lines
+        // MARK: Code!  558-889 = 331-lines
 
         // Call CodeLineDetail.init
         let codeLineDetail = CodeLineDetail(fullLine: line, inMultiLine: inMultiLine, lineNum: lineNum)
@@ -636,7 +636,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         let words = wordsWithEmpty.filter { !$0.isEmpty }                   // Use filter to eliminate empty strings.
         let firstWord = words.first ?? ""
 
-        // MARK: Check each word 638-682 = 44-lines
+        // MARK: Check each word 640-700 = 60-lines
         for word in words {
 
             // Find Force Unwraps

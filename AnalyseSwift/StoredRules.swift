@@ -42,7 +42,7 @@ public enum RuleID {
     static let MinVerSwift   = "MinVerSwift"
 }
 
-// MARK:- StoredRule struct 41-140 = 99-lines
+// MARK:- StoredRule struct 46-145 = 99-lines
 public struct StoredRule {
     static var dictStoredRules = [String: StoredRule]()    // Points to element of storedRuleArray
     
@@ -81,7 +81,7 @@ public struct StoredRule {
         self.ruleType   = ruleType
     }
 
-    //MARK: static func loadRules() 83-129 = 46-lines
+    //MARK: static func loadRules() 88-134 = 46-lines
     //TODO: ToDo: Identify rule-item by header name.
     //--- rule stored in bundle, *enabled & *param also stored in userdefaults
     // (id, 0/1, paramText)static

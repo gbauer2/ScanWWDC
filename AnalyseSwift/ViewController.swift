@@ -71,6 +71,10 @@
 //  Globals
 //  Compound Lines
 
+// WWDC:
+//  mark want if on prefered list & don't have
+//  mark have code & pdf
+
 /*
 Public Structs
  AnalyseSwift
@@ -174,7 +178,7 @@ class ViewController: NSViewController, NSWindowDelegate {
     var selectedFolderUrl: URL? {
         didSet {                                        // run whenever selectedFolderUrl is changed FOLDER
             if let selectedFolderUrl = selectedFolderUrl {
-                filesList = myContentsOf(folder: selectedFolderUrl)
+                filesList = myContentsOf(folder: selectedFolderUrl, showAllFiles: showAllFiles)
                 selectedItemUrl = nil
                 self.tableView.reloadData()
                 self.tableView.scrollRowToVisible(0)
@@ -226,7 +230,7 @@ class ViewController: NSViewController, NSWindowDelegate {
                 } else {                                        //  4) show dir contents
                     readContentsButton.isEnabled    = false
                     analyseContentsButton.isEnabled = false
-                    let tempFilesList = myContentsOf(folder: selectedUrl)
+                    let tempFilesList = myContentsOf(folder: selectedUrl, showAllFiles: showAllFiles)
                     var tempStr = ""
                     tempStr = " \(tempFilesList.count) \("item".pluralize(tempFilesList.count)) in folder."
                     let textAttributes = setFontSizeAttribute(size: 18)
@@ -356,8 +360,8 @@ class ViewController: NSViewController, NSWindowDelegate {
 // MARK: - Getting file or folder information
 extension ViewController {
 
-    // myContentsOf - returns a list of urls in folder, sorted folder/file, then alphabetically
-    func myContentsOf(folder: URL) -> [URL] {
+    // myContentsOf - returns a list of urls in folder, sorted folder/file, then alphabetically.
+    func myContentsOf(folder: URL, showAllFiles: Bool) -> [URL] {
         let fileManager = FileManager.default
 
         do {
@@ -471,7 +475,7 @@ extension ViewController {
                 self.infoTextView.string = str
             }
             let xcodeprojCount = self.xcodeprojURLs.count
-            var tempStr = "\(xcodeprojCount) xcodeproj files found under \(baseFolderName) \(Date().ToString("MM/dd/yyyy HH:mm"))\n\n"
+            var tempStr = "ViewController #\(#line) \(xcodeprojCount) xcodeproj files found under \(baseFolderName) \(Date().ToString("MM/dd/yyyy HH:mm"))\n\n"
             print(tempStr)
 
             var dictVersions   = [String:Int]()
@@ -571,7 +575,7 @@ extension ViewController {
     @IBAction func toggleshowAllFiles(_ sender: NSButton) {
         showAllFiles = (sender.state == .on)
         if let selectedFolderUrl = selectedFolderUrl {
-            filesList = myContentsOf(folder: selectedFolderUrl)
+            filesList = myContentsOf(folder: selectedFolderUrl, showAllFiles: showAllFiles)
             //selectedItemUrl = nil
             tableView.reloadData()
         }
@@ -626,12 +630,12 @@ extension ViewController {
     }
 
     @IBAction func btnBackClicked( _ sender: Any) {
-        //print("Back Button Clicked")
+        //print("ViewController #\(#line) Back Button Clicked")
         self.selectedFolderUrl = popDirBackStack()
     }
 
      @IBAction func btnForwardClicked( _ sender: Any) {
-     //print("Forward Button Clicked")
+     //print("ViewController #\(#line) Forward Button Clicked")
         self.selectedFolderUrl = popDirForwardStack()
      }
 
@@ -764,7 +768,6 @@ extension ViewController {
     }//end func analyseContentsButtonClicked
 
 }//end class
-
 
 // MARK: - NSTableViewDataSource
 extension ViewController: NSTableViewDataSource {

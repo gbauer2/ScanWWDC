@@ -14,14 +14,14 @@ public enum ValType {
     case bool, int, text
 }
 
-// MARK: - CodeRule struct 25-84 = 59-lines
+// MARK: - CodeRule struct 18-53 = 35-lines
 public struct CodeRule {
 
     //---- CodeRule.saveUserDefaults - Save the Rules in UserDefaults
     static func saveUserDefaults() {
         let defaults = UserDefaults.standard                    //Save UserDefaults
 
-        print("Save Default Rules")
+        print("MenuRulesVC #\(#line)  Save Default Rules")
         for (key, rule) in StoredRule.dictStoredRules {
             let udKey = "Rule_" + key
             let value = (rule.enabled ? "true" : "false") + "," + rule.paramText
@@ -41,18 +41,18 @@ public struct CodeRule {
             if let str = defaults.string(forKey: udKey) {        //7
                 let (enabledText, param) = splitLine(str, atCharacter: ",")
                 let enabled = (enabledText == "true")
-                print("userDefault get  \(key): enabled=\(enabled),  paramText=\(param)")
+                print("MenuRulesVC #\(#line)  userDefault get  \(key): enabled=\(enabled),  paramText=\(param)")
                 StoredRule.dictStoredRules[key]!.enabled   = enabled
                 StoredRule.dictStoredRules[key]!.paramText = param
             } else {
-                print("Error #\(#line) No UserDefault for \(key)")
+                print("⛔️ Error - MenuRulesVC #\(#line) -- No UserDefault for \(key)")
             }
         }
     }//end func
 
 }//end struct CodeRules
 
-// MARK: - MenuRulesVC class - UI for changing CodeRules 87-285 = 198-lines
+// MARK: - MenuRulesVC class - UI for changing CodeRules 56-147 = 91-lines
 class MenuRulesVC: NSViewController {
 
     //MARK:- Instance Variables
@@ -150,7 +150,7 @@ class MenuRulesVC: NSViewController {
 extension MenuRulesVC: NSTextFieldDelegate {
     func controlTextDidChange(_ obj: Notification) {
         if let txtFld = obj.object as? NSTextField {
-            print("🔷 \(txtFld.tag) \(txtFld.stringValue)")
+            print("🔷 MenuRulesVC #\(#line) -- \(txtFld.tag) \(txtFld.stringValue)")
             let tag = txtFld.tag
             switch tag {
             case 201:
@@ -227,10 +227,10 @@ extension MenuRulesVC: NSTableViewDelegate {
 
     func tableViewSelectionDidChange(_ notification: Notification) {
         if tableView.selectedRow < 0 {
-            print("Error MenuRulesVC #(#line)")
+            print("⛔️ Error - MenuRulesVC #(#line) -- bad tableView selection")
             return
         }
-        print(tableView?.selectedRow ?? -1)
+        print("MenuRulesVC #(#line) -- \(tableView?.selectedRow ?? -1)")
     }//end func
 
 }//end extension
@@ -245,15 +245,14 @@ extension MenuRulesVC: NSTableViewDelegate {
 
 
         @IBAction func chkEnabledClick(_ sender: NSButton) {
-            //print("chkEnabled = \(chkEnabled.state)")
+            //print("MenuRulesVC #(#line) -- chkEnabled = \(chkEnabled.state)")
             MenuRulesVC.localRuleArray[row].enabled = (chkEnabled.state == .on)
         }
 
         // Triggered by "Enter", or Loss-of-focus
         @IBAction func paramTextChange(_ sender: Any) {
-            print("paramText = \(txtParam.stringValue)")
+            print("MenuRulesVC #(#line) -- paramText = \(txtParam.stringValue)")
             MenuRulesVC.localRuleArray[row].paramText = txtParam.stringValue
-
         }
     }//end class
 
