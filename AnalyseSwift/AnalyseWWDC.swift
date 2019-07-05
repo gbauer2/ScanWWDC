@@ -11,7 +11,7 @@ import Cocoa
 
 //TODO: Allow multiple Keywords
 
-let verWWDC = "2.2.1"
+let verWWDC = "3.1"
 
 //MARK:- analyseWWDC 17-158 = 141-lines
 func analyseWWDC(_ str: String, selecFileInfo: FileAttributes) -> (NSAttributedString, String) {
@@ -26,11 +26,12 @@ func analyseWWDC(_ str: String, selecFileInfo: FileAttributes) -> (NSAttributedS
 
     var year    = 0
     var lineNum = 0
+    // Find Beginning of data by looking for e.g. "WWDC 2019". Extract he year.
     for _ in 0...6 {
         let line = lines[lineNum]
         lineNum += 1
         if line .hasPrefix("WWDC") {
-            let str = "\(line)\t\t\t\tVersion \(verWWDC)\n"
+            let str = "\(line)\t\t\t\t\tVersion \(verWWDC)\n"
             attTx  = NSMutableAttributedString(string: str, attributes: attributesLargeFont)
             attTxt.append(attTx)
             let comps = line.components(separatedBy: " ")
@@ -39,7 +40,8 @@ func analyseWWDC(_ str: String, selecFileInfo: FileAttributes) -> (NSAttributedS
                 break
             }
         }
-    }
+    }//next
+
     let file = selecFileInfo.url?.lastPathComponent ?? "?filename?"
     if year < 2000 || year > 2099 {
         let msg = "⛔️ analyseWWDC #\(#line) Bad format in \(file)!\nCould not find title \"WWDC 20xx\""
@@ -49,14 +51,13 @@ func analyseWWDC(_ str: String, selecFileInfo: FileAttributes) -> (NSAttributedS
         return (attTxt, "Error|" + msg)
     }//endif bad year
 
-    var text = "Year \tSess\tOSX\tiOS\tTitle \tKeyword \twant \tfin \thave \tDescription\n"
+    // Column Headings
+    var text = "Year \tSess\tOSX\tiOS\twatch\tTitle \tKeyword \twant \tVid \tXtra \tDescription\n"
     attTx  = NSMutableAttributedString(string: text, attributes: attributesSmallFont)
     attTxt.append(attTx)
 
     var totalSessions = 0
     var sessionsWithNoKeyword = 0
-
-    // MARK:- 2016, 2017, 2018, 2019,...
 
     var sessionNum      = "???"
     var totalWithNoOS   = 0
@@ -71,7 +72,7 @@ func analyseWWDC(_ str: String, selecFileInfo: FileAttributes) -> (NSAttributedS
         if !line.hasPrefix(" ") {
             printHeaderCount(header: header, headers: headers)
             header = line.trim
-            print("\nanalyseWWDC #\(#line) Header line \(lineNum) ---- \"\(header)\" ----")
+            print("\nanalyseWWDC #\(#line)  ⬇️ Header line \(lineNum) ---- \"\(header)\" ----")
             continue
         }
         let titleIndented = line.dropFirst()
@@ -81,9 +82,7 @@ func analyseWWDC(_ str: String, selecFileInfo: FileAttributes) -> (NSAttributedS
             if lineNum < 10 && title == "FILTER" { continue }
             let msg = "⛔️ analyseWWDC #\(#line) Bad format in \(file)! line#\(lineNum)\n  \"\(titleIndented)\" different from \"\(title)\""
             print(msg)
-            attTx  = NSMutableAttributedString(string: msg + "\n", attributes: attributesErrorFont)
-            attTxt.append(attTx)
-            break
+            // TODO: Error Message
         }
         headers[header, default: 0] += 1
         let sessionAndOS = lines[lineNum]
@@ -91,36 +90,42 @@ func analyseWWDC(_ str: String, selecFileInfo: FileAttributes) -> (NSAttributedS
         let desc = lines[lineNum]
         lineNum += 1
         let comps = sessionAndOS.components(separatedBy: " ")
+        let iconEmpty = ""
+        let iconApplies = "▪️"
+        var iOS     = iconEmpty
+        var macOS   = iconEmpty
+        var tvOS    = iconEmpty
+        var watchOS = iconEmpty
         if comps.count < 3 || comps[0] != "Session" {
+            totalWithNoOS += 1
             let msg = "⛔️ analyseWWDC #\(#line) Bad format in \(file)! line#\(lineNum)\n  \"\(sessionAndOS)\""
             print(msg)
             attTx  = NSMutableAttributedString(string: msg + "\n", attributes: attributesErrorFont)
             attTxt.append(attTx)
+        } else {
+            let osNames = comps.dropFirst(2)
+            for osNameRaw in osNames {
+                let osName = osNameRaw.replacingOccurrences(of: ",", with: "")
+                switch osName {
+                case "":
+                    totalWithNoOS += 1
+                case "iOS":
+                        iOS     = iconApplies
+                case "macOS":
+                        macOS   = iconApplies
+                case "watchOS":
+                        watchOS = iconApplies
+                case "tvOS":
+                        tvOS    = iconApplies
+                default:
+                    print("⛔️ analyseWWDC #\(#line) Unknown OS: \(osName)")
+                }
+            }
         }
         totalSessions += 1
         sessionNum = comps[1]
         let vidKey = "\(year)-\(sessionNum)"
         let downloadedVid = downloadedVideos[vidKey] ?? ""
-//        if !downloadedVid.isEmpty {
-//            print("analyseWWDC #\(#line) Found video file \(vidKey) = \(downloadedVid)  \(title)")
-//        }
-        let allText = title + "|" + desc
-        var iOS     = allText.contains("iOS")     ? "1" : "0"
-        var macOS   = allText.contains("macOS")   ? "1" : "0"
-        //if allText.contains("UI")    { iOS = "1" }
-        if allText.contains("ARKit") { iOS = "1" }
-        var tvOS    =  "0"
-        var watchOS =  "0"
-        if iOS == "0" && macOS == "0"  {
-            tvOS    = allText.contains("tvOS")    ? "1" : "0"
-            watchOS = allText.contains("watchOS") ? "1" : "0"
-            if tvOS == "0"  && watchOS == "0" {
-                //print("😡 no OS: \(title) ")
-                iOS     = "1"
-                macOS   = "1"
-                totalWithNoOS += 1
-            }
-        }
 
         let keyWords = getKeyWordVal(title: title, desc: desc, year: year)
         var keyWord: String
@@ -135,10 +140,18 @@ func analyseWWDC(_ str: String, selecFileInfo: FileAttributes) -> (NSAttributedS
         } else if keyWords.count == 0 {
             print("analyseWWDC #\(#line) line#\(lineNum)  <uncatagorized>            \(title)")
         }
-        //TODO: Change system for detecting OS
-        if tvOS == "1"                          { keyWord = "ztvOS" }
-        //if watchOS == "1"                       { keyWord = "WatchOS" }
-        let t = "\(year)\t\(sessionNum)\t\(macOS)\t\(iOS)\t\(title)\t\(keyWord)\t\t\t\(downloadedVid)\t\(desc)\n"
+
+        if iOS != iconApplies && macOS != iconApplies {
+            if tvOS == iconApplies      { keyWord = "tvOS" }
+            if watchOS == iconApplies   { keyWord = "WatchOS" }
+        }
+        var vid  = ""
+        var xtra = ""
+        if downloadedVid.contains("sd") { vid = "sd" }
+        if downloadedVid.contains("HD") { vid = "HD" }
+        if downloadedVid.contains("pdf") { xtra = "pdf" }
+        if downloadedVid.contains("code") { xtra = "Code" }
+        let t = "\(year)\t\(sessionNum)\t\(macOS)\t\(iOS)\t\(watchOS)\t\(title)\t\(keyWord)\t\t\(vid)\t\(xtra)\t\(desc)\n"
         text += t
         outputLines.append((t, keyWord.lowercased()+sessionNum))
     }//loop
@@ -168,20 +181,23 @@ func getDownloads(fromUrl: URL) -> [String: String] {
     print("ViewController #\(#line) \(urlVid.path)")
     guard let files = try? FileManager.default.contentsOfDirectory(atPath: urlVid.path) else { return dict }
     let filteredFiles = files.filter { $0.hasSuffix(".mp4") || $0.hasSuffix(".mov") || $0.hasSuffix(".m4v") }
-    for file in filteredFiles {
+    for file in files {
         let comps = file.components(separatedBy: "_")
-        if comps.count < 3 {
+        if comps.count < 2 {
             print("😡 ViewController #\(#line) file \"\(file)\" missing underscores")
             continue
         }
         let key = yearStr + "-" + comps[0]
         var value = comps[1]
-        if value == "hd" { value = "HD" }
-        if dict[key] != "HD" {
-            dict[key] = value
-        }
-        //print(key,value)
-    }
+
+        if !file.contains(".") { value = "code"}
+        else if file.hasSuffix(".pdf") { value = "pdf" }
+        else if value.lowercased() == "sd" { value = "sd" }
+        else if value.uppercased() == "HD" { value = "HD" }
+
+        dict[key, default: ""] += value
+    }//next file
+    
     print("🔷 ViewController #\(#line) -- \(filteredFiles.count) session videos found in \(urlVid.path)")
     return dict
 }
@@ -192,7 +208,7 @@ func getDownloads(fromUrl: URL) -> [String: String] {
 func printHeaderCount(header: String, headers: [String: Int]) {
     if !header.isEmpty {
         if let count = headers[header] {
-            print("analyseWWDC #\(#line) \(count) sessions in \"\(header)\"")
+            print("analyseWWDC #\(#line) ⬆️ \(count) sessions in \"\(header)\"")
         }
     }
 }
@@ -547,7 +563,7 @@ func getKeyWordVal(title: String, desc: String, year: Int) -> [String] {
         keyWords.append(key)
     }
     if keyWords.isEmpty && title.contains("Kit") {
-        print("😡 analyseWWDC #\(#line)  No keyword in \(title)")
+        print("analyseWWDC #\(#line) 😡  No keyword in \(title)")
     }
     return keyWords
 

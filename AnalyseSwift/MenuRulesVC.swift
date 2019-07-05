@@ -29,12 +29,25 @@ public struct CodeRule {
             defaults.set(value, forKey: udKey)
         }
 
-        //UserDefaults.standard.removeObject(forKey: "name")
+        // Note: To remove a UserDefault:
+        // UserDefaults.standard.removeObject(forKey: "name")
     }
 
     //---- getUserDefaults - Get the Rules from UserDefaults
     static func getUserDefaults() {
         let defaults = UserDefaults.standard
+
+        // Print Yser Defaults
+        let userDefDict = defaults.dictionaryRepresentation()
+        print("\n---- User Defaults ----")
+        for ud in userDefDict.sorted(by: { $0.key < $1.key }) {
+            let key = ud.key
+            let value = ud.value
+            if !key.hasPrefix("NS") && !key.lowercased().contains("apple") {
+                print("\(key.PadRight(30, truncate: true, useEllipsis: true, fillChr: ".")) = \(value)")
+            }
+        }
+        print()
 
         for (key, _) in StoredRule.dictStoredRules {
             let udKey = "Rule_" + key
@@ -81,17 +94,9 @@ class MenuRulesVC: NSViewController {
     }
 
     //MARK:- @IBOutlets
-
-    @IBOutlet weak var lblError:            NSTextField!
-    //                                              //@IBOutlets
-
-    @IBOutlet weak var chkDefault:          NSButton!
-    @IBOutlet weak var btnOk:               NSButton!
-
-    @IBOutlet weak var menuView: NSView!
-
-    @IBOutlet weak var tableView:    NSTableView!
-    @IBOutlet weak var tableCheckEnabled: NSButton!
+    @IBOutlet weak var chkDefault:  NSButton!
+    @IBOutlet weak var btnOk:       NSButton!
+    @IBOutlet weak var tableView:   NSTableView!
     
 
     //MARK:- @IBActions

@@ -72,8 +72,10 @@
 //  Compound Lines
 
 // WWDC:
-//  mark want if on prefered list & don't have
-//  mark have code & pdf
+//  mark "want" if on prefered list & don't "have"
+//  show date/time in output.
+//  show dounloaded videos that are no longer available online.
+//  Allow Batch-analyse for year range.
 
 /*
 Public Structs
@@ -746,7 +748,7 @@ extension ViewController {
                         }//end DispatchQueue.main
                     }//end DispatchQueue.global
 
-                }//end try do
+                }//end do/try
 
                 catch let error as NSError {
                     print("😡 ViewController #\(#line): analyseContentsButtonClicked error: \(error)")

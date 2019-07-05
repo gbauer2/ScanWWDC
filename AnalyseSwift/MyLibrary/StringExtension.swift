@@ -4,6 +4,7 @@
 //
 //  Created by George Bauer on 10/11/17.
 //  Copyright © 2017-2019 GeorgeBauer. All rights reserved.
+//  Ver 1.7.2   7/04/2019 PadRight now optionally truncates with ellipsis or does not truncate at all.
 //  Ver 1.7.1   4/23/2019 Depricate mid(). Add substring(begin,end) & substring(begin,length)
 //      1.7.0   3/31/2019 Change extension to StringProtocol. Added firstIntIndexOf, lastIntIndexOf, allIntIndexesOf
 //      1.6.1   3/09/2019 Subscripting for Int now only returns Character (avoids "Abiguous" error when compiler can't tell if String or Character)
@@ -164,11 +165,18 @@ extension StringProtocol {
     /// Add spaces (or fillChr) to end of String to fill a field
     /// - Parameters:
     ///   - width: Size of field (length of resulting String)
+    ///   - truncate: If true, truncate String that is too big to fit.
+    ///   - useEllipsis: If truncated, make lat character an ellipsis (…)
     ///   - fillChr: Optional fill character (defaults to space)
     /// - Returns: New String of length width
-    func PadRight(_ width: Int, fillChr: Character = " ") -> String {
+    func PadRight(_ width: Int, truncate: Bool = true, useEllipsis: Bool = false , fillChr: Character = " ") -> String {
         let len = self.count
-        if width <= len { return String(self.prefix(width)) }
+        if len >= width {                               // Truncate
+            if len == width || !truncate { return String(self) }                // No change
+            if !useEllipsis              { return String(self.prefix(width)) }  // Simply Truncate
+            return String(self.prefix(width-1) + "…")                           // Truncate with ellipsis
+        }
+        //                                              // Pad
         let fill = String(repeating: fillChr, count: width - len)
         return self + fill
     }
