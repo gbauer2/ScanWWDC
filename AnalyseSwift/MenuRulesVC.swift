@@ -90,7 +90,7 @@ class MenuRulesVC: NSViewController {
     }//end func
 
     override func viewWillAppear() {
-        //print("MenuRulesVC:", #line, MenuRulesVC.dictStoredRules[0])
+        //print("MenuRulesVC:", \(#line), MenuRulesVC.dictStoredRules[0])
     }
 
     //MARK:- @IBOutlets
@@ -151,7 +151,7 @@ class MenuRulesVC: NSViewController {
 
 }//end class MenuRulesVC
 
-//MARK:- MenuRulesVC: NSTextFieldDelegate - not used
+//MARK:- NSTextFieldDelegate - not used
 extension MenuRulesVC: NSTextFieldDelegate {
     func controlTextDidChange(_ obj: Notification) {
         if let txtFld = obj.object as? NSTextField {
@@ -194,7 +194,7 @@ extension MenuRulesVC: NSTextFieldDelegate {
 //Sample Data
 let sample = [0,1,2]
 
-// MARK: - MenuRulesVC: NSTableViewDataSource
+// MARK: - NSTableViewDataSource
 extension MenuRulesVC: NSTableViewDataSource {
 
     func numberOfRows(in tableView: NSTableView) -> Int {
@@ -204,7 +204,7 @@ extension MenuRulesVC: NSTableViewDataSource {
 }//end extension
 
 
-// MARK: - MenuRulesVC: NSTableViewDelegate
+// MARK: - NSTableViewDelegate
 extension MenuRulesVC: NSTableViewDelegate {
 
     func tableView(_ tableView: NSTableView,
@@ -212,7 +212,7 @@ extension MenuRulesVC: NSTableViewDelegate {
 
         let rule = MenuRulesVC.localRuleArray[row]
         let desc = rule.desc
-
+        // 11 chars = 88
         if let cell = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "RuleCell"), owner: nil) as? viewRule {
             cell.row = row
             cell.lblRuleName.stringValue = desc
@@ -223,6 +223,12 @@ extension MenuRulesVC: NSTableViewDelegate {
                 cell.txtParam.isHidden = true
             } else {
                 cell.txtParam.isHidden = false
+                if rule.paramText.count > 4 {
+                    var size = cell.txtParam.frame.size
+                    let width =  min( CGFloat(rule.paramText.count) * 8.6, 225)
+                    size.width = width
+                    cell.txtParam.setFrameSize(size)
+                }
                 cell.txtParam.stringValue = rule.paramText
             }
             return cell
@@ -232,32 +238,32 @@ extension MenuRulesVC: NSTableViewDelegate {
 
     func tableViewSelectionDidChange(_ notification: Notification) {
         if tableView.selectedRow < 0 {
-            print("⛔️ Error - MenuRulesVC #(#line) -- bad tableView selection")
+            print("⛔️ Error - MenuRulesVC #\(#line) -- bad tableView selection")
             return
         }
-        print("MenuRulesVC #(#line) -- \(tableView?.selectedRow ?? -1)")
+        print("MenuRulesVC #\(#line) -- \(tableView?.selectedRow ?? -1)")
     }//end func
 
 }//end extension
 
-    //MARK:- class viewRule: NSTableCellView
-    class viewRule: NSTableCellView {
-        var row = -1
-        @IBOutlet weak var chkEnabled: NSButton!
-        @IBOutlet weak var lblParam: NSTextField!
-        @IBOutlet weak var txtParam: NSTextField!
-        @IBOutlet weak var lblRuleName: NSTextField!
+//MARK:- Table Cell (class viewRule: NSTableCellView)
+class viewRule: NSTableCellView {
+    var row = -1
+    @IBOutlet weak var chkEnabled: NSButton!
+    @IBOutlet weak var lblParam: NSTextField!
+    @IBOutlet weak var txtParam: NSTextField!
+    @IBOutlet weak var lblRuleName: NSTextField!
 
 
-        @IBAction func chkEnabledClick(_ sender: NSButton) {
-            //print("MenuRulesVC #(#line) -- chkEnabled = \(chkEnabled.state)")
-            MenuRulesVC.localRuleArray[row].enabled = (chkEnabled.state == .on)
-        }
+    @IBAction func chkEnabledClick(_ sender: NSButton) {
+        //print("MenuRulesVC #\(#line) -- chkEnabled = \(chkEnabled.state)")
+        MenuRulesVC.localRuleArray[row].enabled = (chkEnabled.state == .on)
+    }
 
-        // Triggered by "Enter", or Loss-of-focus
-        @IBAction func paramTextChange(_ sender: Any) {
-            print("MenuRulesVC #(#line) -- paramText = \(txtParam.stringValue)")
-            MenuRulesVC.localRuleArray[row].paramText = txtParam.stringValue
-        }
-    }//end class
+    // Triggered by "Enter", or Loss-of-focus
+    @IBAction func paramTextChange(_ sender: Any) {
+        print("MenuRulesVC #\(#line) -- paramText = \(txtParam.stringValue)")
+        MenuRulesVC.localRuleArray[row].paramText = txtParam.stringValue
+    }
+}//end class
 

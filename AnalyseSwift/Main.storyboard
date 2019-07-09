@@ -24,7 +24,7 @@
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="VOq-y0-SEH"/>
                                         <menuItem title="Preferences…" keyEquivalent="," id="BOF-NM-1cW"/>
-                                        <menuItem title="Rules..." id="5bC-vn-lq7">
+                                        <menuItem title="Swift Code Rules..." id="5bC-vn-lq7">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
                                                 <segue destination="KAv-tW-oNH" kind="show" id="Q7t-Ig-zY7"/>
@@ -223,7 +223,7 @@
         <scene sceneID="clW-Ey-iaA">
             <objects>
                 <windowController id="KAv-tW-oNH" sceneMemberID="viewController">
-                    <window key="window" title="Code Rules" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" frameAutosaveName="" animationBehavior="default" id="Vtr-CR-Jwi">
+                    <window key="window" title="Swift Code Rules" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" frameAutosaveName="" animationBehavior="default" id="Vtr-CR-Jwi">
                         <windowStyleMask key="styleMask" titled="YES" closable="YES"/>
                         <rect key="contentRect" x="196" y="240" width="400" height="300"/>
                         <rect key="screenRect" x="0.0" y="0.0" width="1440" height="877"/>
@@ -273,11 +273,11 @@
                             <scrollView fixedFrame="YES" autohidesScrollers="YES" horizontalLineScroll="36" horizontalPageScroll="10" verticalLineScroll="36" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="GaX-tC-Rk0">
                                 <rect key="frame" x="0.0" y="49" width="320" height="664"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <clipView key="contentView" ambiguous="YES" id="g0v-ss-ebO">
+                                <clipView key="contentView" ambiguous="YES" drawsBackground="NO" id="g0v-ss-ebO">
                                     <rect key="frame" x="1" y="1" width="318" height="662"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
-                                        <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnReordering="NO" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" rowHeight="34" rowSizeStyle="automatic" viewBased="YES" id="TGo-3e-2a8">
+                                        <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" selectionHighlightStyle="none" alternatingRowBackgroundColors="YES" columnReordering="NO" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" rowHeight="34" rowSizeStyle="automatic" viewBased="YES" id="TGo-3e-2a8">
                                             <rect key="frame" x="0.0" y="0.0" width="318" height="662"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <size key="intercellSpacing" width="3" height="2"/>
@@ -330,11 +330,10 @@
                                                                         <action selector="chkEnabledClick:" target="KLN-hd-ist" id="1lt-vU-Y7r"/>
                                                                     </connections>
                                                                 </button>
-                                                                <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" textCompletion="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ngk-at-5oT">
-                                                                    <rect key="frame" x="71" y="0.0" width="50" height="17"/>
+                                                                <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" ambiguous="YES" textCompletion="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ngk-at-5oT">
+                                                                    <rect key="frame" x="71" y="0.0" width="40" height="17"/>
                                                                     <constraints>
                                                                         <constraint firstAttribute="height" constant="17" id="5Yh-G4-bfK"/>
-                                                                        <constraint firstAttribute="width" constant="50" id="71q-oN-jby"/>
                                                                     </constraints>
                                                                     <textFieldCell key="cell" lineBreakMode="truncatingTail" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="border" alignment="left" placeholderString="?" id="1h3-rM-Lay">
                                                                         <font key="font" metaFont="system"/>
@@ -382,6 +381,7 @@
                                             </tableColumns>
                                         </tableView>
                                     </subviews>
+                                    <nil key="backgroundColor"/>
                                 </clipView>
                                 <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="MFT-oC-NPS">
                                     <rect key="frame" x="1" y="119" width="223" height="15"/>
@@ -514,9 +514,10 @@
                                                     <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
                                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                                     <size key="minSize" width="520" height="643"/>
-                                                    <size key="maxSize" width="759" height="10000000"/>
+                                                    <size key="maxSize" width="7777" height="10000000"/>
                                                     <attributedString key="textStorage">
-                                                        <fragment content="-empty-">
+                                                        <fragment>
+                                                            <string key="content">-empty- This long piece of text is to force the horizontal scroll Bar on, as well as allowing an Interface Builder designated font. WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW</string>
                                                             <attributes>
                                                                 <color key="NSColor" name="textColor" catalog="System" colorSpace="catalog"/>
                                                                 <font key="NSFont" size="12" name="Courier"/>
@@ -732,6 +733,7 @@
                         <outlet property="saveInfoButton" destination="xBl-4b-TZr" id="afX-BC-h4N"/>
                         <outlet property="splitView" destination="kND-5T-e8y" id="oqN-bO-cke"/>
                         <outlet property="tableView" destination="xo6-kP-ovj" id="6NL-I5-Zae"/>
+                        <outlet property="textViewScroller" destination="gE3-tc-2mg" id="qNG-G5-Ukx"/>
                     </connections>
                 </viewController>
                 <customObject id="rPt-NT-nkU" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>

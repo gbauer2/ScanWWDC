@@ -38,67 +38,67 @@ public struct XcodeProj {
     var hasUnitTest          = false
     var hasUITest            = false
     var url = FileManager.default.homeDirectoryForCurrentUser   // from URL
-}
 
-// component of XcodeProj
-struct PBXNativeTarget {
-    var name                = ""    // "AnalyseSwiftCode"
-    var productName         = ""    // "FileSpy"
-    var productType         = ""    // "com.apple.product-type.application" or "com.apple.product-type.bundle.unit-test"
-    var productReference    = ""    // key - PBXFileReference
-    var buildConfigurationListKey = "" // key - XCConfigurationList contains 2 buildConfigurations(Debug & Release) >
-// PBXProject section > attributes > TargetAttributes
-    var TestTargetID        = ""    // 26ECD3361E874B5B00380F56
-    var DevelopmentTeam     = ""    // XD8UZ6484B
-    var LastSwiftMigration  = ""    // 1010
-    var createdOnToolsVersion = ""  // 8.2.1
-    var ORGANIZATIONNAME    = ""    // ORGANIZATIONNAME = "Ray Wenderlich"
+    // component of XcodeProj
+    struct PBXNativeTarget {
+        var name                = ""    // "AnalyseSwiftCode"
+        var productName         = ""    // "FileSpy"
+        var productType         = ""    // "com.apple.product-type.application" or "com.apple.product-type.bundle.unit-test"
+        var productReference    = ""    // key - PBXFileReference
+        var buildConfigurationListKey = "" // key - XCConfigurationList contains 2 buildConfigurations(Debug & Release) >
+        // PBXProject section > attributes > TargetAttributes
+        var TestTargetID        = ""    // 26ECD3361E874B5B00380F56
+        var DevelopmentTeam     = ""    // XD8UZ6484B
+        var LastSwiftMigration  = ""    // 1010
+        var createdOnToolsVersion = ""  // 8.2.1
+        var ORGANIZATIONNAME    = ""    // ORGANIZATIONNAME = "Ray Wenderlich"
+    }
+
+    //MARK: analyseXcodeproj    62-100 = 38-lines
+    //---- analyseXcodeproj - Analyse a .xcodeproj file, returning an errorText and an XcodeProj instance
+    static func analyse(url: URL, goDeep: Bool, deBug: Bool = true) -> (String, XcodeProj) {
+        xcodeProj = XcodeProj()
+        xcodeProj.url       = url
+        xcodeProj.filename  = url.lastPathComponent
+        let pbxprojURL      = url.appendingPathComponent("project.pbxproj")
+        print("\n🔷 AnalyseXcodeproj.swift #\(#line) Enter analyseXcodeproj(\(xcodeProj.filename))")
+
+        do {
+            let storedData = try String(contentsOf: pbxprojURL)
+            pbxToXcodeProj(storedData, deBug: deBug)
+            if deBug {print("\n🍎 \(xcodeProj)")}
+        } catch {
+            return  ( "Error: Could not read \"\(pbxprojURL.lastPathComponent)\"\n\(pbxprojURL.path)", xcodeProj)
+        }
+
+        // Read & analyse the individual Swift files.
+        if goDeep {
+            xcodeProj.swiftSummaries = []
+            for url in xcodeProj.swiftURLs {
+                let fileInfo = FileAttributes.getFileInfo(url: url)       // set selecFileInfo (name,dates,size,type)
+
+                do {
+                    let contentFromFile = try String(contentsOf: url, encoding: String.Encoding.utf8)
+                    let swiftSummary = analyseSwiftFile(contentFromFile: contentFromFile, selecFileInfo: fileInfo, deBug: false )
+                    xcodeProj.swiftSummaries.append(swiftSummary)
+                } catch let error as NSError {
+                    print("⛔️ analyseContentsButtonClicked error: ⛔️\n⛔️\(error)⛔️")
+                }//end try catch
+            }
+            if deBug {
+                print("✅✅✅✅✅✅")
+                print(xcodeProj)
+                print("✅✅✅✅✅✅")
+            }
+        }
+
+        return ( "", xcodeProj)
+
+    }//end func analyse
+
 }
 
 //MARK:- funcs
-
-//MARK: analyseXcodeproj    62-100 = 38-lines
-//---- analyseXcodeproj - Analyse a .xcodeproj file, returning an errorText and an XcodeProj instance
-public func analyseXcodeproj(url: URL, goDeep: Bool, deBug: Bool = true) -> (String, XcodeProj) {
-    xcodeProj = XcodeProj()
-    xcodeProj.url       = url
-    xcodeProj.filename  = url.lastPathComponent
-    let pbxprojURL      = url.appendingPathComponent("project.pbxproj")
-    print("\n🔷 AnalyseXcodeproj.swift #\(#line) Enter analyseXcodeproj(\(xcodeProj.filename))")
-
-    do {
-        let storedData = try String(contentsOf: pbxprojURL)
-        pbxToXcodeProj(storedData, deBug: deBug)
-        if deBug {print("\n🍎 \(xcodeProj)")}
-    } catch {
-        return  ( "Error: Could not read \"\(pbxprojURL.lastPathComponent)\"\n\(pbxprojURL.path)", xcodeProj)
-    }
-
-    // Read & analyse the individual Swift files.
-    if goDeep {
-        xcodeProj.swiftSummaries = []
-        for url in xcodeProj.swiftURLs {
-            let fileInfo = FileAttributes.getFileInfo(url: url)       // set selecFileInfo (name,dates,size,type)
-
-            do {
-                let contentFromFile = try String(contentsOf: url, encoding: String.Encoding.utf8)
-                let swiftSummary = analyseSwiftFile(contentFromFile: contentFromFile, selecFileInfo: fileInfo, deBug: false )
-                xcodeProj.swiftSummaries.append(swiftSummary)
-            } catch let error as NSError {
-                print("⛔️ analyseContentsButtonClicked error: ⛔️\n⛔️\(error)⛔️")
-            }//end try catch
-        }
-        if deBug {
-            print("✅✅✅✅✅✅")
-            print(xcodeProj)
-            print("✅✅✅✅✅✅")
-        }
-    }
-
-    return ( "", xcodeProj)
-
-}//end func analyseXcodeproj
-
 //MARK: pbxToXcodeProj        104-327 = 223-lines
 //TODO: pbxToXcodeProj should return xcodeProj, errorMsg, pbxObjects, rootObjectKey
 func pbxToXcodeProj(_ xcodeprojRaw: String, deBug: Bool = true) {
@@ -636,7 +636,7 @@ private func isObjectKey(_ str: String) -> Bool {
 //var attTxt  = NSMutableAttributedString(string: "", attributes: attributesSmallFont)
 
 //---- showXcodeproj - from an XcodeProj, generate an NSAttributedString to display
-public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      //639-746 = 107-lines
+public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      //639-802 = 163-lines
 
     var text = ""
     var projIssues = [String]()
@@ -648,24 +648,24 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
 //            print("⛔️ showXcodeproj #\(#line) RuleID.ProductDif != CodeRule.flagProductNameDif")
 //        }
         if (StoredRule.dictStoredRules[RuleID.ProductDif]?.enabled ?? true) {
-            projIssues.append("AppName: \"\(xcodeProj.appName)\" != ProductName: \"\(xcodeProj.productName)\"")
+            projIssues.append("  1 AppName: \"\(xcodeProj.appName)\" != ProductName: \"\(xcodeProj.productName)\"")
         }
     }
 
     if xcodeProj.swiftVerMin != xcodeProj.swiftVerMax {
-        let issue = "Multiple Swift Versions: \(xcodeProj.swiftVerMin) & \(xcodeProj.swiftVerMax)"
+        let issue = "  1 Multiple Swift Versions: \(xcodeProj.swiftVerMin) & \(xcodeProj.swiftVerMax)"
         text += "\(issue)\n"
         projIssues.append(issue)
     } else {
         if xcodeProj.swiftVerMin == 0.0 {
-            let issue = "No Swift Version found"
+            let issue = "  1 No Swift Version found"
             text += "\(issue)!\n"
             projIssues.append(issue)
         } else {
             if let minVerRule = StoredRule.dictStoredRules[RuleID.MinVerSwift] {
                 if let minVer = Double(minVerRule.paramText) {
                     if minVerRule.enabled && xcodeProj.swiftVerMin < minVer {
-                        projIssues.append("Obsolete Swift Version \(xcodeProj.swiftVerMin)")
+                        projIssues.append("  1 Obsolete Swift Version \(xcodeProj.swiftVerMin)")
                     }
                 }
             }
@@ -683,8 +683,8 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
     text += "\(xcodeProj.deploymentTarget)\n"    // deploymentTarget
 
     if let org = StoredRule.dictStoredRules[RuleID.Organization] {
-        if org.enabled && !org.desc.isEmpty && !org.desc.contains(xcodeProj.organizationName) {
-            projIssues.append("External Organization \"\(xcodeProj.organizationName)\"")
+        if org.enabled && !org.desc.isEmpty && !org.paramText.contains(xcodeProj.organizationName) {
+            projIssues.append("  1 External Organization \"\(xcodeProj.organizationName)\"")
         }
     }
     var totalCodeLine     = 0
@@ -702,8 +702,10 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
 
     //FIXME: This section needs to be changed for table-based issues.
     var todos = [String]()
+    var bigFiles  = [String]()
     for swiftSummary in xcodeProj.swiftSummaries {
         let fileName = swiftSummary.fileName
+        let shortName = fileName.components(separatedBy: ".")[0]
         let isTest = swiftSummary.url.path.contains("TestSharedCode")
         if isTest || (fileName != "VBcompatablity.swift" && fileName != "MyFuncs.swift" && fileName != "StringExtension.swift") {
             let clCt = swiftSummary.codeLineCount
@@ -718,14 +720,17 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
             for (id, issue) in swiftSummary.dictIssues {    //.sort{ $0.sortOrder }
                 let count = issue.items.count
                 switch id {
-                case RuleID.bigFunc, RuleID.bigFile:
+                case RuleID.bigFile:
+                    bigCt           += count
+                    totalBig        += count
+                case RuleID.bigFunc:
                     bigCt           += count
                     totalBig        += count
                 case RuleID.toDo:
                     todoCt          += count
                     totalToDoFixMe  += count
                     for item in issue.items {
-                        let x = "\(fileName) \(item.lineNum) \(item.name)"
+                        let x = "\(shortName.PadRight(20))\(formatInt(item.lineNum, wid: 4)) \(item.name)"
                         todos.append(x)
                     }
                 case RuleID.forceUnwrap:
@@ -746,7 +751,7 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
             if let bigFile = swiftSummary.dictIssues[RuleID.bigFile] {
                 if bigFile.items.count > 0 {
                     let maxFileCodeLines = getParamInt(from: RuleID.bigFile) ?? 9999
-                    projIssues.append("\"\(bigFile.items[0].name)\" has \(clCt) code-lines (>\(maxFileCodeLines)).")
+                    bigFiles.append("   \(bigFile.items[0].name.PadRight(26)) has \(clCt) code-lines (>\(maxFileCodeLines)).")
                 }
             }
 
@@ -768,14 +773,17 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
         text += "\n-------- No Issues --------\n"
     } else {
         text += "\n--------- \(totalIssueCount) Possible \("Issue".pluralize(totalIssueCount)) in \(xcodeProj.filename) ---------\n"
-        if totalToDoFixMe    > 0 {text += "\(showCount(count: totalToDoFixMe,    name: "TODO: or FIXME: comment")).\n"}
-        for todo in todos { text += "  \(todo)\n" }
-        if totalVarNaming    > 0 {text += "\(showCount(count: totalVarNaming,    name: "NonCamelCase Variable")).\n"}
-        if totalForceUnwrap  > 0 {text += "\(showCount(count: totalForceUnwrap,  name: "ForceUnwrap")).\n"}
-        if totalVbCompatCall > 0 {text += "\(showCount(count: totalVbCompatCall, name: "VBcompatability Call")).\n"}
-        if totalGlobal       > 0 {text += "\(showCount(count: totalGlobal,       name: "Global & Free Function")).\n"}
-        if totalBig          > 0 {text += "\(showCount(count: totalBig,          name: "Massive func/file")).\n"}
-        if totalMisc         > 0 {text += "\(showCount(count: totalMisc,         name: "miscellaneous issue")).\n"}
+        if totalToDoFixMe    > 0 {text += "\(showCountR(count: totalToDoFixMe,    name: "TODO: or FIXME: comment", intWid: 3)).\n"}
+        for todo in todos { text += "   \(todo)\n" }
+        if totalVarNaming    > 0 {text += "\(showCountR(count: totalVarNaming,    name: "NonCamelCase Variable", intWid: 3)).\n"}
+        if totalForceUnwrap  > 0 {text += "\(showCountR(count: totalForceUnwrap,  name: "ForceUnwrap", intWid: 3)).\n"}
+        if totalVbCompatCall > 0 {text += "\(showCountR(count: totalVbCompatCall, name: "VBcompatability Call", intWid: 3)).\n"}
+        if totalGlobal       > 0 {text += "\(showCountR(count: totalGlobal,       name: "Global & Free Function", intWid: 3)).\n"}
+        if totalBig          > 0 {text += "\(showCountR(count: totalBig,          name: "Massive func/file", intWid: 3)).\n"}
+        for bigF in bigFiles {
+            text += "\(bigF)\n"
+        }
+        if totalMisc         > 0 {text += "\(showCountR(count: totalMisc,         name: "miscellaneous issue", intWid: 3)).\n"}
     }
     for issue in projIssues {
         text += issue + "\n"
@@ -792,6 +800,15 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
     let formattedText = NSMutableAttributedString(string: text, attributes: textAttributes)
     return formattedText
 }//end func
+
+private func showCountR(count: Int, name: String, intWid: Int) -> String {
+    let str = showCount(count: count, name: name)
+    let i = str.firstIntIndexOf(" ")
+    if i < intWid {
+        return String(repeating: " ", count: intWid-i) + str
+    }
+    return str
+}
 
 //                      filename        lines      todo       naming
 private func format2(_ name: String, _ c1: Int, _ c2: Int, _ c3: Int, _ c4: Int, _ c5: Int, _ c6: Int, _ c7: Int, _ c8: Int) -> String {

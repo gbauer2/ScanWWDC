@@ -22,7 +22,7 @@ func analyseWWDC(_ str: String, selecFileInfo: FileAttributes) -> (NSAttributedS
     let attributesErrorFont = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 16)]
     let attributesSmallFont = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 12)]
 
-    let downloadedVideos = getDownloads(fromUrl: selecFileInfo.url!)
+    let downloadedVideos = getWWDCDownloads(fromUrl: selecFileInfo.url!)
 
     var year    = 0
     var lineNum = 0
@@ -151,9 +151,9 @@ func analyseWWDC(_ str: String, selecFileInfo: FileAttributes) -> (NSAttributedS
         if downloadedVid.contains("HD") { vid = "HD" }
         if downloadedVid.contains("pdf") { xtra = "pdf" }
         if downloadedVid.contains("code") { xtra = "Code" }
-        let t = "\(year)\t\(sessionNum)\t\(macOS)\t\(iOS)\t\(watchOS)\t\(title)\t\(keyWord)\t\t\(vid)\t\(xtra)\t\(desc)\n"
-        text += t
-        outputLines.append((t, keyWord.lowercased()+sessionNum))
+        let header = "\(year)\t\(sessionNum)\t\(macOS)\t\(iOS)\t\(watchOS)\t\(title)\t\(keyWord)\t\t\(vid)\t\(xtra)\t\(desc)\n"
+        text += header
+        outputLines.append((header, keyWord.lowercased()+sessionNum))
     }//loop
     outputLines.sort {$0.sortBy < $1.sortBy}
     let oLines = outputLines.map { $0.line }
@@ -166,11 +166,11 @@ func analyseWWDC(_ str: String, selecFileInfo: FileAttributes) -> (NSAttributedS
     let msg = "\(totalSessions) Total Sessions\n \(sessionsWithNoKeyword) with no Keyword\n\(downloadedVideos.count) Videos Downloaded\n\nResults are in Clipboard.\nPaste into blank spreadsheet cell A1"
     print("analyseWWDC #\(#line) \(totalSessions) Total Sessions")
     //alertW("\(totalSessions) Total Sessions", title: "Done")
-    copyToClipBoard(textToCopy: attTxt.string)
+    copyStringToClipBoard(textToCopy: attTxt.string)
     return (attTxt, "WWDC-\(year) Done|" + msg)
 }//end func analyseWWDC
 
-func getDownloads(fromUrl: URL) -> [String: String] {
+func getWWDCDownloads(fromUrl: URL) -> [String: String] {
     var dict = [String: String]()
     let filename = fromUrl.deletingPathExtension().lastPathComponent
     if filename.count < 9 || !filename.hasPrefix("WWDC") { return dict }
@@ -200,7 +200,7 @@ func getDownloads(fromUrl: URL) -> [String: String] {
     
     print("🔷 ViewController #\(#line) -- \(filteredFiles.count) session videos found in \(urlVid.path)")
     return dict
-}
+}//end func
 
 
 
@@ -213,8 +213,8 @@ func printHeaderCount(header: String, headers: [String: Int]) {
     }
 }
 
-//MARK:- copyToClipBoard
-public func copyToClipBoard(textToCopy: String) {
+//MARK:- copyStringToClipBoard
+public func copyStringToClipBoard(textToCopy: String) {
     let pasteBoard = NSPasteboard.general
     pasteBoard.clearContents()
     pasteBoard.setString(textToCopy, forType: NSPasteboard.PasteboardType.string)
@@ -232,7 +232,7 @@ func getKeyWordVal(title: String, desc: String, year: Int) -> [String] {
         static var applePay     = "ApplePay"
         static var appStore     = "AppStore"
         static var ARVR         = "AR/VR"
-        static var AVKit        = "AVKit"
+        static var avKit        = "AVKit"
         static var audio        = "Audio"
         static var autoLayout   = "AutoLayout"
         static var batteryLife  = "BatteryLife"
@@ -328,35 +328,14 @@ func getKeyWordVal(title: String, desc: String, year: Int) -> [String] {
     //watchOS but not iOS or macOS in desc
     //AU "Audio Unit"
 
-    //TODO: AVKit, Image -> Media? AVCapture?
-    //TODO: 2019-418 Getting the Most Out of Simulator    Metal    (... of Simulator. Find out how Simulator works, discover features you might not know exist, and get a tour of the command-line interface to Simulator for automation. Learn about native GPU acceleration in Simulator via Metal, and how to optimize your Metal code...)
+    //ToDO: AVKit, Image -> Media? AVCapture?
+    //ToDO: 2019-418 Getting the Most Out of Simulator    Metal    (... of Simulator...
 
-    //TODO: 2018-236 AVSpeechSynthesizer: Making iOS Talk    AVKit->?
-    //TODO: 2018-507 AVContentKeySession Best Practices      AVKit->           (management of FairPlay content decryption keys for HTTP Live Streaming.)
+    //ToDO: 2018-236 AVSpeechSynthesizer: Making iOS Talk    AVKit->?
+    //ToDO: 2018-507 AVContentKeySession Best Practices      AVKit->   (management of FairPlay content decryption keys for HTTP Live Streaming.)
 
-    //TODO: 2013-707 What's New in Kext Development    ->Kext
-    //TODO: 2013-204 What's New with Multitasking   Windows->? ...new APIs in iOS 7 will let your apps fetch data in the background...
-
-    //2019-803 Designing Great ML Experiences    Design->CoreML  (Machine learning...)
-    //2019-602 Working with USD (Universal Scene Description) ->Game
-    //2019-417 Improving Battery Life and Performance    Performance->Battery   (new ways to find and fix performance issues during daily development, beta testing, and public release on the App Store. Learn how to catch performance issues during daily development by measuring CPU, memory, and more in your XCTests)
-    //2018-228 What’s New in Energy Debugging    Debugging->Battery  (People expect long battery life on their mobile devices ... affects battery consumption ... Xcode Energy Reports...)
-    //2017-813 Writing Great Alerts    ->Alerts
-    //2017-806 Design For Everyone    Design->Accessibility    ...Learn how designing for accessibility and inclusiveness can...
-    //2016-303 Apple Device Management
-    //2015-712 Low Energy, High Performance: Compression and Accelerate   Performance->Accelerate   (The Accelerate framework...)
-    //2013-219 Making Your App World-Ready    ->Localization   ... and languages is easy with the built-in power of iOS and OS X. Walk through the basics of internationalization and localization...
-    //2013-412 Continuous Integration with Xcode 5    Xcode->Testing
-    //2013-701 Maximizing Battery Life on OS X ->Battery
-    //2013-611 Building Advanced iBooks HTML 5 Widgets and iAd ...   " iAD "->Obs
-
-
-    //2017-821 Get Started with Display P3   ->Media      (Wide color displays...)
-    //2016-301 "Subscription" "iTunes Connect" ->AppStore
-    //2016-420 Optimizing Web Content in Your App     debug->Web
-    //2016-711 NSURLSession           ->Web
-    //2016-712 Wide Color             ->Image
-    //2016-612 Game Technologies for Apple Watch      Game->Watch
+    //ToDO: 2013-707 What's New in Kext Development    ->Kext
+    //ToDO: 2013-204 What's New with Multitasking   Windows->? ...new APIs in iOS 7 will let your apps fetch data in the background...
 
     // Words later in list override earlier words.
     if allText.contains("UIKit")            { recordKeyWord(keyWord: kw.iOS,            weight:  2) }
@@ -377,7 +356,7 @@ func getKeyWordVal(title: String, desc: String, year: Int) -> [String] {
     if   allLc.contains("accessibil")       { recordKeyWord(keyWord: kw.accessibility,  weight: 22) }
     if allText.contains("Accelerate")       { recordKeyWord(keyWord: kw.accelerate,     weight: 26) }
     if desc.contains("Auto Layout")         { recordKeyWord(keyWord: kw.autoLayout,     weight: 28) }
-    if desc.contains("AV")                  { recordKeyWord(keyWord: kw.AVKit,          weight: 30) }
+    if desc.contains("AV")                  { recordKeyWord(keyWord: kw.avKit,          weight: 30) }
     if desc.contains("AR")                  { recordKeyWord(keyWord: kw.ARVR,           weight: 30) }
     if desc.contains("CarPlay")             { recordKeyWord(keyWord: kw.carPlay,        weight: 34) }
     if desc.contains("Cocoa")               { recordKeyWord(keyWord: kw.macOS,          weight: 36) }
@@ -460,7 +439,7 @@ func getKeyWordVal(title: String, desc: String, year: Int) -> [String] {
 
 
     if title.contains("Foundation")         { recordKeyWord(keyWord: kw.foundation,     weight: 112) }  //>"Cocoa"
-    if desc.contains("AV")                  { recordKeyWord(keyWord: kw.AVKit,          weight: 113) } //>Foundation
+    if desc.contains("AV")                  { recordKeyWord(keyWord: kw.avKit,          weight: 113) } //>Foundation
     if title.contains("Natural Language")   { recordKeyWord(keyWord: kw.naturalLang,    weight: 112) }
     if title.contains("Metal")              { recordKeyWord(keyWord: kw.metal,          weight: 150) }
     if title.contains("Localiz")            { recordKeyWord(keyWord: kw.localization,   weight: 112) }
@@ -478,7 +457,7 @@ func getKeyWordVal(title: String, desc: String, year: Int) -> [String] {
     if title.contains("ARKit")              { recordKeyWord(keyWord: kw.ARVR,           weight: 116) }
     if title.contains("TextKit")            { recordKeyWord(keyWord: kw.textKit,        weight: 125) }
     if title.contains("Text Kit")           { recordKeyWord(keyWord: kw.textKit,        weight: 125) }
-    if title.contains("AVKit")              { recordKeyWord(keyWord: kw.AVKit,          weight: 125) }
+    if title.contains("AVKit")              { recordKeyWord(keyWord: kw.avKit,          weight: 125) }
     if title.contains("Map Kit")            { recordKeyWord(keyWord: kw.mapKit,         weight: 125) }
     if titleLc.contains("mapkit")           { recordKeyWord(keyWord: kw.mapKit,         weight: 125) }
 

@@ -18,6 +18,7 @@
 // if newly opened folder has a single xcodeproj: analyse it
 // Display AnalyseSwift as expandable tree, with option for printable.
 // Show signatures for funcs & inits
+// Bug: TextView horizontal Scroll Bar may not show, based on original view.
 
 // Code:
 // Unit-Test CodeLineDetail for tripleQuote
@@ -59,6 +60,7 @@
 // Disable Save button until a change is made.
 // Differentiate rules & sub-rules.
 // Add "Reset Rules"
+// Add "Cancel"; change Save to OK
 
 // More Issues to Flag:
 //   Public func without markup
@@ -66,7 +68,7 @@
 //   Missing Unit-Test
 //   Type-Names must Start with Uppercase
 
-// Need User-Selected Rules & AnalyseXcodeproj table columns & UnitTests for:
+// Need UnitTests for:
 //  Free functions
 //  Globals
 //  Compound Lines
@@ -76,36 +78,6 @@
 //  show date/time in output.
 //  show dounloaded videos that are no longer available online.
 //  Allow Batch-analyse for year range.
-
-/*
-Public Structs
- AnalyseSwift
-   3    lines @     34     Issue
-  29    lines @     41     SwiftSummary
-   5    lines @    102     BlockAggregate
-   6    lines @    112     BlockInfo
-  16    lines @    122     LineItem
-
- AnalyseXcodeproj
-  22 lines @ 18     XcodeProj
-  10 lines @ 44     PBXNativeTarget
-
- CodeLineDetail
- 140 lines @ 17     CodeLineDetail
-
- MenuRulesVC
-  37 lines @ 25     CodeRule                        for editing rules (includes userDefaults)
-
- PBX
- 194 lines @ 17     PBX (CustomDebugStringConvertible)  for Xcodeproj
-
- StoredRules
-  75 lines @ 41     StoredRule                      for AnalyseSwift
-
- WordLookup
-  31 lines @ 11     WordLookup
-
-*/
 
 
 import Cocoa    /* partial-line Block Comment does work.*/
@@ -137,6 +109,7 @@ class ViewController: NSViewController, NSWindowDelegate {
     @IBOutlet weak var splitView:    NSSplitView!
     @IBOutlet weak var tableView:    NSTableView!
     @IBOutlet weak var infoTextView: NSTextView!
+    @IBOutlet var textViewScroller:  NSScrollView!
     @IBOutlet weak var saveInfoButton:          NSButton!
     @IBOutlet weak var moveUpButton:            NSButton!
     @IBOutlet weak var btnBack:                 NSButton!
@@ -488,7 +461,7 @@ extension ViewController {
                 DispatchQueue.main.async {
                     self.infoTextView.string = str
                 }
-                let (errCode, xcodeProj) = analyseXcodeproj(url:url, goDeep: false, deBug: false)
+                let (errCode, xcodeProj) = XcodeProj.analyse(url:url, goDeep: false, deBug: false)
                 if errCode.isEmpty {
                     let verStr = xcodeProj.swiftVerMin == 0 ? "2.x" : String(format: "%.1f", xcodeProj.swiftVerMin)
                     let barePath = url.deletingPathExtension().path
@@ -755,7 +728,7 @@ extension ViewController {
                 }//end try catch
 
             } else if analyseMode == .xcodeproj {
-                let (errCode, xcodeProj) = analyseXcodeproj(url:url, goDeep: true, deBug: false)
+                let (errCode, xcodeProj) = XcodeProj.analyse(url:url, goDeep: true, deBug: false)
                 let formattedText: NSAttributedString
                 if errCode.isEmpty {
                     formattedText = showXcodeproj(xcodeProj)
@@ -824,6 +797,10 @@ extension ViewController {
 
     // called from viewWillAppear - ???? Change to UserDefaults?
     func restoreCurrentSelections() {
+        // TODO: fix HorizontalScroller for infoTextView
+        // Attempts to fix HorizontalScroller
+        //  1 infoTextView.string = String(repeating: "W", count: 444)
+        //  2 textViewScroller.hasHorizontalScroller= true
         guard let dataFileUrl = urlForDataStorage() else {
             print("😡 ViewController #\(#line): No dataFileUrl!")
             return
