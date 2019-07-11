@@ -191,7 +191,7 @@ struct SwiftSumAttStr {
             if let rule = StoredRule.dictStoredRules[id] {
                 let title = rule.name
                 if id == RuleID.bigFile || id == RuleID.bigFunc {
-                    let maxCodeLines = getParamInt(from: id) ?? 9999
+                    let maxCodeLines = getParamInt(ruleID: id) ?? 9999
                     suffix = " ( >\(maxCodeLines) code-lines )"
                 }
                 txt.append(showLineItems(title: title, suffix: suffix, items: issue.items))

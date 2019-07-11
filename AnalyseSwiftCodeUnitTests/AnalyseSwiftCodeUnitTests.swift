@@ -305,12 +305,12 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         //var codeLine = ""
         var result = [String]()
 
-        result = getParamNames(line: "func f(extern intern: Int)")
+        result = getParamNames(line: "func f(extern intern: Int)", lineNum: -1)
         XCTAssertEqual(result.count, 2)
         XCTAssertEqual(result[0], "extern")
         XCTAssertEqual(result[1], "intern")
 
-        result = getParamNames(line: "func f(extern intern: Int, var1: String)")
+        result = getParamNames(line: "func f(extern intern: Int, var1: String)", lineNum: -2)
         XCTAssertEqual(result.count, 3)
         XCTAssertEqual(result[0], "extern")
         XCTAssertEqual(result[2], "var1")

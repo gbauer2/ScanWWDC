@@ -6,7 +6,8 @@
 //  Copyright © 2018 GeorgeBauer. All rights reserved.
 //
 //  When next noncompatible ver is made, change sign to Sign
-//  Ver 1.8.6  8/22/2018 Fix CDate "08/09/1995 16:19"
+//  Ver 1.8.7  5/02/2019 Refactor to remove single-letter variables - no functionality change.
+//      1.8.6  8/22/2018 Fix CDate "08/09/1995 16:19"
 //      1.8.5  8/16/2018 Fix CDate "8/09/1995 16:19"
 //      1.8.4  8/14/2018 Fix CDate "7/31/2005 2:58 PM"
 //      1.8.3  8/11/2018 Fix CDate "8/09/1995 16:19:52";  VBcompPrintToLog= false

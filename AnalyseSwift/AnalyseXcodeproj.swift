@@ -248,10 +248,10 @@ func pbxToXcodeProj(_ xcodeprojRaw: String, deBug: Bool = true) {
         print("----------------------------------------------------------------")
     }
 
-    xcodeProj.compatibilityVersion = rootObject.compatibilityVersion
+    xcodeProj.compatibilityVersion = rootObject.compatibilityVersion.removeEnclosingQuotes()
     xcodeProj.lastSwiftUpdateCheck = rootObject.LastSwiftUpdateCheck
     xcodeProj.lastUpgradeCheck     = rootObject.LastUpgradeCheck
-    xcodeProj.organizationName     = rootObject.ORGANIZATIONNAME
+    xcodeProj.organizationName     = rootObject.ORGANIZATIONNAME.removeEnclosingQuotes()
 
     if !appSourceKey.isEmpty {
         appSourceObj = pbxObjects[appSourceKey]!
@@ -750,7 +750,7 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
 
             if let bigFile = swiftSummary.dictIssues[RuleID.bigFile] {
                 if bigFile.items.count > 0 {
-                    let maxFileCodeLines = getParamInt(from: RuleID.bigFile) ?? 9999
+                    let maxFileCodeLines = getParamInt(ruleID: RuleID.bigFile) ?? 9999
                     bigFiles.append("   \(bigFile.items[0].name.PadRight(26)) has \(clCt) code-lines (>\(maxFileCodeLines)).")
                 }
             }

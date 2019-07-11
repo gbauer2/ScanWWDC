@@ -227,13 +227,6 @@ public func extractString(from str: String, between char1: Character, and char2:
     return (remainderLhs, extracted, remainderRhs)
 }
 
-// Split line line into 2 parts at Int index - not used
-//internal func splitLineAtInt(_ line: String , at pos: Int ) -> (lhs: String, rhs: String) {
-//    let rightSide = line.substring(begin: pos+1).trim
-//    let leftSide = line.left(pos).trim
-//    return (leftSide, rightSide)
-//}
-
 // Find assignments in enum case - including associate value
 internal func getEnumCaseList(_ line: String) -> [String] {
     var list = [String]()
@@ -260,7 +253,8 @@ internal func getEnumCaseList(_ line: String) -> [String] {
     return list
 }
 
-internal func getParamNames(line: String) -> [String] {
+internal func getParamNames(line: String, lineNum: Int) -> [String] {
+    //TODO: getParamNames needs to handle partial line
     let open = line.firstIntIndexOf("(")
     if open < 0 {
         print("⛔️ AnalyseSwift.swift #\(#line) Probable line-continuation ('func' with no '(')")
@@ -268,7 +262,11 @@ internal func getParamNames(line: String) -> [String] {
     }
     let close = line.firstIntIndexOf(")")
     if close < open+1 {
+        // Hit by LatLonTranslator/ViewConrroller
         print("⛔️ AnalyseSwift.swift #\(#line) Probable line-continuation ('func' with no ')')")
+        print("  \(lineNum) \(line)\n")
+        //FIXME: Continuation Error occurs in LatLonTranslator
+
         return []
     }
     let paramStr = line.substring(begin: open+1, end: close-1)
@@ -320,6 +318,7 @@ internal func needsContinuation(codeLineDetail: CodeLineDetail, nextLine: String
         }
         print("⛔️ Error AnalyseSwift.swift #\(#line) - from needsContinuation(): OpenClose Mismatch: Paren excess = \(codeLineDetail.parenMismatch) Bracket exess = \(codeLineDetail.bracketMismatch)" )
         print("  \(lineNum) \(codeLine)\n  \(lineNum+1) \(nextLine)" )
+        //FIXME: Continuation Error occurs in LatLonTranslator
         print()
     }//endif mismatch
 
@@ -375,28 +374,32 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
     var maxCountError   = 0
     var stillInCompound = false
 
+    // Uses CodeRule
     func recordAnyVarNameIssue(_ name: String) {
-        let issue = checkVarName(name)
+        let enabled = StoredRule.dictStoredRules[RuleID.varNaming]?.enabled ?? true
+        if !enabled { return }
+        let minLen          = getParamInt(ruleID: RuleID.NameLenMinV) ?? 0
+        let maxLen          = getParamInt(ruleID: RuleID.NameLenMaxV) ?? 32000
+        let enforceCamel    = isEnabled(ruleID: RuleID.nonCamelVar)
+        let forbidAllCaps   = isEnabled(ruleID: RuleID.NoAllCapsV)
+        let forbidUnderscore = isEnabled(ruleID: RuleID.NoUnderscoreV)
+
+        let issue = checkVarName(name, minLen: minLen, maxLen: maxLen, enforceCamel: enforceCamel, forbidAllCaps: forbidAllCaps, forbidUnderscore: forbidUnderscore)
         if issue.isEmpty { return }
-        if StoredRule.dictStoredRules[RuleID.varNaming]?.enabled ?? true {
-            recordVarNameIssue(name: name, issue: issue)
-        }
+        recordVarNameIssue(name: name, issue: issue)
     }
 
     //---- checkVarName
     // Uses CodeRule
-    func checkVarName(_ name: String) -> String {
+    func checkVarName(_ name: String, minLen: Int, maxLen: Int, enforceCamel: Bool, forbidAllCaps: Bool, forbidUnderscore: Bool) -> String {
 
         if name == "_"    { return ""  }
-        if let minLen = StoredRule.dictStoredRules[RuleID.NameLenMinV]?.paramInt {
-            if name.count < minLen { return "too short (\(name.count) < \(minLen))" }
-        }
-        if let maxLen = StoredRule.dictStoredRules[RuleID.NameLenMaxV]?.paramInt {
-            if name.count > maxLen { return "too long (\(name.count) > \(maxLen))" }
-        }
+        if name.count < minLen { return "too short (\(name.count) < \(minLen))" }
+        if name.count > maxLen { return "too long (\(name.count) > \(maxLen))" }
+        if !enforceCamel { return "" }
 
         //Allow AllCaps
-        if !isEnabled(rule: RuleID.NoAllCapsV) {      // CodeRule.allowAllCaps
+        if !isEnabled(ruleID: RuleID.NoAllCapsV) {      // CodeRule.allowAllCaps
             var isAllCaps = true
             for char in name {
                 if !char.isUppercase && !char.isNumber {
@@ -424,22 +427,21 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
     // nonCamelVars needs 4 Rules minLen, maxLen, AllowAllCaps, AllowUnderscore
     func recordVarNameIssue(name: String, issue: String) {
         // MARK:  ➡️➡️ Record Issue "NamingVar"
-        let id = RuleID.varNaming
         let lineItem = LineItem(name: name, lineNum: lineNum, extra: issue)
-        recordIssue(id: id, lineItem: lineItem)
+        recordIssue(ruleID: RuleID.varNaming, lineItem: lineItem)
 
     }
 
-    func recordIssue(id: String, lineItem: LineItem) {
-        if isEnabled(rule: id) {
+    func recordIssue(ruleID: String, lineItem: LineItem) {
+        if isEnabled(ruleID: ruleID) {
             swiftSummary.totalIssues += 1
 
-            if swiftSummary.dictIssues[id] == nil {
+            if swiftSummary.dictIssues[ruleID] == nil {
                 swiftSummary.issueCatsCount += 1
-                let sortOrder = getSortOrder(from: id)
-                swiftSummary.dictIssues[id] = Issue(identifier: id, sortOrder: sortOrder, items: [])
+                let sortOrder = getSortOrder(ruleID: ruleID)
+                swiftSummary.dictIssues[ruleID] = Issue(identifier: ruleID, sortOrder: sortOrder, items: [])
             }
-            swiftSummary.dictIssues[id]!.items.append(lineItem)
+            swiftSummary.dictIssues[ruleID]!.items.append(lineItem)
         }
     }
 
@@ -529,9 +531,8 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                 let bareLine = String(line.dropFirst(2).trim)
                 if bareLine.hasPrefix("TODO:") ||  bareLine.hasPrefix("FIXME:") {
                     // MARK:  ➡️➡️ Record Issue "toDoFixMe"                     //@@
-                    let id = RuleID.toDo                                        //@@
                     let lineItem = LineItem(name: bareLine, lineNum: lineNum)   //@@
-                    recordIssue(id: id, lineItem: lineItem)
+                    recordIssue(ruleID: RuleID.toDo, lineItem: lineItem)
                 }//end RuleID.toDo //@@
             }
             continue    // end comment line
@@ -568,9 +569,8 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             if firstSplitter == ";" {
                 if !stillInCompound && !lineTuple.lhs.isEmpty && !lineTuple.rhs.isEmpty {
                     // MARK:  ➡️➡️ Record Issue "compoundLine"                      //@@
-                    let id = RuleID.compoundLine                                    //@@
                     let lineItem = LineItem(name: codeLineFull, lineNum: lineNum)   //@@
-                    recordIssue(id: id, lineItem: lineItem)
+                    recordIssue(ruleID: RuleID.compoundLine, lineItem: lineItem)
                     stillInCompound = true
                 }//end RuleID.compoundLine
                 swiftSummary.compoundLineCount += 1
@@ -663,9 +663,8 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                     }
 
                     // MARK:  ➡️➡️ Record Issue "forceUnwrap"                               //@@
-                    let id = RuleID.forceUnwrap                                             //@@
                     let lineItem = LineItem(name: xword, lineNum: lineNum, extra: extra)    //@@
-                    recordIssue(id: id, lineItem: lineItem)
+                    recordIssue(ruleID: RuleID.forceUnwrap, lineItem: lineItem)
 
                 }// end isForce
 
@@ -729,7 +728,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             if posFunc < words.count {
                 funcName = words[posFunc + 1]   // get the word that follows "func"
                 recordAnyVarNameIssue(funcName)
-                let paramNames = getParamNames(line: codeLine)
+                let paramNames = getParamNames(line: codeLine, lineNum: lineNum)
                 for name in paramNames {
                     recordAnyVarNameIssue(name)
                 }
@@ -758,9 +757,8 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             } else {
 
                 // MARK:  ➡️➡️ Record Issue "freeFunc"                              //@@
-                let id = RuleID.freeFunc                                            //@@
                 let lineItem = LineItem(name: blockOnDeck.name, lineNum: lineNum)   //@@
-                recordIssue(id: id, lineItem: lineItem)
+                recordIssue(ruleID: RuleID.freeFunc, lineItem: lineItem)
             }
         }//endif func
 
@@ -858,9 +856,8 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
 
             if assignees.count > 1 && !assignees[0].hasPrefix("(") {
                 // MARK:  ➡️➡️ Record Issue "compoundLine"                      //@@
-                let id = RuleID.compoundLine                                    //@@
                 let lineItem = LineItem(name: codeLineFull, lineNum: lineNum)   //@@
-                recordIssue(id: id, lineItem: lineItem)
+                recordIssue(ruleID: RuleID.compoundLine, lineItem: lineItem)
             }
 
             let isGlobal = blockStack.isEmpty ? true : false
@@ -875,9 +872,8 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                 }
                 if isGlobal {
                     // MARK:  ➡️➡️ Record Issue "global"                        //@@
-                    let id = RuleID.global                                      //@@
                     let lineItem = LineItem(name: name, lineNum: lineNum)       //@@
-                    recordIssue(id: id, lineItem: lineItem)
+                    recordIssue(ruleID: RuleID.global, lineItem: lineItem)
                 }//end isGlobal
                 recordAnyVarNameIssue(name)
             }//next assignee
@@ -897,11 +893,11 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
     swiftSummary.totalLineCount = lineNum
 
     // MARK:  ➡️➡️ Record Issue "massiveFile"
-    let id = RuleID.bigFile
-    let maxCodeLines = getParamInt(from: id) ?? 9999
+    let ruleID = RuleID.bigFile
+    let maxCodeLines = getParamInt(ruleID: ruleID) ?? 99999
     if swiftSummary.codeLineCount > maxCodeLines {
         let lineItem = LineItem(name: swiftSummary.fileName, lineNum: 0, codeLineCt: swiftSummary.codeLineCount)
-        recordIssue(id: id, lineItem: lineItem)
+        recordIssue(ruleID: ruleID, lineItem: lineItem)
     }
 
     if deBug && gDebug == .all { print("\n\(namedBlocks.count) named blocks") }         // Sanity Check
@@ -916,11 +912,11 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         switch bloc.blockType {
         case .isFunc:
             // MARK:  ➡️➡️ Record Issue "massiveFuncs"
-            let id = RuleID.bigFunc
-            let maxCodeLines = getParamInt(from: id) ?? 9999
+            let ruleID = RuleID.bigFunc
+            let maxCodeLines = getParamInt(ruleID: ruleID) ?? 9999
             if bloc.codeLineCount > maxCodeLines {
                 let lineItem = LineItem(name: bloc.name, lineNum: bloc.lineNum, codeLineCt: bloc.codeLineCount)
-                recordIssue(id: id, lineItem: lineItem)
+                recordIssue(ruleID: ruleID, lineItem: lineItem)
             }
         default: break
         }
@@ -956,18 +952,20 @@ private func getExtraForForceUnwrap(codeLineClean: String, word: String, idx: In
 }//end func
 
 //TODO: Move "isEnabled", "getParamText", etc. inside a struct
-public func isEnabled(rule key: String)    -> Bool {
-    return StoredRule.dictStoredRules[key]?.enabled ?? false
+public func isEnabled(ruleID: String)    -> Bool {
+    return StoredRule.dictStoredRules[ruleID]?.enabled ?? false
 }
 
-public func getParamText(from key: String) -> String {
-    return StoredRule.dictStoredRules[key]?.paramText ?? ""
+public func getParamText(ruleID: String) -> String {
+    if !isEnabled(ruleID: ruleID) { return "" }
+    return StoredRule.dictStoredRules[ruleID]?.paramText ?? ""
 }
 
-public func getParamInt(from key: String)  -> Int? {
-    return StoredRule.dictStoredRules[key]?.paramInt
+public func getParamInt(ruleID: String)  -> Int? {
+    if !isEnabled(ruleID: ruleID) { return nil }
+    return StoredRule.dictStoredRules[ruleID]?.paramInt
 }
 
-public func getSortOrder(from key: String) -> Int {
-    return StoredRule.dictStoredRules[key]?.sortOrder ?? 0
+public func getSortOrder(ruleID: String) -> Int {
+    return StoredRule.dictStoredRules[ruleID]?.sortOrder ?? 0
 }

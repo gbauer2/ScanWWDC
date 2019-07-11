@@ -113,17 +113,17 @@ public struct StoredRule {
                 itemNames = items
                 print(itemNames)
             } else {
-                let id          = stripQuotes(from: items[0])
-                let name        = stripQuotes(from: items[1])
+                let id          = items[0].removeEnclosingQuotes()
+                let name        = items[1].removeEnclosingQuotes()
                 let enabled     = (items[2] == "true" ? true : false)
-                let paramLabel  = stripQuotes(from: items[3])
-                let paramType   = stripQuotes(from: items[4])
-                let paramMin    = Int(stripQuotes(from: items[5]))
-                let paramMax    = Int(stripQuotes(from: items[6]))
-                let paramText   = stripQuotes(from: items[7])
-                let ruleType    = stripQuotes(from: items[8])
-                let sortOrder   = Int(stripQuotes(from: items[9])) ?? 0
-                let desc        = stripQuotes(from: items[10])
+                let paramLabel  = items[3].removeEnclosingQuotes()
+                let paramType   = items[4].removeEnclosingQuotes()
+                let paramMin    = Int(items[5].removeEnclosingQuotes())
+                let paramMax    = Int(items[6].removeEnclosingQuotes())
+                let paramText   = items[7].removeEnclosingQuotes()
+                let ruleType    = items[8].removeEnclosingQuotes()
+                let sortOrder   = Int(items[9].removeEnclosingQuotes()) ?? 0
+                let desc        = items[10].removeEnclosingQuotes()
                 let rule = StoredRule(id: id, name: name, desc: desc, enabled: enabled, paramLabel: paramLabel,
                                   paramText: paramText, paramType: paramType, paramMin: paramMin,
                                   paramMax: paramMax, sortOrder: sortOrder, ruleType: ruleType)
@@ -133,13 +133,4 @@ public struct StoredRule {
         return dictRules
     }//end func loadRules
 
-    //MARK: Helper funcs
-    private static func stripQuotes(from str: String) -> String {
-        if str.hasPrefix("\"") && str.hasSuffix("\"") {
-            let newStr = String(str.dropFirst().dropLast())
-            return newStr
-        } else {
-            return str
-        }
-    }
 }//end struct StoredRule

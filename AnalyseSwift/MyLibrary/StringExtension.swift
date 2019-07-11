@@ -4,8 +4,9 @@
 //
 //  Created by George Bauer on 10/11/17.
 //  Copyright © 2017-2019 GeorgeBauer. All rights reserved.
-//  Ver 1.7.2   7/04/2019 PadRight now optionally truncates with ellipsis or does not truncate at all.
-//  Ver 1.7.1   4/23/2019 Depricate mid(). Add substring(begin,end) & substring(begin,length)
+//  Ver 1.7.3   7/09/2019 Add removeEnclosingQuotes()
+//      1.7.2   7/04/2019 PadRight now optionally truncates with ellipsis or does not truncate at all.
+//      1.7.1   4/23/2019 Depricate mid(). Add substring(begin,end) & substring(begin,length)
 //      1.7.0   3/31/2019 Change extension to StringProtocol. Added firstIntIndexOf, lastIntIndexOf, allIntIndexesOf
 //      1.6.1   3/09/2019 Subscripting for Int now only returns Character (avoids "Abiguous" error when compiler can't tell if String or Character)
 //      1.6.0   6/13/2018 Add Subscripting for CountablePartialRangeFrom<Int>, PartialRangeThrough<Int>, PartialRangeUpTo<Int>.  Also Documentation
@@ -152,11 +153,12 @@ extension StringProtocol {
     }
 
     //---- rightJust - format right justify a String in a field ------
-    /// Returns a String of specified length representing an Integer right-justified
+    /// Returns a String of specified length representing an Integer right-justified.
+    /// Does not truncate when Int is too long.
     /// - Parameter fieldLen: length of returned String
     /// - Returns: new String padded with spaces
     func rightJust(_ fieldLen: Int) -> String {
-        guard self.count < fieldLen else { return self as? String ?? "" }
+        guard self.count < fieldLen else { return String(self) }
         let maxStr = String(repeating: " ", count: fieldLen)
         return (maxStr + self).right(fieldLen)
     }
@@ -320,6 +322,15 @@ extension StringProtocol {
         return self.replacingOccurrences(of: "\\s+$", with: "", options: .regularExpression)
     }
 
+    public func removeEnclosingQuotes() -> String {
+        let str = self.trimmingCharacters(in: .whitespacesAndNewlines)
+        if str.hasPrefix("\"") && str.hasSuffix("\"") {
+            let newStr = String(str.dropFirst().dropLast())
+            return newStr
+        }
+        return str
+    }
+
     //---- pluralize - Pluralize a word (English) ------
     /// Pluralize an English word if count > 0
     /// - Parameter count: Triggers pluralization if > 0
@@ -327,7 +338,8 @@ extension StringProtocol {
     func pluralize(_ count: Int) -> String {
         var str: String
         if count == 1 || self.count < 2 {
-            str = self as? String ?? String(self)
+            //str = self as? String ?? String(self)
+            str = String(self)
         } else {
             let last2Chars =  self.right(2)
             let lastChar = last2Chars.right(1)
@@ -339,10 +351,12 @@ extension StringProtocol {
                 suffix = "ies"
             } else if (lastChar.lowercased() == "s" || (lastChar.lowercased() == "o")
                 && consonants.filter({x in x == secondToLastChar}).count > 0) {
-                prefix = self as? String ?? String(self)
+                //prefix = self as? String ?? String(self)
+                prefix = String(self)
                 suffix = "es"
             } else {
-                prefix = self as? String ?? String(self)
+                //prefix = self as? String ?? String(self)
+                prefix = String(self)
                 suffix = "s"
             }
             str = prefix + (lastChar != lastChar.uppercased() ? suffix : suffix.uppercased())
