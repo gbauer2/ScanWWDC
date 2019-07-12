@@ -208,7 +208,7 @@ private func gotCloseCurly(lineNum: Int, nCodeLine: Int) {
 }//end func
 
 // Split line into 2 trimmed parts at 1st occurence of Character
-public func splitLine(_ line: String , atCharacter sep: Character ) -> (lhs: String, rhs: String) {
+public func splitLine(_ line: String , atFirst sep: Character ) -> (lhs: String, rhs: String) {
     let array = line.split(separator: sep, maxSplits: 1, omittingEmptySubsequences: false)
     //let array = line.split(maxSplits: 1, omittingEmptySubsequences: false, whereSeparator: { $0 == sep }) // $0.isWhitespace
     let lhs = String(array[0]).trim
@@ -219,11 +219,11 @@ public func splitLine(_ line: String , atCharacter sep: Character ) -> (lhs: Str
 // Remove
 public func extractString(from str: String, between char1: Character, and char2: Character)
     -> (remainderLhs: String, extracted: String, remainderRhs: String) {
-    let (remainderLhs, extractedPart) = splitLine(str, atCharacter: char1)
+    let (remainderLhs, extractedPart) = splitLine(str, atFirst: char1)
     if extractedPart.isEmpty {
         return (remainderLhs, extractedPart, "")     // char1 not there
     }
-    let (extracted, remainderRhs) = splitLine(extractedPart, atCharacter: char2)
+    let (extracted, remainderRhs) = splitLine(extractedPart, atFirst: char2)
     return (remainderLhs, extracted, remainderRhs)
 }
 
@@ -233,8 +233,8 @@ internal func getEnumCaseList(_ line: String) -> [String] {
     if line.hasPrefix("case ") {
         var myLine = String(line.dropFirst(5)).trim
         var associate = ""
-        (myLine, _) = splitLine(myLine, atCharacter: "=")
-        (myLine, associate) = splitLine(myLine, atCharacter: "(")
+        (myLine, _) = splitLine(myLine, atFirst: "=")
+        (myLine, associate) = splitLine(myLine, atFirst: "(")
         list = myLine.components(separatedBy: ",").map { $0.trim }
         if !associate.isEmpty {
             let index1 = associate.startIndex
@@ -378,11 +378,11 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
     func recordAnyVarNameIssue(_ name: String) {
         let enabled = StoredRule.dictStoredRules[RuleID.varNaming]?.enabled ?? true
         if !enabled { return }
-        let minLen          = getParamInt(ruleID: RuleID.NameLenMinV) ?? 0
-        let maxLen          = getParamInt(ruleID: RuleID.NameLenMaxV) ?? 32000
+        let minLen          = getParamInt(ruleID: RuleID.nameLenMinV) ?? 0
+        let maxLen          = getParamInt(ruleID: RuleID.nameLenMaxV) ?? 32000
         let enforceCamel    = isEnabled(ruleID: RuleID.nonCamelVar)
-        let forbidAllCaps   = isEnabled(ruleID: RuleID.NoAllCapsV)
-        let forbidUnderscore = isEnabled(ruleID: RuleID.NoUnderscoreV)
+        let forbidAllCaps   = isEnabled(ruleID: RuleID.noAllCapsV)
+        let forbidUnderscore = isEnabled(ruleID: RuleID.noUnderscoreV)
 
         let issue = checkVarName(name, minLen: minLen, maxLen: maxLen, enforceCamel: enforceCamel, forbidAllCaps: forbidAllCaps, forbidUnderscore: forbidUnderscore)
         if issue.isEmpty { return }
@@ -399,11 +399,11 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         if !enforceCamel { return "" }
 
         //Allow AllCaps
-        if !isEnabled(ruleID: RuleID.NoAllCapsV) {      // CodeRule.allowAllCaps
+        if !isEnabled(ruleID: RuleID.noAllCapsV) {      // CodeRule.allowAllCaps
             var isAllCaps = true
             for char in name {
                 if !char.isUppercase && !char.isNumber {
-                    if StoredRule.dictStoredRules[RuleID.NoUnderscoreV]!.enabled || char != "_" {
+                    if isEnabled(ruleID: RuleID.noUnderscoreV) || char != "_" {
                         isAllCaps = false
                         break
                     }
@@ -413,7 +413,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         }
 
         // AllCaps not allowed or Not AllCaps
-        if StoredRule.dictStoredRules[RuleID.NoUnderscoreV]!.enabled && name.contains("_") {
+        if isEnabled(ruleID: RuleID.noUnderscoreV) && name.contains("_") {
             return "Underscore in Name"
         }
 
@@ -563,7 +563,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
 
         let codeLine: String
         if let firstSplitter = codeLineDetail.firstSplitter {
-            let lineTuple = splitLine(codeLineFull, atCharacter: firstSplitter)
+            let lineTuple = splitLine(codeLineFull, atFirst: firstSplitter)
 
             // Split compound line
             if firstSplitter == ";" {
@@ -957,12 +957,12 @@ public func isEnabled(ruleID: String)    -> Bool {
 }
 
 public func getParamText(ruleID: String) -> String {
-    if !isEnabled(ruleID: ruleID) { return "" }
+    if !isEnabled(ruleID: ruleID) { return "" }     // Return empty String if not enabled
     return StoredRule.dictStoredRules[ruleID]?.paramText ?? ""
 }
 
 public func getParamInt(ruleID: String)  -> Int? {
-    if !isEnabled(ruleID: ruleID) { return nil }
+    if !isEnabled(ruleID: ruleID) { return nil }    // Return nil if not enabled
     return StoredRule.dictStoredRules[ruleID]?.paramInt
 }
 

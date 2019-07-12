@@ -31,15 +31,15 @@ public enum RuleID {
     static let freeFunc      = "FreeFunc"
     static let varNaming     = "varNaming"
     static let nonCamelVar   = "NonCamelVar"
-    static let NameLenMinV   = "NameLenMinV"
-    static let NameLenMaxV   = "NameLenMaxV"
-    static let NoUnderscoreV = "NoUnderscoreV"
-    static let NoAllCapsV    = "NoAllCapsV"
+    static let nameLenMinV   = "NameLenMinV"
+    static let nameLenMaxV   = "NameLenMaxV"
+    static let noUnderscoreV = "NoUnderscoreV"
+    static let noAllCapsV    = "NoAllCapsV"
     static let compoundLine  = "CompoundLine"
     //project rules
-    static let ProductDif    = "ProductDif"
-    static let Organization  = "Organization"
-    static let MinVerSwift   = "MinVerSwift"
+    static let productDif    = "ProductDif"
+    static let organization  = "Organization"
+    static let minVerSwift   = "MinVerSwift"
 }
 
 // MARK:- StoredRule struct 46-145 = 99-lines

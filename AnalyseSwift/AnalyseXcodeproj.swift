@@ -47,8 +47,8 @@ public struct XcodeProj {
         var productReference    = ""    // key - PBXFileReference
         var buildConfigurationListKey = "" // key - XCConfigurationList contains 2 buildConfigurations(Debug & Release) >
         // PBXProject section > attributes > TargetAttributes
-        var TestTargetID        = ""    // 26ECD3361E874B5B00380F56
-        var DevelopmentTeam     = ""    // XD8UZ6484B
+        var testTargetID        = ""    // 26ECD3361E874B5B00380F56
+        var developmentTeam     = ""    // XD8UZ6484B
         var LastSwiftMigration  = ""    // 1010
         var createdOnToolsVersion = ""  // 8.2.1
         var ORGANIZATIONNAME    = ""    // ORGANIZATIONNAME = "Ray Wenderlich"
@@ -65,7 +65,7 @@ public struct XcodeProj {
 
         do {
             let storedData = try String(contentsOf: pbxprojURL)
-            pbxToXcodeProj(storedData, deBug: deBug)
+            pbxToXcodeProj(storedData, deBug: deBug, pauseForErr: goDeep)
             if deBug {print("\n🍎 \(xcodeProj)")}
         } catch {
             return  ( "Error: Could not read \"\(pbxprojURL.lastPathComponent)\"\n\(pbxprojURL.path)", xcodeProj)
@@ -101,7 +101,7 @@ public struct XcodeProj {
 //MARK:- funcs
 //MARK: pbxToXcodeProj        104-327 = 223-lines
 //TODO: pbxToXcodeProj should return xcodeProj, errorMsg, pbxObjects, rootObjectKey
-func pbxToXcodeProj(_ xcodeprojRaw: String, deBug: Bool = true) {
+func pbxToXcodeProj(_ xcodeprojRaw: String, deBug: Bool = true, pauseForErr: Bool = true) {
     if deBug {
         print("Start pbxToXcodeProj")
         print("🏄‍♂️")
@@ -161,9 +161,11 @@ func pbxToXcodeProj(_ xcodeprojRaw: String, deBug: Bool = true) {
 
     //Analyse rootObject
 
-    //RootObject
-    let rootObject = pbxObjects[rootObjectKey]!                 // Root Object
-
+    //RootObject -> mainGroupObj -> childObj(appSourceKey)
+    guard let rootObject = pbxObjects[rootObjectKey] else {                // Root Object
+        if pauseForErr { GBox.alert("⛔️ AnalyseXcodeproj #\(#line) Could not decode PBX Root Object") }
+        return
+    }
     if deBug {
         print("\n\(#line) ----0 Root Object [PBXProject] ------------------------")
         print(rootObjectKey, rootObject)
@@ -171,22 +173,28 @@ func pbxToXcodeProj(_ xcodeprojRaw: String, deBug: Bool = true) {
 
     //RootObject > mainGroup
     let mainGroupKey = rootObject.mainGroup
-    let mainGroupObj = pbxObjects[mainGroupKey]!                // MainGroup Object
+    guard let mainGroupObj = pbxObjects[mainGroupKey] else {                // MainGroup Object
+        if pauseForErr { GBox.alert("⛔️ AnalyseXcodeproj #\(#line) Could not decode PBX Main Group Object") }
+        return
+    }
     if deBug {
         print("\n\n\(#line) --------1 rootObject > mainGroup [PBXGroup] ------------")
         print(mainGroupKey, mainGroupObj)
     }
     let mainGroupChildrenKeys = mainGroupObj.children
     var appSourceKey = ""
-    var appSourceObj = PBX()
+    //var appSourceObj = PBX()
 
     if deBug {print("\n\(#line) --------1 RootObject.mainGroup > \(mainGroupChildrenKeys.count)-children [PBXGroup] ------------")}
     // find Most likely child to have swift source files
     for ( i, childKey) in mainGroupChildrenKeys.enumerated() {
-        let childObj = pbxObjects[childKey]!
         if deBug {
             print("\n\(#line) ------------2 rootObject.mainGroup.child[\(i)] [PBXGroup] - children are [PBXFileReference] --------")
             print(childKey, pbxObjects[childKey] ?? "⛔️ #line-\(#line)Error: Missing mainGroupChildrenKey")
+        }
+        guard let childObj = pbxObjects[childKey] else {
+            if pauseForErr { GBox.alert("⛔️ AnalyseXcodeproj #\(#line) Could not decode PBX Root Object") }
+            continue
         }
         // real stuff
         if i == 0 {
@@ -214,14 +222,19 @@ func pbxToXcodeProj(_ xcodeprojRaw: String, deBug: Bool = true) {
     }
 
     let rootbuildConfigurationListKey = rootObject.buildConfigurationList
-    let rootbuildConfigurationListObj = pbxObjects[rootbuildConfigurationListKey]!
+    guard let rootbuildConfigurationListObj = pbxObjects[rootbuildConfigurationListKey] else {
+        if pauseForErr { GBox.alert("⛔️ AnalyseXcodeproj #\(#line) Could not decode PBX rootbuildConfigurationListObj") }
+        return
+    }
     for (i, buildConfigurationKey) in rootbuildConfigurationListObj.buildConfigurations.enumerated() {
         if deBug {
             print("\n\(#line) ------------2 rootObject.buildConfigurationList.buildConfiguration[\(i)] [PBXBuildConfiguration] --------")
             print(buildConfigurationKey, pbxObjects[buildConfigurationKey] ?? "⛔️ #line-\(#line)Error: Missing rootObject.buildConfigurationKey")
         }
-
-        let buildConfigurationObj = pbxObjects[buildConfigurationKey]!
+        guard let buildConfigurationObj = pbxObjects[buildConfigurationKey] else {
+            if pauseForErr { GBox.alert("⛔️ AnalyseXcodeproj #\(#line) Could not decode PBX buildConfigurationObj") }
+            continue
+        }
         let sdkroot = buildConfigurationObj.SDKROOT
         if deBug {print("🔹 \(buildConfigurationKey) SDKROOT = \"\(sdkroot)\"")}
         if !sdkroot.isEmpty {
@@ -254,7 +267,10 @@ func pbxToXcodeProj(_ xcodeprojRaw: String, deBug: Bool = true) {
     xcodeProj.organizationName     = rootObject.ORGANIZATIONNAME.removeEnclosingQuotes()
 
     if !appSourceKey.isEmpty {
-        appSourceObj = pbxObjects[appSourceKey]!
+        guard let appSourceObj = pbxObjects[appSourceKey] else {
+            if pauseForErr { GBox.alert("⛔️ AnalyseXcodeproj #\(#line) Could not decode PBX appSourceObj") }
+            return
+        }
         let dirPath = appSourceObj.path.replacingOccurrences(of: "\"", with: "")
         if deBug {
             print()
@@ -266,7 +282,10 @@ func pbxToXcodeProj(_ xcodeprojRaw: String, deBug: Bool = true) {
         let sourceFileKeys = appSourceObj.children
         let xcodeSourcesURL = xcodeProj.url.deletingLastPathComponent().appendingPathComponent(dirPath)
         for sourceFileKey in sourceFileKeys {
-            let sourceFileObj = pbxObjects[sourceFileKey]!
+            guard let sourceFileObj = pbxObjects[sourceFileKey] else {
+                if pauseForErr { GBox.alert("⛔️ AnalyseXcodeproj #\(#line) Could not decode PBX buildConfigurationObj") }
+                continue
+            }
             let fileName = sourceFileObj.path.replacingOccurrences(of: "\"", with: "")
             if sourceFileObj.children.isEmpty {
                 if fileName.hasSuffix(".swift") {
@@ -278,7 +297,7 @@ func pbxToXcodeProj(_ xcodeprojRaw: String, deBug: Bool = true) {
                 addSourceURLsFromSubFolder(thisURL: xcodeSourcesURL, sourceFileObj: sourceFileObj, deBug: deBug)
             }
             if deBug {print("😈", sourceFileObj)}
-        }
+        }//next sourceFileKey
     }
 
     // Set SDKROOT, SWIFT_VERSION, MACOSX_DEPLOYMENT_TARGET
@@ -647,7 +666,7 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
 //        if (StoredRule.dictStoredRules[RuleID.ProductDif]?.enabled ?? true) != CodeRule.flagProductNameDif {
 //            print("⛔️ showXcodeproj #\(#line) RuleID.ProductDif != CodeRule.flagProductNameDif")
 //        }
-        if (StoredRule.dictStoredRules[RuleID.ProductDif]?.enabled ?? true) {
+        if (StoredRule.dictStoredRules[RuleID.productDif]?.enabled ?? true) {
             projIssues.append("  1 AppName: \"\(xcodeProj.appName)\" != ProductName: \"\(xcodeProj.productName)\"")
         }
     }
@@ -662,7 +681,7 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
             text += "\(issue)!\n"
             projIssues.append(issue)
         } else {
-            if let minVerRule = StoredRule.dictStoredRules[RuleID.MinVerSwift] {
+            if let minVerRule = StoredRule.dictStoredRules[RuleID.minVerSwift] {
                 if let minVer = Double(minVerRule.paramText) {
                     if minVerRule.enabled && xcodeProj.swiftVerMin < minVer {
                         projIssues.append("  1 Obsolete Swift Version \(xcodeProj.swiftVerMin)")
@@ -682,7 +701,7 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
     text += "SDK Root                 = \(xcodeProj.sdkRoot)\n"
     text += "\(xcodeProj.deploymentTarget)\n"    // deploymentTarget
 
-    if let org = StoredRule.dictStoredRules[RuleID.Organization] {
+    if let org = StoredRule.dictStoredRules[RuleID.organization] {
         if org.enabled && !org.desc.isEmpty && !org.paramText.contains(xcodeProj.organizationName) {
             projIssues.append("  1 External Organization \"\(xcodeProj.organizationName)\"")
         }
@@ -700,7 +719,6 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
     text += "\n------------ \(showCount(count: xcodeProj.swiftURLs.count, name: "Swift file")) in \(xcodeProj.filename) ------------\n"   // "Swift files"
     text += "       FileName            CodeLines  ToDo  Naming F-Unwrap  VB  Global  Misc  Big\n"
 
-    //FIXME: This section needs to be changed for table-based issues.
     var todos = [String]()
     var bigFiles  = [String]()
     for swiftSummary in xcodeProj.swiftSummaries {
@@ -730,8 +748,8 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
                     todoCt          += count
                     totalToDoFixMe  += count
                     for item in issue.items {
-                        let x = "\(shortName.PadRight(20))\(formatInt(item.lineNum, wid: 4)) \(item.name)"
-                        todos.append(x)
+                        let todo = "\(shortName.PadRight(20))\(formatInt(item.lineNum, wid: 4)) \(item.name)"
+                        todos.append(todo)
                     }
                 case RuleID.forceUnwrap:
                     unwrapCt        += count
@@ -755,7 +773,6 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
                 }
             }
 
-            //FIXME: This section needs to be changed for table-based issues.
             let vbCt  = swiftSummary.vbCompatCalls.count + swiftSummary.vbCompatStringCalls.count + swiftSummary.vbCompatFileCalls.count
             totalVbCompatCall += vbCt
             text += format2(swiftSummary.url.lastPathComponent,clCt,todoCt,vnameCt,unwrapCt,vbCt,globlCt,miscCt,bigCt)
@@ -801,11 +818,12 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
     return formattedText
 }//end func
 
+// Show Count with right-justified count Int
 private func showCountR(count: Int, name: String, intWid: Int) -> String {
     let str = showCount(count: count, name: name)
-    let i = str.firstIntIndexOf(" ")
-    if i < intWid {
-        return String(repeating: " ", count: intWid-i) + str
+    let idx = str.firstIntIndexOf(" ")
+    if idx < intWid {
+        return String(repeating: " ", count: intWid-idx) + str
     }
     return str
 }

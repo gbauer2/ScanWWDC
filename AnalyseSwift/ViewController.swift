@@ -691,7 +691,7 @@ extension ViewController {
                             txt = attStr.completeAttText
                         } else if self.analyseMode == .WWDC {
                             var msg = ""
-                            (txt, msg) = analyseWWDC(contentFromFile, selecFileInfo: self.selecFileInfo)
+                            (txt, msg) = WWDC.analyse(contentFromFile, selecFileInfo: self.selecFileInfo)
                             if !msg.isEmpty {
                                 DispatchQueue.main.async {
                                     if let window = self.view.window {

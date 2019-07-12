@@ -52,7 +52,7 @@ public struct CodeRule {
         for (key, _) in StoredRule.dictStoredRules {
             let udKey = "Rule_" + key
             if let str = defaults.string(forKey: udKey) {        //7
-                let (enabledText, param) = splitLine(str, atCharacter: ",")
+                let (enabledText, param) = splitLine(str, atFirst: ",")
                 let enabled = (enabledText == "true")
                 print("MenuRulesVC #\(#line)  userDefault get  \(key): enabled=\(enabled),  paramText=\(param)")
                 StoredRule.dictStoredRules[key]!.enabled   = enabled
