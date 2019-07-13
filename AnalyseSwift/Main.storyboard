@@ -298,7 +298,7 @@
                                                     </textFieldCell>
                                                     <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                                     <prototypeCellViews>
-                                                        <tableCellView identifier="RuleCell" id="KLN-hd-ist" customClass="viewRule" customModule="AnalyseSwiftCode" customModuleProvider="target">
+                                                        <tableCellView identifier="RuleCell" id="KLN-hd-ist" customClass="ViewRule" customModule="AnalyseSwiftCode" customModuleProvider="target">
                                                             <rect key="frame" x="1" y="1" width="315" height="34"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                             <subviews>
