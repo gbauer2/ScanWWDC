@@ -213,7 +213,7 @@ extension MenuRulesVC: NSTableViewDelegate {
         let rule = MenuRulesVC.localRuleArray[row]
         let desc = rule.desc
         // 11 chars = 88
-        if let cell = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "RuleCell"), owner: nil) as? viewRule {
+        if let cell = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "RuleCell"), owner: nil) as? ViewRule {
             cell.row = row
             cell.lblRuleName.stringValue = desc
             cell.chkEnabled.state = rule.enabled ? .on : .off
@@ -246,8 +246,8 @@ extension MenuRulesVC: NSTableViewDelegate {
 
 }//end extension
 
-//MARK:- Table Cell (class viewRule: NSTableCellView)
-class viewRule: NSTableCellView {
+//MARK:- Table Cell (class ViewRule: NSTableCellView)
+class ViewRule: NSTableCellView {
     var row = -1
     @IBOutlet weak var chkEnabled: NSButton!
     @IBOutlet weak var lblParam: NSTextField!

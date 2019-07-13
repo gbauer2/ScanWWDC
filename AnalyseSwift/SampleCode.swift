@@ -127,7 +127,7 @@ private func testNSString() {
     myMuAttString.append(myAddedString)
 }//end func testNSString
 
-class MySampleClass {
+class mySampleClass {
     static public func HW() {
         print("😀Hello World!😀")
     }

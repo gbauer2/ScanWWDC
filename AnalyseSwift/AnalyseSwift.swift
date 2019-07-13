@@ -375,9 +375,26 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
     var stillInCompound = false
 
     // Uses CodeRule
+    func recordAnyTypeNameIssue(_ block: BlockInfo) {
+        if !isEnabled(ruleID: RuleID.typeNaming) { return }
+        let name = block.name
+//        let minLen          = getParamInt(ruleID: RuleID.nameLenMinV) ?? 0
+//        let maxLen          = getParamInt(ruleID: RuleID.nameLenMaxV) ?? 32000
+//        let enforceCamel    = isEnabled(ruleID: RuleID.nonCamelVar)
+//        let forbidAllCaps   = isEnabled(ruleID: RuleID.noAllCapsV)
+//        let forbidUnderscore = isEnabled(ruleID: RuleID.noUnderscoreV)
+
+        if !name[0].isUppercase {
+            let blockType = blockTypes[block.blockType.rawValue]
+            let extra = blockType.displayName + " name"
+            let lineItem = LineItem(name: name, lineNum: lineNum, extra: extra)
+            recordIssue(ruleID: RuleID.typeNaming, lineItem: lineItem)
+        }
+    }
+
+    // Uses CodeRule
     func recordAnyVarNameIssue(_ name: String) {
-        let enabled = StoredRule.dictStoredRules[RuleID.varNaming]?.enabled ?? true
-        if !enabled { return }
+        if !isEnabled(ruleID: RuleID.varNaming) { return }
         let minLen          = getParamInt(ruleID: RuleID.nameLenMinV) ?? 0
         let maxLen          = getParamInt(ruleID: RuleID.nameLenMaxV) ?? 32000
         let enforceCamel    = isEnabled(ruleID: RuleID.nonCamelVar)
@@ -429,7 +446,6 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         // MARK:  ➡️➡️ Record Issue "NamingVar"
         let lineItem = LineItem(name: name, lineNum: lineNum, extra: issue)
         recordIssue(ruleID: RuleID.varNaming, lineItem: lineItem)
-
     }
 
     func recordIssue(ruleID: String, lineItem: LineItem) {
@@ -806,6 +822,9 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
 
             blockTypes[blockIndex].total += 1
             foundNamedBlock = true
+            if blockOnDeck.blockType != .isExtension {
+                recordAnyTypeNameIssue(blockOnDeck)
+            }
             break
         }//end while
 
