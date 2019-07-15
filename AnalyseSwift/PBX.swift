@@ -231,7 +231,7 @@ public struct PBX: CustomDebugStringConvertible {
                 return
             }
         }
-        dict[key]!.changeProperty(propertyName: propertyName, vals: vals)
+        dict[key]?.changeProperty(propertyName: propertyName, vals: vals)
     }//end func
 
 }//end struct PBX

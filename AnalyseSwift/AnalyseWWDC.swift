@@ -25,7 +25,14 @@ class WWDC {
         let attributesErrorFont = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 16)]
         let attributesSmallFont = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 12)]
 
-        let downloadedVideos = getWWDCDownloads(fromUrl: selecFileInfo.url!)
+        guard let url = selecFileInfo.url else {
+            let msg = "Fatal Error analyseWWDC #\(#line): Could not resolve selected file URL."
+            print(msg)
+            attTx  = NSMutableAttributedString(string: msg + "\n", attributes: attributesErrorFont)
+            attTxt.append(attTx)
+            return (attTxt, "Error|" + msg)
+        }
+        let downloadedVideos = getWWDCDownloads(fromUrl: url)
 
         var year    = 0
         var lineNum = 0

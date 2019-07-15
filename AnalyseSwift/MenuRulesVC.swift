@@ -8,8 +8,6 @@
 
 import Cocoa
 
-//TODO:- TextView Properties (Dictonary? & Default Val):
-
 public enum ValType {
     case bool, int, text
 }
@@ -55,8 +53,12 @@ public struct CodeRule {
                 let (enabledText, param) = splitLine(str, atFirst: ",")
                 let enabled = (enabledText == "true")
                 print("MenuRulesVC #\(#line)  userDefault get  \(key): enabled=\(enabled),  paramText=\(param)")
-                StoredRule.dictStoredRules[key]!.enabled   = enabled
-                StoredRule.dictStoredRules[key]!.paramText = param
+                guard let _ = StoredRule.dictStoredRules[key] else {
+                    print("⛔️ MenuRulesVC #\(#line) StoredRule.dictStoredRules[\(key)] does not exist.")
+                    return
+                }
+                StoredRule.dictStoredRules[key]?.enabled   = enabled
+                StoredRule.dictStoredRules[key]?.paramText = param
             } else {
                 print("⛔️ Error - MenuRulesVC #\(#line) -- No UserDefault for \(key)")
             }
@@ -190,9 +192,6 @@ extension MenuRulesVC: NSTextFieldDelegate {
  */
 
 }//end extension
-
-//Sample Data
-let sample = [0,1,2]
 
 // MARK: - NSTableViewDataSource
 extension MenuRulesVC: NSTableViewDataSource {

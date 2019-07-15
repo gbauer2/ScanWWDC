@@ -49,7 +49,7 @@ public struct XcodeProj {
         // PBXProject section > attributes > TargetAttributes
         var testTargetID        = ""    // 26ECD3361E874B5B00380F56
         var developmentTeam     = ""    // XD8UZ6484B
-        var LastSwiftMigration  = ""    // 1010
+        var lastSwiftMigration  = ""    // 1010
         var createdOnToolsVersion = ""  // 8.2.1
         var ORGANIZATIONNAME    = ""    // ORGANIZATIONNAME = "Ray Wenderlich"
     }

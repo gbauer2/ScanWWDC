@@ -349,7 +349,12 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
     var swiftSummary = SwiftSummary()
     swiftSummary.initIssues()   //new
     swiftSummary.fileName = selecFileInfo.name
-    swiftSummary.url = selecFileInfo.url!
+    guard let url = selecFileInfo.url else {
+        let msg = "Fatal Error AnalystSwift #\(#line): Could not resolve selected file URL."
+        print(msg)
+        return swiftSummary
+    }
+    swiftSummary.url = url
 
     var blockLookup = [String : Int]()
     for (i, bkTyp) in blockTypes.enumerated() {
@@ -457,7 +462,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                 let sortOrder = getSortOrder(ruleID: ruleID)
                 swiftSummary.dictIssues[ruleID] = Issue(identifier: ruleID, sortOrder: sortOrder, items: [])
             }
-            swiftSummary.dictIssues[ruleID]!.items.append(lineItem)
+            swiftSummary.dictIssues[ruleID]?.items.append(lineItem)
         }
     }
 

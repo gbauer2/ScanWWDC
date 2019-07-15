@@ -68,7 +68,6 @@
 //   Public func without markup
 //   CodeLine too long
 //   Missing Unit-Test
-//   Type-Names must Start with Uppercase
 
 // Need UnitTests for:
 //  Free functions
@@ -836,8 +835,10 @@ extension ViewController {
 
     // Helper for restoreCurrentSelections
     private func selectUrlInTable(_ url: URL?) {
-        guard let url = url else { tableView.deselectAll(nil); return }
-
+        guard let url = url else {
+            tableView.deselectAll(nil)
+            return
+        }
         if let rowNumber = filesList.firstIndex(of: url) {
             let indexSet = IndexSet(integer: rowNumber)
             DispatchQueue.main.async {

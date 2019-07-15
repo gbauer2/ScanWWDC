@@ -106,7 +106,7 @@ public class GBox {
         alert.addButton(withTitle: "Cancel")
         let input = NSTextField(frame: NSMakeRect(0, 0, 60, 30))
         input.stringValue = ""
-        input.font = NSFont(name: "HelveticaNeue-Bold", size: 16)!
+        input.font = NSFont.systemFont(ofSize: 16)
         alert.accessoryView = input
         //alert.accessoryView?.window!.makeFirstResponder(input)
         //self.view.window!.makeFirstResponder(input)               //????? How do I make "input" the FirstResponder
