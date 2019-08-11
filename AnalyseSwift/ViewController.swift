@@ -240,12 +240,12 @@ class ViewController: NSViewController, NSWindowDelegate {
 
         StoredRule.dictStoredRules = StoredRule.loadRules()
         CodeRule.getUserDefaults()
-
     }
 
     override func viewWillAppear() {
         super.viewWillAppear()
-        splitView.setPosition(222.0, ofDividerAt: 0)
+        let splitPos: CGFloat = 222.0
+        splitView.setPosition(splitPos, ofDividerAt: 0)
         restoreCurrentSelections()
         self.view.window?.delegate = self
         self.view.window?.setFrame(NSRect(x: 300, y: 70, width: 1100, height: 800), display: true)

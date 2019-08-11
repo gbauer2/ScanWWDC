@@ -201,7 +201,8 @@ struct SwiftSumAttStr {
         //FIXME: This section needs to be changed for table-based issues.
         let ct = swiftSummary.vbCompatCalls.count + swiftSummary.vbCompatStringCalls.count + swiftSummary.vbCompatFileCalls.count
         if ct > 0 {
-            tx = showDivider(title: "\(ct) more issues", font: fontMonoDigitMedium)
+            let moreTitle = showCount(count: ct, name: "more issue", ifZero: "no")
+            tx = showDivider(title: "\(moreTitle)", font: fontMonoDigitMedium)
             txt.append(tx)
         }
 
