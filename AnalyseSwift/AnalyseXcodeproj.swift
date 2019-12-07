@@ -54,7 +54,7 @@ public struct XcodeProj {
         var ORGANIZATIONNAME    = ""    // ORGANIZATIONNAME = "Ray Wenderlich"
     }
 
-    //MARK: analyseXcodeproj    62-100 = 38-lines
+    //MARK: analyseXcodeproj    59-99 = 40-lines
     //---- analyseXcodeproj - Analyse a .xcodeproj file, returning an errorText and an XcodeProj instance
     static func analyse(url: URL, goDeep: Bool, deBug: Bool = true) -> (String, XcodeProj) {
         xcodeProj = XcodeProj()
@@ -99,7 +99,7 @@ public struct XcodeProj {
 }
 
 //MARK:- funcs
-//MARK: pbxToXcodeProj        104-327 = 223-lines
+//MARK: pbxToXcodeProj        104-346 = 242-lines
 //TODO: pbxToXcodeProj should return xcodeProj, errorMsg, pbxObjects, rootObjectKey
 func pbxToXcodeProj(_ xcodeprojRaw: String, deBug: Bool = true, pauseForErr: Bool = true) {
     if deBug {
@@ -361,7 +361,7 @@ private func addSourceURLsFromSubFolder(thisURL: URL, sourceFileObj: PBX, deBug:
                     xcodeProj.swiftURLs.append(url)
                 }
             } else {
-                print("⛔️ Error #line \(#line) files more tha 2 deep \"\(folderURL)\": \"\(childFileObj.path)\"")
+                print("⛔️ Error #line \(#line) files more than 2 deep \"\(folderURL)\": \"\(childFileObj.path)\"")
                 addSourceURLsFromSubFolder(thisURL: folderURL, sourceFileObj: childFileObj, deBug: deBug)
             }
         } else {
@@ -370,7 +370,7 @@ private func addSourceURLsFromSubFolder(thisURL: URL, sourceFileObj: PBX, deBug:
     }//next childKey
 }//end func
 
-//---- processTheStack - Process the item in this bufr. 355-470 = 115-lines
+//---- processTheStack - Process the item in this bufr. 374-489 = 115-lines
 private func processTheStack(lineNumber: Int, depth: Int, bufrs: [String], deBug: Bool) {
     // Modifys xcodeProj, pbxObjects
     var parts = [String]()
@@ -559,7 +559,7 @@ func getPropertyAndVals(from text: String) -> (propName: String, vals: [String])
 //Returns String stripped of block comments, newLines, tabs & double-spaces.
 //Also returns linePointer that contains a Line-Number for each Character.
 //TODO: Change to a single pass for performance
-func cleanRawText(_ rawText: String) -> (String, [Int]) {       //543-599 = 56-lines
+func cleanRawText(_ rawText: String) -> (String, [Int]) {       //562-618 = 56-lines
     var pStart = 1
     if rawText.hasPrefix("//") {
         pStart = rawText.firstIntIndexOf("\n") + 1
@@ -655,7 +655,7 @@ private func isObjectKey(_ str: String) -> Bool {
 //var attTxt  = NSMutableAttributedString(string: "", attributes: attributesSmallFont)
 
 //---- showXcodeproj - from an XcodeProj, generate an NSAttributedString to display
-public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      //639-802 = 163-lines
+public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      //658-819 = 161-lines
 
     var text = ""
     var projIssues = [String]()

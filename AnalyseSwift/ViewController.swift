@@ -232,6 +232,7 @@ class ViewController: NSViewController, NSWindowDelegate {
     // MARK: - Lifecycle
 
     override func viewDidLoad() {
+        super.viewDidLoad()
         WordLookup.initKeyWords()
         WordLookup.initVBwords()
         popupBaseDir.removeAllItems()
@@ -240,6 +241,7 @@ class ViewController: NSViewController, NSWindowDelegate {
 
         StoredRule.dictStoredRules = StoredRule.loadRules()
         CodeRule.getUserDefaults()
+        print("\nbaseURL:\n",baseURL)
     }
 
     override func viewWillAppear() {

@@ -12,9 +12,10 @@ public enum ValType {
     case bool, int, text
 }
 
-// MARK: - CodeRule struct 18-53 = 35-lines
+// MARK: - CodeRule struct 16-69 = 53-lines
 public struct CodeRule {
 
+    //FIXME: If Rules.txt changes, saveUserDefaults() should be run automatically
     //---- CodeRule.saveUserDefaults - Save the Rules in UserDefaults
     static func saveUserDefaults() {
         let defaults = UserDefaults.standard                    //Save UserDefaults
@@ -50,15 +51,15 @@ public struct CodeRule {
         for (key, _) in StoredRule.dictStoredRules {
             let udKey = "Rule_" + key
             if let str = defaults.string(forKey: udKey) {        //7
-                let (enabledText, param) = splitLine(str, atFirst: ",")
-                let enabled = (enabledText == "true")
-                print("MenuRulesVC #\(#line)  userDefault get  \(key): enabled=\(enabled),  paramText=\(param)")
+                let (enabledTextFromUD, paramFromUD) = splitLine(str, atFirst: ",")
+                let enabledFromUD = (enabledTextFromUD == "true")
+                print("MenuRulesVC #\(#line)  userDefault get  \(key): enabled=\(enabledFromUD),  paramText=\(paramFromUD)")
                 guard let _ = StoredRule.dictStoredRules[key] else {
                     print("⛔️ MenuRulesVC #\(#line) StoredRule.dictStoredRules[\(key)] does not exist.")
                     return
                 }
-                StoredRule.dictStoredRules[key]?.enabled   = enabled
-                StoredRule.dictStoredRules[key]?.paramText = param
+                StoredRule.dictStoredRules[key]?.enabled   = enabledFromUD
+                StoredRule.dictStoredRules[key]?.paramText = paramFromUD
             } else {
                 print("⛔️ Error - MenuRulesVC #\(#line) -- No UserDefault for \(key)")
             }
@@ -67,7 +68,7 @@ public struct CodeRule {
 
 }//end struct CodeRules
 
-// MARK: - MenuRulesVC class - UI for changing CodeRules 56-147 = 91-lines
+// MARK: - MenuRulesVC class - UI for changing CodeRules 72-155 = 83-lines
 class MenuRulesVC: NSViewController {
 
     //MARK:- Instance Variables

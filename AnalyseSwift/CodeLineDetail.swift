@@ -26,7 +26,8 @@ public struct CodeLineDetail {
     var bracketMismatch    = 0      // Flag for Line-Continuation []
     var openCurlyCount     = 0      // Number of "{"s in line
     var closeCurlyCount    = 0      // Number of "}"s in line
-    var firstSplitter: Character?   // String value of first ";", "{", or "}" in line
+    var firstSplitterIdx   = -1     // Int Index of first ";", "{", or "}" in line
+    var firstSplitterChar: Character?   // String value of first ";", "{", or "}" in line
     var inMultiLine: InMultiLine = .none    // tripleQuote, blockComment, blockMarkup
 
     init() {}       // replace the default initializer
@@ -139,13 +140,26 @@ public struct CodeLineDetail {
                     } else if char == "]" {
                         self.bracketMismatch -= 1
                     } else if char == "{" {
-                        self.openCurlyCount += 1
-                        if self.firstSplitter == nil { firstSplitter = "{" }
+                        if self.parenMismatch <= 0 {
+                            self.openCurlyCount += 1
+                            if self.firstSplitterChar == nil {
+                                firstSplitterChar = "{"
+                                firstSplitterIdx = p
+                            }
+                        }
                     } else if char == "}" {
-                        self.closeCurlyCount += 1
-                        if self.firstSplitter == nil { firstSplitter = "}" }
+                        if self.parenMismatch <= 0 {    // Curlys inside parens don't count
+                            self.closeCurlyCount += 1
+                            if self.firstSplitterChar == nil {
+                                firstSplitterChar = "}"
+                                firstSplitterIdx = p
+                            }
+                        }
                     } else if char == ";" {
-                        if self.firstSplitter == nil { firstSplitter = ";" }
+                        if self.firstSplitterChar == nil {
+                            firstSplitterChar = ";"
+                            firstSplitterIdx = p
+                        }
                     }//endif char
 
 

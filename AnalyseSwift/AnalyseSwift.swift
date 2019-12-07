@@ -194,6 +194,10 @@ private func gotOpenCurly(lineNum: Int) {
 //---- gotCloseCurly - pop stackedCounter lines4item = nCodeLines - stackedCounter
 private func gotCloseCurly(lineNum: Int, nCodeLine: Int) {
     if gTrace == .all {print("\(lineNum) got close curly; depth \(curlyDepth) -> \(curlyDepth-1)")}
+    if curlyDepth <= 0 {
+        print("⛔️ Error: Closed-curly found when not inside curlys")
+        return
+    }
     curlyDepth -= 1
     var block = blockStack.remove(at: 0)
 //    if curlyDepth == 0 {
@@ -213,6 +217,13 @@ public func splitLine(_ line: String , atFirst sep: Character ) -> (lhs: String,
     //let array = line.split(maxSplits: 1, omittingEmptySubsequences: false, whereSeparator: { $0 == sep }) // $0.isWhitespace
     let lhs = String(array[0]).trim
     let rhs = array.count >= 2 ? String(array[1]).trim : ""
+    return (lhs, rhs)
+}
+
+// Split line into 2 trimmed parts at Integer Index
+public func splitLine(_ line: String , atInt idx: Int ) -> (lhs: String, rhs: String) {
+    let lhs = String(line.prefix(idx)).trim
+    let rhs = String(line.suffix(line.count-idx)).trim
     return (lhs, rhs)
 }
 
@@ -339,7 +350,7 @@ internal func needsContinuation(codeLineDetail: CodeLineDetail, nextLine: String
     return false
 }
 
-// MARK: - The Main Event 344-930 = 586-lines
+// MARK: - The Main Event 354-977 = 623-lines
 public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, deBug: Bool) -> (SwiftSummary) {
     let lines = contentFromFile.components(separatedBy: "\n")
     if gTrace != .none {
@@ -466,7 +477,8 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         }
     }
 
-    // MARK: Main Loop 447-889 = 442-lines
+    var prevLineCount = 0
+    // MARK: Main Loop 482-936 = 454-lines
     while iLine < lines.count {
         //        // Multitasking Check
         //        if selecFileInfo.url != ViewController.latestUrl {
@@ -478,6 +490,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         //        }
         var line: String
         if fromPrevLine.isEmpty {       // Read a new line from source
+            prevLineCount = 0
             stillInCompound = false
             line = lines[iLine].trim
             iLine += 1
@@ -490,6 +503,16 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                 swiftSummary.blankLineCount += 1
             }
         } else {                        // Still working in a compound line
+            //FIXME: Infinite Loop in CreditCard:FileIO: enum
+            prevLineCount += 1
+            if prevLineCount >= 20 {
+                print("\n⛔️ Error AnalyseSwift#\(#line): Caught in Infinite? Loop!!! ⛔️\nline # \(iLine)\nprev line:  \(lines[iLine-1].trim)\nthis line:  \(lines[iLine].trim)\nfromPrevLn: \(fromPrevLine.trim)")
+                print()
+                if prevLineCount > 20 {
+                    iLine += 1
+                    fromPrevLine = ""
+                }
+            }
             line = fromPrevLine.trim
             fromPrevLine = ""
             if line.isEmpty { continue }
@@ -503,15 +526,15 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
 
         //------- Sanity Check ------
         if  iLine != lineNum {
-            print("⛔️ Error#\(#line), lineNum \(lineNum) != iLine \(iLine)")
+            //print("⛔️ Error#\(#line), lineNum \(lineNum) != iLine \(iLine)")
         }
         let sum = swiftSummary.blankLineCount + swiftSummary.continueLineCount - swiftSummary.compoundLineCount +
             swiftSummary.commentLineCount + swiftSummary.markupLineCount + swiftSummary.quoteLineCount +
             swiftSummary.codeLineCount + 1
         let countError = abs(sum - lineNum)
         if countError != maxCountError {
-            //            print("⛔️ Error#\(#line), lineNum \(lineNum), \"\(line)\"\nsum=\(sum) dif=\(sum-lineNum): code=\(swiftSummary.codeLineCount) blank=\(swiftSummary.blankLineCount) comment=\(swiftSummary.commentLineCount) continuation=\(swiftSummary.continueLineCount)",
-            //                   -swiftSummary.compoundLineCount, swiftSummary.markupLineCount, swiftSummary.quoteLineCount)
+//                        print("⛔️ Error#\(#line), lineNum \(lineNum), \"\(line)\"\nsum=\(sum) dif=\(sum-lineNum): code=\(swiftSummary.codeLineCount) blank=\(swiftSummary.blankLineCount) comment=\(swiftSummary.commentLineCount) continuation=\(swiftSummary.continueLineCount)",
+//                               -swiftSummary.compoundLineCount, swiftSummary.markupLineCount, swiftSummary.quoteLineCount)
             maxCountError = countError
         }
         //---------------------------
@@ -575,19 +598,19 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             continue
         }
 
-        // MARK: Code!  558-889 = 331-lines
+        // MARK: Code!  604-936 = 332-lines
 
         // Call CodeLineDetail.init
-        let codeLineDetail = CodeLineDetail(fullLine: line, inMultiLine: inMultiLine, lineNum: lineNum)
+        var codeLineDetail = CodeLineDetail(fullLine: line, inMultiLine: inMultiLine, lineNum: lineNum)
         inMultiLine = codeLineDetail.inMultiLine
         let codeLineFull = codeLineDetail.codeLine
 
         let codeLine: String
-        if let firstSplitter = codeLineDetail.firstSplitter {
-            let lineTuple = splitLine(codeLineFull, atFirst: firstSplitter)
+        if let firstSplitterChar = codeLineDetail.firstSplitterChar {   // We have a "{","}", or ";"
+            let lineTuple = splitLine(codeLineFull, atInt: codeLineDetail.firstSplitterIdx)
 
             // Split compound line
-            if firstSplitter == ";" {
+            if firstSplitterChar == ";" {
                 if !stillInCompound && !lineTuple.lhs.isEmpty && !lineTuple.rhs.isEmpty {
                     // MARK:  ➡️➡️ Record Issue "compoundLine"                      //@@
                     let lineItem = LineItem(name: codeLineFull, lineNum: lineNum)   //@@
@@ -595,11 +618,12 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                     stillInCompound = true
                 }//end RuleID.compoundLine
                 swiftSummary.compoundLineCount += 1
-                codeLine     = lineTuple.lhs
-                fromPrevLine = lineTuple.rhs
+                codeLine       = lineTuple.lhs
+                fromPrevLine   = String(lineTuple.rhs.dropFirst())
+                codeLineDetail = CodeLineDetail(fullLine: codeLine, inMultiLine: inMultiLine, lineNum: lineNum)
             } else {                        // must be "{" or "}"
-                if lineTuple.lhs.isEmpty {
-                    if firstSplitter == "{" {
+                if lineTuple.lhs.isEmpty {  // isPrefix
+                    if firstSplitterChar == "{" {
                         gotOpenCurly(lineNum: lineNum)
                     } else {                // must be "}"
                         gotCloseCurly(lineNum: lineNum, nCodeLine: swiftSummary.codeLineCount)
@@ -608,8 +632,9 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                     continue
                 } else {
                     //continue working on leftSide. Save curly+rightSide for next time
-                    codeLine     = lineTuple.lhs
-                    fromPrevLine = String(firstSplitter) + lineTuple.rhs
+                    codeLine       = lineTuple.lhs
+                    fromPrevLine   = lineTuple.rhs  //String(firstSplitter) + lineTuple.rhs
+                    codeLineDetail = CodeLineDetail(fullLine: codeLine, inMultiLine: inMultiLine, lineNum: lineNum)
                 }
             }
         } else {        // firstSplitter isEmpty
@@ -633,7 +658,9 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
 
         // Handle unmatched [(
         var nextLine = ""
-        if iLine<lines.count { nextLine = lines[iLine].trim }
+        if iLine<lines.count {
+            nextLine = lines[iLine].trim    // Peek at next line (do not bump pointer)
+        }
         if needsContinuation(codeLineDetail: codeLineDetail, nextLine: nextLine, lineNum: lineNum) {
             //print("\(lineNum) Partial line? \"\(line)\" -> \"\(codeLine)\" from #\(#line)")
             partialLine = codeLine
@@ -657,7 +684,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         let words = wordsWithEmpty.filter { !$0.isEmpty }                   // Use filter to eliminate empty strings.
         let firstWord = words.first ?? ""
 
-        // MARK: Check each word 640-700 = 60-lines
+        // MARK: Check each word 688-747 = 59-lines
         for word in words {
 
             // Find Force Unwraps

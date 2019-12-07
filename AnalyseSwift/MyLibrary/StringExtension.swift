@@ -4,7 +4,10 @@
 //
 //  Created by George Bauer on 10/11/17.
 //  Copyright © 2017-2019 GeorgeBauer. All rights reserved.
-//  Ver 1.7.3   7/09/2019 Add removeEnclosingQuotes()
+
+//  Ver 1.8.0  10/12/2019 Add splitAtFirst(char:) to splt a String at 1s occurance of a Character
+//      1.7.4   8/22/2019 Add out-of-range protection for all Int subscripting
+//      1.7.3   7/09/2019 Add removeEnclosingQuotes()
 //      1.7.2   7/04/2019 PadRight now optionally truncates with ellipsis or does not truncate at all.
 //      1.7.1   4/23/2019 Depricate mid(). Add substring(begin,end) & substring(begin,length)
 //      1.7.0   3/31/2019 Change extension to StringProtocol. Added firstIntIndexOf, lastIntIndexOf, allIntIndexesOf
@@ -32,17 +35,21 @@ extension StringProtocol {
     //------ subscript: allows string to be sliced by ints: e.g. str[2] ------
     /// Int wrapper for str[str.index(str.startIndex, offsetBy: int)] -> Character
     subscript (_ i: Int) -> Character {
+        if i < 0 { return Character("\u{0}") }                      // protection
+        if i>=self.count { return Character("\u{0}") }              // protection
         return self[self.index(self.startIndex, offsetBy: i)]
     }
 
 //    /// Int wrapper for str[index(startIndex, offsetBy: i)] -> String
+//    if i < 0 { return "") }                                         // protection
+//    if i>=self.count { "" }                                         // protection
 //    subscript (_ i: Int) -> String {
 //        return String(self[i])
 //    }
 
     /// Int wrapper for str[HalfOpenRange] -> String    ([start..<end])
     subscript (bounds: CountableRange<Int>) -> String {
-        if bounds.lowerBound >= self.count        { return "" }     // protection
+        if bounds.upperBound >= self.count        { return "" }     // protection
         if bounds.lowerBound < 0                  { return "" }     // protection
         if bounds.lowerBound >= bounds.upperBound { return "" }     // protection
 
@@ -51,9 +58,11 @@ extension StringProtocol {
         return String(self[start..<end])
     }
 
-    /// Int wrapper for str[ClosedRange] -> String  ([start...])
+    /// Int wrapper for str[ClosedRange] -> String  ([start...end])
     subscript (bounds: CountableClosedRange<Int>) -> String {
-        if bounds.lowerBound > self.count { return "" }             // protection
+        if bounds.upperBound >= self.count        { return "" }     // protection
+        if bounds.lowerBound < 0                  { return "" }     // protection
+        if bounds.lowerBound >= bounds.upperBound { return "" }     // protection
         let start = index(startIndex, offsetBy: bounds.lowerBound)
         let end   = index(startIndex, offsetBy: bounds.upperBound)
         return String(self[start...end])
@@ -69,12 +78,14 @@ extension StringProtocol {
 
     /// Int wrapper for str[PartialRangeThrough<Int>] -> String
     subscript (bounds: PartialRangeThrough<Int>) -> String {
+        if bounds.upperBound >= self.count { return "" }            // protection
         let end   = index(startIndex, offsetBy: bounds.upperBound)
         return String(self[...end])
     }
 
     /// Int wrapper for str[PartialRangeUpTo<Int>] -> String
     subscript (bounds: PartialRangeUpTo<Int>) -> String {
+        if bounds.upperBound > self.count { return "" }             // protection
         let end   = index(startIndex, offsetBy: bounds.upperBound)
         return String(self[..<end])
     }
@@ -154,7 +165,7 @@ extension StringProtocol {
 
     //---- rightJust - format right justify a String in a field ------
     /// Returns a String of specified length representing an Integer right-justified.
-    /// Does not truncate when Int is too long.
+    /// Does NOT truncate when Int is too long.
     /// - Parameter fieldLen: length of returned String
     /// - Returns: new String padded with spaces
     func rightJust(_ fieldLen: Int) -> String {
@@ -312,7 +323,7 @@ extension StringProtocol {
     /// Same as ".trimmingCharacters(in: .whitespacesAndNewlines)"
     var trim: String { return self.trimmingCharacters(in: .whitespacesAndNewlines) }
 
-    //---- trimStart & trimEnd - Remove ONLY whitespace from Left or Right
+    //---- trimStart & trimEnd - Remove whitespace ONLY from Left or Right
     /// Remove whitespace ONLY from left side (uses RegEx)
     var trimStart: String {
         return self.replacingOccurrences(of: "^\\s+", with: "", options: .regularExpression)
@@ -331,6 +342,17 @@ extension StringProtocol {
         return str
     }
 
+    //---- splitAtFirst(char - Split string at 1st occurence of char
+    public func splitAtFirst(char: Character) -> (lft: String, rgt: String) {
+        let idx = self.firstIndex(of: char)
+        guard let index1 = idx else {
+            return (String(self), "")
+        }
+        let ilft = String(self[self.startIndex..<index1])
+        let irgt = String(self[index(after: index1)..<endIndex])
+        return (ilft, irgt)
+    }
+    
     //---- pluralize - Pluralize a word (English) ------
     /// Pluralize an English word if count > 0
     /// - Parameter count: Triggers pluralization if > 0
