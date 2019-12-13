@@ -11,6 +11,7 @@
 		26ECD33D1E874B5C00380F56 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26ECD33C1E874B5C00380F56 /* ViewController.swift */; };
 		26ECD33F1E874B5C00380F56 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 26ECD33E1E874B5C00380F56 /* Assets.xcassets */; };
 		CE04499622A38BA400E8B7A7 /* Rules.txt in Resources */ = {isa = PBXBuildFile; fileRef = CE04499522A38BA400E8B7A7 /* Rules.txt */; };
+		CE1944E523A3F0B8009B4A2C /* SampleCode.txt in Resources */ = {isa = PBXBuildFile; fileRef = CE1944E423A3F0B8009B4A2C /* SampleCode.txt */; };
 		CE1D751421BDA90B00286967 /* AnalyseSwiftCodeUnitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE1D751321BDA90B00286967 /* AnalyseSwiftCodeUnitTests.swift */; };
 		CE37C72822B17CE800433E5D /* Alerts.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE37C72722B17CE800433E5D /* Alerts.swift */; };
 		CE410E93227D383B00D4B351 /* FormatSwiftSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE410E92227D383B00D4B351 /* FormatSwiftSummary.swift */; };
@@ -47,6 +48,7 @@
 		26ECD33E1E874B5C00380F56 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		26ECD3431E874B5C00380F56 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		CE04499522A38BA400E8B7A7 /* Rules.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Rules.txt; sourceTree = "<group>"; };
+		CE1944E423A3F0B8009B4A2C /* SampleCode.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = SampleCode.txt; sourceTree = "<group>"; };
 		CE1D751121BDA90B00286967 /* AnalyseSwiftCodeUnitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AnalyseSwiftCodeUnitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE1D751321BDA90B00286967 /* AnalyseSwiftCodeUnitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyseSwiftCodeUnitTests.swift; sourceTree = "<group>"; };
 		CE1D751521BDA90B00286967 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -118,6 +120,7 @@
 				CE510E2E2256F34700B53541 /* MenuRulesVC.swift */,
 				CECCE41722539EB800DF2C02 /* PBX.swift */,
 				CEA6263920067DCA000F923D /* SampleCode.swift */,
+				CE1944E423A3F0B8009B4A2C /* SampleCode.txt */,
 				CEED5420229D9537005CC799 /* StoredRules.swift */,
 				26ECD33C1E874B5C00380F56 /* ViewController.swift */,
 				CE9BBFF62235598500DCE317 /* WordLookup.swift */,
@@ -236,6 +239,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				26ECD33F1E874B5C00380F56 /* Assets.xcassets in Resources */,
+				CE1944E523A3F0B8009B4A2C /* SampleCode.txt in Resources */,
 				CE04499622A38BA400E8B7A7 /* Rules.txt in Resources */,
 				CEA1C5192291C6860033024B /* Main.storyboard in Resources */,
 			);
@@ -407,11 +411,13 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 777;
 				DEVELOPMENT_TEAM = XD8UZ6484B;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = AnalyseSwift/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MARKETING_VERSION = 3.1.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.georgebauer.analyseswiftcode;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -426,11 +432,13 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 777;
 				DEVELOPMENT_TEAM = XD8UZ6484B;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = AnalyseSwift/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MARKETING_VERSION = 3.1.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.georgebauer.analyseswiftcode;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

@@ -353,6 +353,43 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         XCTAssertEqual(tuple.1, "3435")
     }
 
+    func test_analyseSwiftSample() {
+
+        guard let samplePath = Bundle.main.path(forResource: "SampleCode", ofType: "txt") else {
+            XCTAssertTrue(false)
+            return
+        }
+        let fileAtt = FileAttributes.getFileInfo(samplePath)
+        let swSumry = analyseSwiftFile(contentFromFile: sampleCodeLong, selecFileInfo: fileAtt, deBug: true)
+        XCTAssertEqual(swSumry.fileName, "SampleCode.txt")
+        XCTAssertEqual(swSumry.copyright.hasPrefix("Copyright"), true)
+        XCTAssertEqual(swSumry.copyright.hasSuffix("reserved."), true)
+        XCTAssertEqual(swSumry.createdBy.contains("George Bauer"), true)
+
+        XCTAssertEqual(swSumry.codeLineCount, 72)
+        XCTAssertEqual(swSumry.continueLineCount, 23)
+        XCTAssertEqual(swSumry.blankLineCount, 38)
+        XCTAssertEqual(swSumry.commentLineCount, 25)
+        XCTAssertEqual(swSumry.totalLineCount, 155)
+
+        XCTAssertEqual(swSumry.imports.count, 1)
+        XCTAssertEqual(swSumry.imports[0].name, "Cocoa")
+
+        XCTAssertEqual(swSumry.nTrailing, 4)
+        XCTAssertEqual(swSumry.nEmbedded, 2)
+
+        XCTAssertEqual(swSumry.dictIssues.count, 5)
+        if let fuIssue = swSumry.dictIssues["ForceUnwrap"] {
+            XCTAssertEqual(fuIssue.identifier, "ForceUnwrap")
+            XCTAssertEqual(fuIssue.items.count, 15)
+            XCTAssertEqual(fuIssue.items[1].name, "content!")
+
+        } else {
+            XCTAssertTrue(false, "dictIssues[\"ForceUnwrap\"] is nil")
+        }
+
+    }
+
 
     //284 AnalyseSwift.swift
     func test_analyseSwiftFile_Long() {
