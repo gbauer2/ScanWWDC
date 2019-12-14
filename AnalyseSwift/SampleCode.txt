@@ -1,13 +1,14 @@
-/*
- eNum RuleType {case flagProductName = 0, allowAllCaps=1, etc
- */
 //
-//  SampleCode.swift
+//  SampleCode2.swift
 //  AnalyseSwiftCode
 //
 //  Created by George Bauer on 1/10/18.
 //  Copyright © 2018,2019 George Bauer. All rights reserved.
 //
+
+/*
+eNum RuleType {case flagProductName = 0, allowAllCaps=1, etc
+*/
 
 import Cocoa    /* ????? partial-line Block Comment does not work.*/
 /* single-line Block Comment does work. */
@@ -43,6 +44,7 @@ var myGlobalTestVar = 0
 private func doNothing() { print("Do Nothing") }
 
 private func interpolate() {
+    enum MyEnum: String {case none,one,two}
     let myVar = "14"
     print("xxx\(Int(myVar)!)yyy")
     print(#"xxx\#(myVar)yyy"#)
@@ -100,7 +102,6 @@ private func testNSString() {
     //  Created by Steven Lipton on 10/18/14.
     //  Revised Swift 3.0 7/1/16
     //  Copyright (c) 2014,2016 MakeAppPie.Com. All rights reserved.
-
     let myString = "P is Pizza and Pizza is me"
 
     //: Initialize the Mutable Attributed String
@@ -136,5 +137,4 @@ class mySampleClass {
 struct MySampleStruct {
     let i44 = 0
 }
-
 

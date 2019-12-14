@@ -360,17 +360,22 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
             return
         }
         let fileAtt = FileAttributes.getFileInfo(samplePath)
-        let swSumry = analyseSwiftFile(contentFromFile: sampleCodeLong, selecFileInfo: fileAtt, deBug: true)
+        let contentOpt =  try? String(contentsOfFile: samplePath)
+        guard let content = contentOpt else {
+            XCTAssertTrue(false)
+            return
+        }
+        let swSumry = analyseSwiftFile(contentFromFile: content, selecFileInfo: fileAtt, deBug: true)
         XCTAssertEqual(swSumry.fileName, "SampleCode.txt")
         XCTAssertEqual(swSumry.copyright.hasPrefix("Copyright"), true)
         XCTAssertEqual(swSumry.copyright.hasSuffix("reserved."), true)
         XCTAssertEqual(swSumry.createdBy.contains("George Bauer"), true)
 
-        XCTAssertEqual(swSumry.codeLineCount, 72)
-        XCTAssertEqual(swSumry.continueLineCount, 23)
-        XCTAssertEqual(swSumry.blankLineCount, 38)
-        XCTAssertEqual(swSumry.commentLineCount, 25)
-        XCTAssertEqual(swSumry.totalLineCount, 155)
+        XCTAssertEqual(swSumry.codeLineCount, 84)
+        XCTAssertEqual(swSumry.continueLineCount, 8)
+        XCTAssertEqual(swSumry.blankLineCount, 37)
+        XCTAssertEqual(swSumry.commentLineCount, 22)
+        XCTAssertEqual(swSumry.totalLineCount, 141)
 
         XCTAssertEqual(swSumry.imports.count, 1)
         XCTAssertEqual(swSumry.imports[0].name, "Cocoa")
@@ -378,11 +383,11 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         XCTAssertEqual(swSumry.nTrailing, 4)
         XCTAssertEqual(swSumry.nEmbedded, 2)
 
-        XCTAssertEqual(swSumry.dictIssues.count, 5)
+        XCTAssertEqual(swSumry.dictIssues.count, 7)
         if let fuIssue = swSumry.dictIssues["ForceUnwrap"] {
             XCTAssertEqual(fuIssue.identifier, "ForceUnwrap")
-            XCTAssertEqual(fuIssue.items.count, 15)
-            XCTAssertEqual(fuIssue.items[1].name, "content!")
+            XCTAssertEqual(fuIssue.items.count, 10)
+            XCTAssertEqual(fuIssue.items[2].name, "content!")
 
         } else {
             XCTAssertTrue(false, "dictIssues[\"ForceUnwrap\"] is nil")

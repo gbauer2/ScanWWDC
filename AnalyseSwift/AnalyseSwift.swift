@@ -400,7 +400,14 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
 //        let forbidAllCaps   = isEnabled(ruleID: RuleID.noAllCapsV)
 //        let forbidUnderscore = isEnabled(ruleID: RuleID.noUnderscoreV)
 
-        if !name[0].isUppercase {
+        let typeName: String    // Test the last item in "xxx.xxx.xxx" for uppercase letter
+        if name.contains(".") {
+            let comps = name.components(separatedBy: ".")
+            typeName = comps.last ?? ""
+        } else {
+            typeName = name
+        }
+        if !typeName[0].isUppercase {
             let blockType = blockTypes[block.blockType.rawValue]
             let extra = blockType.displayName + " name"
             let lineItem = LineItem(name: name, lineNum: lineNum, extra: extra)
@@ -730,7 +737,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
 
             // Find VBCompatability String calls
             if WordLookup.isVBstringWord(word: word) {
-                // MARK:  ➡️ Record Issue "vbCompatCalls" - Dictionary
+                // MARK:  ➡️ Record Issue "vbCompatCalls" - String
                 if swiftSummary.vbCompatStringCalls.isEmpty       { swiftSummary.issueCatsCount += 1 }
                 if swiftSummary.vbCompatStringCalls[word] == nil  { swiftSummary.totalIssues    += 1 }
                 swiftSummary.vbCompatStringCalls[word, default: LineItem(name: word, lineNum: lineNum)].timesUsed += 1
@@ -738,7 +745,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
 
             // Find VBCompatability File I/O calls
             if WordLookup.isVBfileWord(word: word) {
-                // MARK:  ➡️ Record Issue "vbCompatCalls" - Dictionary
+                // MARK:  ➡️ Record Issue "vbCompatCalls" - File
                 if swiftSummary.vbCompatFileCalls.isEmpty       { swiftSummary.issueCatsCount += 1 }
                 if swiftSummary.vbCompatFileCalls[word] == nil  { swiftSummary.totalIssues    += 1 }
                 swiftSummary.vbCompatFileCalls[word, default: LineItem(name: word, lineNum: lineNum)].timesUsed += 1
@@ -775,7 +782,16 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             var funcName = "????"
             if posFunc < words.count {
                 funcName = words[posFunc + 1]   // get the word that follows "func"
-                recordAnyVarNameIssue(funcName)
+                var isOperator = false
+                if funcName.count <= 2 {
+                    isOperator = true
+                    for char in funcName {
+                        if !"<>=" .contains(char) { isOperator = false}
+                    }
+                }
+                if !isOperator {
+                    recordAnyVarNameIssue(funcName)
+                }
                 let paramNames = getParamNames(line: codeLine, lineNum: lineNum)
                 for name in paramNames {
                     recordAnyVarNameIssue(name)
@@ -854,7 +870,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
 
             blockTypes[blockIndex].total += 1
             foundNamedBlock = true
-            if blockOnDeck.blockType != .isExtension {
+            if blockOnDeck.blockType != .isExtension && blockOnDeck.blockType != .isInit && blockOnDeck.blockType != .isOverride {
                 recordAnyTypeNameIssue(blockOnDeck)
             }
             break
