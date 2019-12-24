@@ -251,8 +251,8 @@
             filePath = "AnalyseSwift/ViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "304"
-            endingLineNumber = "304"
+            startingLineNumber = "311"
+            endingLineNumber = "311"
             landmarkName = "findAllXcodeprojFiles(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -347,8 +347,8 @@
             filePath = "AnalyseSwift/AnalyseSwift.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "642"
-            endingLineNumber = "642"
+            startingLineNumber = "643"
+            endingLineNumber = "643"
             landmarkName = "analyseSwiftFile(contentFromFile:selecFileInfo:deBug:)"
             landmarkType = "9">
          </BreakpointContent>
@@ -475,24 +475,8 @@
             filePath = "AnalyseSwiftCodeUnitTests/AnalyseSwiftCodeUnitTests.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "368"
-            endingLineNumber = "368"
-            landmarkName = "test_analyseSwiftSample()"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "71FE9578-1225-47C4-82D8-1A78E69D3798"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "AnalyseSwiftCodeUnitTests/AnalyseSwiftCodeUnitTests.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "360"
-            endingLineNumber = "360"
+            startingLineNumber = "377"
+            endingLineNumber = "377"
             landmarkName = "test_analyseSwiftSample()"
             landmarkType = "7">
          </BreakpointContent>
@@ -507,74 +491,10 @@
             filePath = "AnalyseSwiftCodeUnitTests/AnalyseSwiftCodeUnitTests.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "386"
-            endingLineNumber = "386"
+            startingLineNumber = "395"
+            endingLineNumber = "395"
             landmarkName = "test_analyseSwiftSample()"
             landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "E34DD924-AE29-4719-9559-815CB6506250"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "AnalyseSwiftCodeUnitTests/AnalyseSwiftCodeUnitTests.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "366"
-            endingLineNumber = "366"
-            landmarkName = "test_analyseSwiftSample()"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "2CA3733A-6638-45CF-9E3B-0DC4E7B240C9"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "AnalyseSwiftCodeUnitTests/AnalyseSwiftCodeUnitTests.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "372"
-            endingLineNumber = "372"
-            landmarkName = "test_analyseSwiftSample()"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "F2CD7FDE-0A2A-437F-B084-B4713F9C8883"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "AnalyseSwift/AnalyseSwift.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "414"
-            endingLineNumber = "414"
-            landmarkName = "recordAnyTypeNameIssue(_:)"
-            landmarkType = "9">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "E0272CB8-6CF4-40C6-A271-22F204AEB930"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "AnalyseSwift/AnalyseSwift.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "429"
-            endingLineNumber = "429"
-            landmarkName = "recordAnyVarNameIssue(_:)"
-            landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -587,8 +507,8 @@
             filePath = "AnalyseSwift/AnalyseSwift.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "794"
-            endingLineNumber = "794"
+            startingLineNumber = "795"
+            endingLineNumber = "795"
             landmarkName = "analyseSwiftFile(contentFromFile:selecFileInfo:deBug:)"
             landmarkType = "9">
          </BreakpointContent>

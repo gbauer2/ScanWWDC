@@ -122,6 +122,8 @@ class ViewController: NSViewController, NSWindowDelegate {
     @IBOutlet weak var popupBaseDir:            NSPopUpButton!
 
     // MARK: - Properties
+    let codeFile     = "ViewController"
+    var isTesting    = false
     let codeColor    = NSColor.black
     let commentColor = NSColor(calibratedRed: 0, green: 0.6, blue: 0.15, alpha: 1)  //Green
     let quoteColor   = NSColor.red
@@ -238,9 +240,16 @@ class ViewController: NSViewController, NSWindowDelegate {
         popupBaseDir.removeAllItems()
         popupBaseDir.addItems(withTitles: ["Desktop","Downloads","Documents","All"])
         popupBaseDir.selectItem(at: 0)
-
         StoredRule.dictStoredRules = StoredRule.loadRules()
         CodeRule.getUserDefaults()
+        if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil {
+            // Code only executes when tests are running
+            print("\n\(codeFile)#\(#line) Testing...")
+            isTesting = true
+        } else {
+            print("\n\(codeFile)#\(#line) Normal startup")
+            isTesting = false
+        }
         print("\nbaseURL:\n",baseURL)
     }
 
@@ -248,7 +257,7 @@ class ViewController: NSViewController, NSWindowDelegate {
         super.viewWillAppear()
         let splitPos: CGFloat = 222.0
         splitView.setPosition(splitPos, ofDividerAt: 0)
-        restoreCurrentSelections()
+        restoreCurrentSelections(isTesting: isTesting)
         self.view.window?.delegate = self
         self.view.window?.setFrame(NSRect(x: 300, y: 70, width: 1100, height: 800), display: true)
         //self.view.window?.setContentSize(NSSize(width: 1000, height: 800))
@@ -269,7 +278,7 @@ class ViewController: NSViewController, NSWindowDelegate {
 
 
     override func viewWillDisappear() {
-        saveCurrentSelections()
+        saveCurrentSelections(isTesting: isTesting)
         super.viewWillDisappear()
     }
 
@@ -787,8 +796,9 @@ extension ViewController: NSTableViewDelegate {
 extension ViewController {
 
     // called from viewWillDisappear
-    func saveCurrentSelections() {
+    func saveCurrentSelections(isTesting: Bool) {
         guard let dataFileUrl = urlForDataStorage() else { return }
+        if isTesting { return }
 
         let parentForStorage = selectedFolderUrl?.path ?? ""
         let fileForStorage = selectedItemUrl?.path ?? ""
@@ -799,11 +809,14 @@ extension ViewController {
     }//end func
 
     // called from viewWillAppear - ???? Change to UserDefaults?
-    func restoreCurrentSelections() {
+    func restoreCurrentSelections(isTesting: Bool) {
         // TODO: fix HorizontalScroller for infoTextView
         // Attempts to fix HorizontalScroller
         //  1 infoTextView.string = String(repeating: "W", count: 444)
         //  2 textViewScroller.hasHorizontalScroller= true
+
+        if isTesting { return }
+
         guard let dataFileUrl = urlForDataStorage() else {
             print("😡 ViewController #\(#line): No dataFileUrl!")
             return

@@ -629,6 +629,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                 fromPrevLine   = String(lineTuple.rhs.dropFirst())
                 codeLineDetail = CodeLineDetail(fullLine: codeLine, inMultiLine: inMultiLine, lineNum: lineNum)
             } else {                        // must be "{" or "}"
+                //TODO: See why this never executes in UnitTest
                 if lineTuple.lhs.isEmpty {  // isPrefix
                     if firstSplitterChar == "{" {
                         gotOpenCurly(lineNum: lineNum)

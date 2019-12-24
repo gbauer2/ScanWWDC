@@ -81,6 +81,8 @@ private func DoCamelCase(p1: Int, p2: Int , Param3:String) {
     let comps = "1 22 333 4444".components(separatedBy: " ")
     print(comps.first!)
     print("\"") //ok
+    if Bad5 == 0
+    {}
 }
 
 private func sampleVBCall() {

@@ -134,6 +134,17 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         XCTAssertEqual(newLine, "<black>01<red>\"/*\"<black>")
     }
 
+    func test_LineItem() {
+        let lineItem = LineItem(name: "Name", lineNum: 123, extra: "Extra")
+        let desc = lineItem.description
+        XCTAssertEqual(desc.count, 27)
+        XCTAssertEqual(desc, "\t  \t@ line #\t123\tName\tExtra")
+        let lineItem2 = LineItem(name: "Name", lineNum: 123, codeLineCt: 12)
+        let desc2 = lineItem2.description
+        XCTAssertEqual(desc2.count, 21)
+        XCTAssertEqual(desc2, "\t12\t lines @\t123\tName")
+    }
+
     //TODO: test TripleQuote xxx = """
     //11 CodeLineDetails.swift
     func testCodeLineDetailInit() {
@@ -371,11 +382,11 @@ class AnalyseSwiftCodeUnitTests: XCTestCase {
         XCTAssertEqual(swSumry.copyright.hasSuffix("reserved."), true)
         XCTAssertEqual(swSumry.createdBy.contains("George Bauer"), true)
 
-        XCTAssertEqual(swSumry.codeLineCount, 84)
+        XCTAssertEqual(swSumry.codeLineCount, 85)
         XCTAssertEqual(swSumry.continueLineCount, 8)
         XCTAssertEqual(swSumry.blankLineCount, 37)
         XCTAssertEqual(swSumry.commentLineCount, 22)
-        XCTAssertEqual(swSumry.totalLineCount, 141)
+        XCTAssertEqual(swSumry.totalLineCount, 143)
 
         XCTAssertEqual(swSumry.imports.count, 1)
         XCTAssertEqual(swSumry.imports[0].name, "Cocoa")
