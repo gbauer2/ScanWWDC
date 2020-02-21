@@ -371,11 +371,16 @@ private func addSourceURLsFromSubFolder(thisURL: URL, sourceFileObj: PBX, deBug:
 // Return true if name is "Frameworks" or "Products" or ends in "Tests".  or path ends in ".md"
 private func isTestOrProductOrFrameworkOrMd(obj: PBX) -> Bool {
     if !obj.lastKnownFileType.isEmpty {
+        print("AnalyseXcodeproj#\(#line) \"\(obj.lastKnownFileType)\" is not a Source Dir")
         return true                         // e.g. Entitlements, .md file
     }
 
     let name = obj.name
-    return name == "Frameworks" || name == "Products" || name.hasSuffix("Tests")
+    if !name.isEmpty {
+        return name == "Frameworks" || name == "Products" || name.hasSuffix("Tests")
+        //print("AnalyseXcodeproj#\(#line) Is \"\(obj.lastKnownFileType)\" a Source Dir?")
+    }
+    return false
 }
 
 //---- processTheStack - Process the item in this bufr. 374-489 = 115-lines

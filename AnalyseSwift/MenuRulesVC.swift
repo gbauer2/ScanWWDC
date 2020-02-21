@@ -3,7 +3,7 @@
 //  AnalyseSwiftCode
 //
 //  Created by George Bauer on 4/4/19.
-//  Copyright © 2019 George Bauer. All rights reserved.
+//  Copyright © 2019,2020 George Bauer. All rights reserved.
 //
 
 import Cocoa
@@ -74,6 +74,8 @@ class MenuRulesVC: NSViewController {
     //MARK:- Instance Variables
     static var localRuleArray = [StoredRule]() // Allow user close window without committing changes
 
+    var isEditing = -1
+
     //MARK:- Lifecycle funcs
 
     override func viewDidLoad() {
@@ -111,6 +113,14 @@ class MenuRulesVC: NSViewController {
 
     //---- OK Button Clicked ----
     @IBAction func btnOkClick(_ sender: Any) {
+        if isEditing >= 0 {
+            //TODO: Force "End Editing" rather than alerting
+            //TODO: Cancel Button
+            //TODO: Separate "Save for now" & "Save Permanently" buttons
+            let text = "You must hit 'Return' to finish editing #\(isEditing) \(MenuRulesVC.localRuleArray[isEditing].name)"
+            GBox.alert(text)
+            return
+        }
         StoredRule.dictStoredRules = [:]
         for rule in MenuRulesVC.localRuleArray {
             let id = rule.identifier
@@ -136,44 +146,60 @@ class MenuRulesVC: NSViewController {
         return newStr
     }//end func
 
-    // not used
-    func processVer(from str: String) -> String {
-        var newStr = ""
-        var gotDot = false
-        for char in str {
-            if char.isNumber {
-                newStr.append(char)
-            } else if char == "." {
-                if gotDot { break }
-                gotDot = true
-                newStr.append(char)
-            }
-        }//next char
-        return newStr
-    }//end func
-
 }//end class MenuRulesVC
 
-//MARK:- NSTextFieldDelegate - not used
+//MARK:- NSTextFieldDelegate
 extension MenuRulesVC: NSTextFieldDelegate {
-    func controlTextDidChange(_ obj: Notification) {
-        if let txtFld = obj.object as? NSTextField {
-            print("🔷 MenuRulesVC #\(#line) -- \(txtFld.tag) \(txtFld.stringValue)")
-            let tag = txtFld.tag
-            switch tag {
-            case 201:
-                //self.txtRule201.stringValue = txtFld.stringValue
-                break
-            case 301:
-                //self.txt301.stringValue = txtFld.stringValue
-                break
-            default:
-                break
+
+    override func validateProposedFirstResponder(_ responder: NSResponder, for event: NSEvent?) -> Bool {
+        if let txtField = responder as? NSTextField {
+            let ruleText = getRuleText(txtField)
+            var eventTxt = ""
+            if let event = event {
+                eventTxt = "\(event.type.rawValue)"
             }
+            print("👅\(#line) FirstResponder: \(ruleText)     eventType \(eventTxt)")
+            txtField.delegate = self
+        }
+        return true
+    }
+
+    func getRuleText(_ txtField: NSTextField) -> String {
+        let rule = MenuRulesVC.localRuleArray[txtField.tag]
+        return " [#\(txtField.tag) \(rule.name) = \(txtField.stringValue)] "
+    }
+
+    func controlTextDidBeginEditing(_ obj: Notification) {
+        if let txtField = obj.object as? NSTextField {
+            let ruleText = getRuleText(txtField)
+            print("➡️➡️\(#line) controlTextDidBeginEditing delegate: \(ruleText)")
+        }
+    }
+
+    func controlTextDidEndEditing(_ obj: Notification) {
+         if let txtField = obj.object as? NSTextField {
+             let ruleText = getRuleText(txtField)
+            isEditing = -1
+             print("⬅️⬅️\(#line) controlTextDidEndEditing delegate: \(ruleText)")
+         }
+     }
+
+    //
+    func controlTextDidChange(_ obj: Notification) {
+        if let txtField = obj.object as? NSTextField {
+            let ruleText = getRuleText(txtField)
+            isEditing = txtField.tag
+            print("⚠️\(#line) controlTextDidChange delegate: \(ruleText)")
         }
     }//end func
 
+
+    //
     func control(_ control: NSControl, textShouldEndEditing fieldEditor: NSText) -> Bool {
+        if let txtField = control as? NSTextField {
+            let ruleText = getRuleText(txtField)
+            print("⬅️\(#line) textShouldEndEditing delegate: \(ruleText) \(txtField.stringValue)")
+        }
         return true
     }
 
@@ -219,6 +245,7 @@ extension MenuRulesVC: NSTableViewDelegate {
             cell.chkEnabled.state = rule.enabled ? .on : .off
             //cell.textField?.stringValue = "Label#1: "
             cell.lblParam.stringValue = rule.paramLabel
+            cell.txtParam.tag = row             // Identify for NSTextFieldDelegate
             if rule.paramLabel.isEmpty {
                 cell.txtParam.isHidden = true
             } else {
@@ -241,17 +268,17 @@ extension MenuRulesVC: NSTableViewDelegate {
             print("⛔️ Error - MenuRulesVC #\(#line) -- bad tableView selection")
             return
         }
-        print("MenuRulesVC #\(#line) -- \(tableView?.selectedRow ?? -1)")
+        print("MenuRulesVC #\(#line) -- Selected Row # \(tableView?.selectedRow ?? -1)")
     }//end func
 
 }//end extension
 
 //MARK:- Table Cell (class ViewRule: NSTableCellView)
-class ViewRule: NSTableCellView {
+class ViewRule: NSTableCellView, NSTextFieldDelegate {
     var row = -1
     @IBOutlet weak var chkEnabled: NSButton!
-    @IBOutlet weak var lblParam: NSTextField!
-    @IBOutlet weak var txtParam: NSTextField!
+    @IBOutlet weak var lblParam:    NSTextField!
+    @IBOutlet weak var txtParam:    NSTextField!
     @IBOutlet weak var lblRuleName: NSTextField!
 
 
@@ -262,8 +289,9 @@ class ViewRule: NSTableCellView {
 
     // Triggered by "Enter", or Loss-of-focus
     @IBAction func paramTextChange(_ sender: Any) {
-        print("MenuRulesVC #\(#line) -- paramText = \(txtParam.stringValue)")
+        print("🤪🤪 MenuRulesVC #\(#line) @IBAction func paramTextChange -- paramText = \(txtParam.stringValue)")
         MenuRulesVC.localRuleArray[row].paramText = txtParam.stringValue
     }
+
 }//end class
 
