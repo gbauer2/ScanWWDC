@@ -3,7 +3,7 @@
 //  AnalyseSwiftCode
 //
 //  Created by George Bauer on 11/8/18.
-//  Copyright © 2018,2019 George Bauer. All rights reserved.
+//  Copyright © 2018-2020 George Bauer. All rights reserved.
 //
 import Cocoa
 
@@ -187,6 +187,7 @@ func pbxToXcodeProj(_ xcodeprojRaw: String, deBug: Bool = true, pauseForErr: Boo
 
     if deBug {print("\n\(#line) --------1 RootObject.mainGroup > \(mainGroupChildrenKeys.count)-children [PBXGroup] ------------")}
     // find Most likely child to have swift source files
+    //TODO: Test for .Swift children
     for ( i, childKey) in mainGroupChildrenKeys.enumerated() {
         if deBug {
             print("\n\(#line) ------------2 rootObject.mainGroup.child[\(i)] [PBXGroup] - children are [PBXFileReference] --------")
@@ -196,16 +197,12 @@ func pbxToXcodeProj(_ xcodeprojRaw: String, deBug: Bool = true, pauseForErr: Boo
             if pauseForErr { GBox.alert("⛔️ AnalyseXcodeproj #\(#line) Could not decode PBX Root Object") }
             continue
         }
-        // real stuff
-        if i == 0 {
-            appSourceKey = childKey            // first child is usually the app
-            if !isTestOrProductOrFramework(name: childObj.name) { break }
-        }
-        if !isTestOrProductOrFramework(name: childObj.name) {
+
+        if !isTestOrProductOrFrameworkOrMd(obj: childObj) {
             appSourceKey = childKey
             break
         }
-    }
+    }//next childKey
 
     //RootObject > productRefGroup - debug print
     if deBug {
@@ -272,6 +269,7 @@ func pbxToXcodeProj(_ xcodeprojRaw: String, deBug: Bool = true, pauseForErr: Boo
             return
         }
         let dirPath = appSourceObj.path.replacingOccurrences(of: "\"", with: "")
+
         if deBug {
             print()
             print("---- Most likely child to have swift source files [PBXGroup]. Children are [PBXFileReference] ----")
@@ -369,6 +367,16 @@ private func addSourceURLsFromSubFolder(thisURL: URL, sourceFileObj: PBX, deBug:
         }//nil
     }//next childKey
 }//end func
+
+// Return true if name is "Frameworks" or "Products" or ends in "Tests".  or path ends in ".md"
+private func isTestOrProductOrFrameworkOrMd(obj: PBX) -> Bool {
+    if !obj.lastKnownFileType.isEmpty {
+        return true                         // e.g. Entitlements, .md file
+    }
+
+    let name = obj.name
+    return name == "Frameworks" || name == "Products" || name.hasSuffix("Tests")
+}
 
 //---- processTheStack - Process the item in this bufr. 374-489 = 115-lines
 private func processTheStack(lineNumber: Int, depth: Int, bufrs: [String], deBug: Bool) {
@@ -510,10 +518,6 @@ private func updateDeploymentTarget(buildConfigurationObj: PBX) {
         xcodeProj.deploymentTarget = os + " Deployment Target = " + deploymentTarget
     }
 }//end func
-
-private func isTestOrProductOrFramework(name: String) -> Bool {
-    return name == "Frameworks" || name == "Products" || name.hasSuffix("Tests")
-}
 
 // Get the isa of the pbxObject refered to by string
 private func getAssigneeIsa(string: String, pbxObjects: [String: PBX]) -> String {

@@ -44,7 +44,7 @@ public enum RuleID {
 }
 
 // MARK:- StoredRule struct 46-145 = 99-lines
-public struct StoredRule {
+public struct StoredRule: Equatable {
     static var dictStoredRules = [String: StoredRule]()    // Points to element of storedRuleArray
     
     var identifier: String
@@ -58,7 +58,7 @@ public struct StoredRule {
     var paramMax:   Int?
     var sortOrder   = 0
     var ruleType    = ""
-    var paramInt:   Int? { return Int(paramText)}
+    var paramInt:   Int? { return Int(paramText) }
 
     //MARK: Initializers
     init(id: String, name: String, desc: String, enabled: Bool) {

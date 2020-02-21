@@ -473,7 +473,7 @@ extension ViewController {
                 DispatchQueue.main.async {
                     self.infoTextView.string = str
                 }
-                let (errCode, xcodeProj) = XcodeProj.analyse(url:url, goDeep: false, deBug: false)
+                let (errCode, xcodeProj) = XcodeProj.analyse(url:url, goDeep: false, deBug: true)
                 if errCode.isEmpty {
                     let verStr = xcodeProj.swiftVerMin == 0 ? "2.x" : String(format: "%.1f", xcodeProj.swiftVerMin)
                     let barePath = url.deletingPathExtension().path
@@ -740,7 +740,7 @@ extension ViewController {
                 }//end try catch
 
             } else if analyseMode == .xcodeproj {
-                let (errCode, xcodeProj) = XcodeProj.analyse(url:url, goDeep: true, deBug: false)
+                let (errCode, xcodeProj) = XcodeProj.analyse(url:url, goDeep: true, deBug: true)
                 let formattedText: NSAttributedString
                 if errCode.isEmpty {
                     formattedText = showXcodeproj(xcodeProj)

@@ -63,6 +63,8 @@
 		CEA6263920067DCA000F923D /* SampleCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleCode.swift; sourceTree = "<group>"; };
 		CEA6263B20068AA2000F923D /* AnalyseSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyseSwift.swift; sourceTree = "<group>"; };
 		CEBAD4A32194A8E600CBBCBA /* AnalyseXcodeproj.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyseXcodeproj.swift; sourceTree = "<group>"; };
+		CEC2B81723E9F53500B601B0 /* AnalyseSwiftCode.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AnalyseSwiftCode.entitlements; sourceTree = "<group>"; };
+		CEC2B81823E9F69600B601B0 /* AnalyseSwiftCodeDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AnalyseSwiftCodeDebug.entitlements; sourceTree = "<group>"; };
 		CECCE41722539EB800DF2C02 /* PBX.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PBX.swift; sourceTree = "<group>"; };
 		CED9D7F8223E090F009978EF /* VBcompatablity.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VBcompatablity.swift; sourceTree = "<group>"; };
 		CEE94E92223EB84E00A6F2FB /* AnalyseWWDC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyseWWDC.swift; sourceTree = "<group>"; };
@@ -91,6 +93,8 @@
 		26ECD32E1E874B5B00380F56 = {
 			isa = PBXGroup;
 			children = (
+				CEC2B81823E9F69600B601B0 /* AnalyseSwiftCodeDebug.entitlements */,
+				CEC2B81723E9F53500B601B0 /* AnalyseSwiftCode.entitlements */,
 				26ECD3391E874B5C00380F56 /* AnalyseSwift */,
 				CE1D751221BDA90B00286967 /* AnalyseSwiftCodeUnitTests */,
 				26ECD3381E874B5C00380F56 /* Products */,
@@ -408,16 +412,17 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = AnalyseSwiftCodeDebug.entitlements;
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 790;
+				CURRENT_PROJECT_VERSION = 799;
 				DEVELOPMENT_TEAM = XD8UZ6484B;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = AnalyseSwift/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
-				MARKETING_VERSION = 3.1.8;
+				MARKETING_VERSION = 3.1.9;
 				PRODUCT_BUNDLE_IDENTIFIER = com.georgebauer.analyseswiftcode;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -429,16 +434,17 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = AnalyseSwiftCode.entitlements;
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 790;
+				CURRENT_PROJECT_VERSION = 799;
 				DEVELOPMENT_TEAM = XD8UZ6484B;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = AnalyseSwift/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
-				MARKETING_VERSION = 3.1.8;
+				MARKETING_VERSION = 3.1.9;
 				PRODUCT_BUNDLE_IDENTIFIER = com.georgebauer.analyseswiftcode;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
