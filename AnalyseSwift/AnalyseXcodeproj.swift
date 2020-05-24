@@ -61,14 +61,14 @@ public struct XcodeProj {
         xcodeProj.url       = url
         xcodeProj.filename  = url.lastPathComponent
         let pbxprojURL      = url.appendingPathComponent("project.pbxproj")
-        print("\n🔷 AnalyseXcodeproj.swift #\(#line) Enter analyseXcodeproj(\(xcodeProj.filename))")
+        print("\n🔷 AnalyseXcodeproj#\(#line) Enter analyseXcodeproj(\(xcodeProj.filename))")
 
         do {
             let storedData = try String(contentsOf: pbxprojURL)
             pbxToXcodeProj(storedData, deBug: deBug, pauseForErr: goDeep)
-            if deBug {print("\n🍎 \(xcodeProj)")}
+            if deBug {print("\n🍎 AnalyseXcodeproj#\(#line)\n\(xcodeProj)")}
         } catch {
-            return  ( "Error: Could not read \"\(pbxprojURL.lastPathComponent)\"\n\(pbxprojURL.path)", xcodeProj)
+            return  ("Error: Could not read \"\(pbxprojURL.lastPathComponent)\"\n\(pbxprojURL.path)", xcodeProj)
         }
 
         // Read & analyse the individual Swift files.
@@ -82,7 +82,7 @@ public struct XcodeProj {
                     let swiftSummary = analyseSwiftFile(contentFromFile: contentFromFile, selecFileInfo: fileInfo, deBug: false )
                     xcodeProj.swiftSummaries.append(swiftSummary)
                 } catch let error as NSError {
-                    print("⛔️ analyseContentsButtonClicked error: ⛔️\n⛔️\(error)⛔️")
+                    print("⛔️  AnalyseXcodeproj#\(#line) analyseContentsButtonClicked error: ⛔️\n⛔️\(error)⛔️")
                 }//end try catch
             }
             if deBug {
@@ -103,11 +103,11 @@ public struct XcodeProj {
 //TODO: pbxToXcodeProj should return xcodeProj, errorMsg, pbxObjects, rootObjectKey
 func pbxToXcodeProj(_ xcodeprojRaw: String, deBug: Bool = true, pauseForErr: Bool = true) {
     if deBug {
-        print("Start pbxToXcodeProj")
+        print(" AnalyseXcodeproj#\(#line) Start pbxToXcodeProj")
         print("🏄‍♂️")
-        print("🏄‍♂️ Uncomment to get a fresh copy of projectpbxproj.txt")
+        print("🏄‍♂️  AnalyseXcodeproj#\(#line) Uncomment to get a fresh copy of projectpbxproj.txt")
         //print(xcodeprojRaw)      // Use to copy & paste into text editor for debugging
-        print("🏄‍♂️")
+        print("🏄‍♂️  AnalyseXcodeproj#\(#line) ")
         //altParser(xcodeprojRaw)
     }
     pbxObjects.removeAll()
@@ -346,7 +346,7 @@ func pbxToXcodeProj(_ xcodeprojRaw: String, deBug: Bool = true, pauseForErr: Boo
 //---- addSourceURLsFromSubFolder - Recursive to get source files from subdirectories
 private func addSourceURLsFromSubFolder(thisURL: URL, sourceFileObj: PBX, deBug: Bool) {
     let folderName = sourceFileObj.path.replacingOccurrences(of: "\"", with: "")
-    if folderName.isEmpty { return }
+    //if folderName.isEmpty { return }              // Removed 5/24/2020 to because of missing some swift files.
     let folderURL = thisURL.appendingPathComponent(folderName)
     //let folderPath = folderURL.path
     for childKey in sourceFileObj.children {

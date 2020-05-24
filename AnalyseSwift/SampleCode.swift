@@ -86,7 +86,8 @@ private func DoCamelCase(p1: Int, p2: Int , Param3:String) {
 }
 
 private func sampleVBCall() {
-    var i2 = CInt("123")
+    //FIXME: Ambiguous use of 'CInt'
+    var i2 = 0//CInt(123.0)
     print(i2)
     let str = "12345"
     var a = ""

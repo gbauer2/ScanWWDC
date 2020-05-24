@@ -352,9 +352,10 @@ internal func needsContinuation(codeLineDetail: CodeLineDetail, nextLine: String
 
 // MARK: - The Main Event 354-977 = 623-lines
 public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, deBug: Bool) -> (SwiftSummary) {
+    let codeFile = "AnalyseSwift"
     let lines = contentFromFile.components(separatedBy: "\n")
     if gTrace != .none {
-        print("🔷 AnalyseSwift.swift #\(#line) Enter AnalyseSwiftFile (\(selecFileInfo.name) \(lines.count) lines)")
+        print("🔷 \(codeFile)#\(#line) Enter AnalyseSwiftFile (\(selecFileInfo.name) \(lines.count) lines)")
     }
 
     var swiftSummary = SwiftSummary()
@@ -362,7 +363,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
     swiftSummary.fileName = selecFileInfo.name
     guard let url = selecFileInfo.url else {
         let msg = "Fatal Error AnalystSwift #\(#line): Could not resolve selected file URL."
-        print(msg)
+        print("⛔️ \(codeFile)#\(#line) \(msg)")
         return swiftSummary
     }
     swiftSummary.url = url
@@ -513,7 +514,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             //FIXME: Infinite Loop in CreditCard:FileIO: enum
             prevLineCount += 1
             if prevLineCount >= 20 {
-                print("\n⛔️ Error AnalyseSwift#\(#line): Caught in Infinite? Loop!!! ⛔️\nline # \(iLine)\nprev line:  \(lines[iLine-1].trim)\nthis line:  \(lines[iLine].trim)\nfromPrevLn: \(fromPrevLine.trim)")
+                print("\n⛔️ Error \(codeFile)#\(#line): Caught in Infinite? Loop!!! ⛔️\nline # \(iLine)\nprev line:  \(lines[iLine-1].trim)\nthis line:  \(lines[iLine].trim)\nfromPrevLn: \(fromPrevLine.trim)")
                 print()
                 if prevLineCount > 20 {
                     iLine += 1
@@ -657,7 +658,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             if !codeLineDetail.isMarkup {
                 if !line.hasPrefix("/*") || !line.hasSuffix("*/") {
                     if deBug {
-                        print("⛔️ Empty CodeLine \(codeLineDetail.lineNum): \"\(codeLineDetail.trimLine)\"")
+                        print("⛔️ \(codeFile)#\(#line) Empty CodeLine \(codeLineDetail.lineNum): \"\(codeLineDetail.trimLine)\"")
                     }
                 }
             }
@@ -703,7 +704,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                 if isForce {
                     let extra = getExtraForForceUnwrap(codeLineClean: codeLine, word: word, idx: idx)
                     if deBug && gDebug == .all {
-                        print("line \(lineNum): \(word)")
+                        print("✓ \(codeFile)#\(#line) line \(lineNum): \(word)")
                         print(codeLine)
                     }
                     var xword = word
@@ -725,7 +726,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                 }// end isForce
 
             } else if !word.hasPrefix("!") && word.contains("!") && firstWord != "@IBOutlet" {
-                print(" ⛔️ Error (#line) unexplained '!' in \(codeLine)")
+                print("⛔️ \(codeFile)#\(#line) Error \(#line) unexplained '!' in \(codeLine)")
             }
 
             // Find VBCompatability calls
@@ -798,7 +799,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                     recordAnyVarNameIssue(name)
                 }
             } else {
-                print("⛔️ AnalyseSwift.swift #\(#line) Probable line-continuation (end with 'func')")
+                print("⛔️ \(codeFile)#\(#line) Probable line-continuation (end with 'func')")
             }
 
             blockOnDeck = BlockInfo(blockType: .isFunc, lineNum: lineNum, codeLinesAtStart: swiftSummary.codeLineCount, name: funcName, extra: "", codeLineCount: 0)
@@ -858,7 +859,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             }
 
             if codeName == "init" {
-                //print("\(#line) \(codeLineFull)")
+                //print(" \(codeFile)#\(#line) \(codeLineFull)")
                 itemName = "init"
                 extra    = "" //or codeLineFull
             }
@@ -882,7 +883,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         }
         //---------------------------------------------------------------   //end Named Blocks
 
-        //if deBug && gDebug == .all {print("➡️ \(codeLineClean)")}
+        //if deBug && gDebug == .all {print("➡️ \(codeFile)#\(#line) \(codeLineClean)")}
 
         // problems
         // let ee,ff:Int
@@ -896,7 +897,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             if containerType == .isEnum {
                 let list = getEnumCaseList(codeLine)
                 if list.isEmpty {
-                    print("⛔️ Error#\(#line) missing enum case associate: \"\(codeLine)\"    in blockType.\(containerType)")
+                    print("⛔️ \(codeFile)#\(#line) Error: missing enum case associate: \"\(codeLine)\"    in blockType.\(containerType)")
                     print()
                 } else {
                     for item in list {
@@ -947,14 +948,14 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             }//next assignee
         } else { // "let " or "var " not at beginning if line ?????
             if codeLine.contains(" let ") || codeLine.contains(" var ") {
-                print("⛔️ #\(#line) Missed a declaration in \"\(codeLine)\"")
+                print("⛔️ \(codeFile)#\(#line) Missed a declaration in \"\(codeLine)\"")
             }
         }
     }//next line
     //MARK: end Main Loop
 
     if curlyDepth != 0 {                                // Error Check
-        print("😡⛔️😡 Error: AnalyseSwift.swift #\(#line): Final Curly-Depth = \(curlyDepth) 😡⛔️😡")
+        print("😡⛔️😡 \(codeFile)#\(#line) Error: Final Curly-Depth = \(curlyDepth) 😡⛔️😡")
     }
 
     swiftSummary.byteCount = selecFileInfo.size
@@ -968,7 +969,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         recordIssue(ruleID: ruleID, lineItem: lineItem)
     }
 
-    if deBug && gDebug == .all { print("\n\(namedBlocks.count) named blocks") }         // Sanity Check
+    if deBug && gDebug == .all { print("\n\(codeFile)#\(#line) \(namedBlocks.count) named blocks") }    // Sanity Check
     for bloc in namedBlocks {
 
         if deBug && gDebug == .all {

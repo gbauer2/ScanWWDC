@@ -154,15 +154,15 @@ public func Space(_ count: Int) -> String {
     return String(repeating: " ", count: count)
 }
 
-///Use 'Int(Double(str.rounded() )' instead
+///Use 'Int(Double(str)?.rounded() ) ?? 0' instead
 public func CInt(_ str: String) -> Int {
     let dbl = Double(str.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0.0
     return Int(dbl.rounded())
 }
 
 ///Use 'Int(dbl.rounded() )' instead
-public func CInt(_ str: Double) -> Int {
-    return Int(str.rounded())
+public func CInt(_ dbl: Double) -> Int {
+    return Int(dbl.rounded())
 }
 
 /// Use 'Double(str.trim) ?? 0' instead

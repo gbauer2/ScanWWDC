@@ -7,23 +7,6 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "CFDD6BD5-C555-455A-AD0D-A0EAABAD0749"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "AnalyseSwift/AnalyseXcodeproj.swift"
-            timestampString = "584770370.209146"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "110"
-            endingLineNumber = "110"
-            landmarkName = "pbxToXcodeProj(_:deBug:pauseForErr:)"
-            landmarkType = "9">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
             uuid = "395F6908-627D-4736-A4A5-DCC2CEC9DCB1"
             shouldBeEnabled = "No"
             ignoreCount = "0"
@@ -234,8 +217,8 @@
             filePath = "AnalyseSwift/ViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "311"
-            endingLineNumber = "311"
+            startingLineNumber = "314"
+            endingLineNumber = "314"
             landmarkName = "findAllXcodeprojFiles(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -250,8 +233,8 @@
             filePath = "AnalyseSwift/AnalyseSwift.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "360"
-            endingLineNumber = "360"
+            startingLineNumber = "361"
+            endingLineNumber = "361"
             landmarkName = "analyseSwiftFile(contentFromFile:selecFileInfo:deBug:)"
             landmarkType = "9">
          </BreakpointContent>
@@ -266,8 +249,8 @@
             filePath = "AnalyseSwift/AnalyseSwift.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "376"
-            endingLineNumber = "376"
+            startingLineNumber = "377"
+            endingLineNumber = "377"
             landmarkName = "analyseSwiftFile(contentFromFile:selecFileInfo:deBug:)"
             landmarkType = "9">
          </BreakpointContent>
@@ -282,8 +265,8 @@
             filePath = "AnalyseSwift/AnalyseSwift.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "523"
-            endingLineNumber = "523"
+            startingLineNumber = "524"
+            endingLineNumber = "524"
             landmarkName = "analyseSwiftFile(contentFromFile:selecFileInfo:deBug:)"
             landmarkType = "9">
          </BreakpointContent>
@@ -298,8 +281,8 @@
             filePath = "AnalyseSwift/AnalyseSwift.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "599"
-            endingLineNumber = "599"
+            startingLineNumber = "600"
+            endingLineNumber = "600"
             landmarkName = "analyseSwiftFile(contentFromFile:selecFileInfo:deBug:)"
             landmarkType = "9">
          </BreakpointContent>
@@ -314,8 +297,8 @@
             filePath = "AnalyseSwift/AnalyseSwift.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "603"
-            endingLineNumber = "603"
+            startingLineNumber = "604"
+            endingLineNumber = "604"
             landmarkName = "analyseSwiftFile(contentFromFile:selecFileInfo:deBug:)"
             landmarkType = "9">
          </BreakpointContent>
@@ -330,8 +313,8 @@
             filePath = "AnalyseSwift/AnalyseSwift.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "643"
-            endingLineNumber = "643"
+            startingLineNumber = "644"
+            endingLineNumber = "644"
             landmarkName = "analyseSwiftFile(contentFromFile:selecFileInfo:deBug:)"
             landmarkType = "9">
          </BreakpointContent>
@@ -346,8 +329,8 @@
             filePath = "AnalyseSwift/AnalyseSwift.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "535"
-            endingLineNumber = "535"
+            startingLineNumber = "536"
+            endingLineNumber = "536"
             landmarkName = "analyseSwiftFile(contentFromFile:selecFileInfo:deBug:)"
             landmarkType = "9">
          </BreakpointContent>
@@ -362,8 +345,8 @@
             filePath = "AnalyseSwift/AnalyseSwift.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "517"
-            endingLineNumber = "517"
+            startingLineNumber = "518"
+            endingLineNumber = "518"
             landmarkName = "analyseSwiftFile(contentFromFile:selecFileInfo:deBug:)"
             landmarkType = "9">
          </BreakpointContent>
@@ -378,8 +361,8 @@
             filePath = "AnalyseSwift/AnalyseSwift.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "530"
-            endingLineNumber = "530"
+            startingLineNumber = "531"
+            endingLineNumber = "531"
             landmarkName = "analyseSwiftFile(contentFromFile:selecFileInfo:deBug:)"
             landmarkType = "9">
          </BreakpointContent>
@@ -394,8 +377,8 @@
             filePath = "AnalyseSwift/AnalyseSwift.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "515"
-            endingLineNumber = "515"
+            startingLineNumber = "516"
+            endingLineNumber = "516"
             landmarkName = "analyseSwiftFile(contentFromFile:selecFileInfo:deBug:)"
             landmarkType = "9">
          </BreakpointContent>
@@ -410,8 +393,8 @@
             filePath = "AnalyseSwift/AnalyseSwift.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "563"
-            endingLineNumber = "563"
+            startingLineNumber = "564"
+            endingLineNumber = "564"
             landmarkName = "analyseSwiftFile(contentFromFile:selecFileInfo:deBug:)"
             landmarkType = "9">
          </BreakpointContent>
@@ -426,8 +409,8 @@
             filePath = "AnalyseSwift/AnalyseSwift.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "620"
-            endingLineNumber = "620"
+            startingLineNumber = "621"
+            endingLineNumber = "621"
             landmarkName = "analyseSwiftFile(contentFromFile:selecFileInfo:deBug:)"
             landmarkType = "9">
          </BreakpointContent>
@@ -442,8 +425,8 @@
             filePath = "AnalyseSwift/AnalyseSwift.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "545"
-            endingLineNumber = "545"
+            startingLineNumber = "546"
+            endingLineNumber = "546"
             landmarkName = "analyseSwiftFile(contentFromFile:selecFileInfo:deBug:)"
             landmarkType = "9">
          </BreakpointContent>
@@ -490,8 +473,8 @@
             filePath = "AnalyseSwift/AnalyseSwift.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "795"
-            endingLineNumber = "795"
+            startingLineNumber = "796"
+            endingLineNumber = "796"
             landmarkName = "analyseSwiftFile(contentFromFile:selecFileInfo:deBug:)"
             landmarkType = "9">
          </BreakpointContent>
@@ -638,6 +621,38 @@
             endingLineNumber = "203"
             landmarkName = "control(_:textShouldEndEditing:)"
             landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "536CEC7F-4237-49F0-B74D-2B22E717D643"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "AnalyseSwift/AnalyseXcodeproj.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "292"
+            endingLineNumber = "292"
+            landmarkName = "pbxToXcodeProj(_:deBug:pauseForErr:)"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "208F8A4F-1BF9-4909-A635-1FA4ED573678"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "AnalyseSwift/AnalyseXcodeproj.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "295"
+            endingLineNumber = "295"
+            landmarkName = "pbxToXcodeProj(_:deBug:pauseForErr:)"
+            landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

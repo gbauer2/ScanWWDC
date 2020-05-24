@@ -19,6 +19,7 @@
 // Display AnalyseSwift as expandable tree, with option for printable.
 // Show signatures for funcs & inits
 // Bug: TextView horizontal Scroll Bar may not show, based on original view.
+// Bug: Cached files do not update when changed.
 
 // Code:
 // Unit-Test CodeLineDetail for tripleQuote
@@ -56,6 +57,8 @@
 // show commentLinesCount(dead code?) vs MarkupLineCount (///) (/**)
 // organize by MARK: or by extension
 // allow extensions other than class - esp protocols & structs
+//Fixed:
+// Fixed: AnalyseXcodeproj: Misses "WeatherCentralVC"     Fixed 5/24/2020
 
 //MenuRulesVC:
 // Refresh analysis when user changes rules.
