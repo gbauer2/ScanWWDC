@@ -50,7 +50,7 @@ public struct WordLookup {
     private static let funcVBs = ["UCase", "LCase", "Left", "Right", "Trim", "LTrim", "RTrim",
                    "IsNumeric", "Len", "Space", "CInt", "CDbl", "CSng", "Val", "Sign", "Round", "Split", "Weekday",
                    "DateString", "CDate", "ChangeExtension", "PathCombine", "GetFileNameWithoutExtension", "GetFileName",
-                   "GetParentPath", "Format", "Str", "Ljust", "Rjust", "Asc", "Char", "Like", "MsgBox"]
+                   "GetParentPath", "Format", "Str", "Ljust", "Rjust", "Asc", "Char", "Like", "MsgBox", "GreatCircAng", "GreatCircDist", "DecodeDegMin", "LatText", "LonText", "LLtext", "HourMin24", "IsDayLite", "DeCode3LetterMon", "MonthToText", "LJust", "RJust", "NumSuffix"]
 
     private static let vbVBs      = ["VB.Left", "VB.Right", "VB.DirectoryExists", "VB.FileExists", "VB.CreateDirectory",
                       "VB.CreateFile", "VB.DeleteFile", "VB.Rename", "VB.CopyFile",

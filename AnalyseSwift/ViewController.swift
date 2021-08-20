@@ -52,6 +52,7 @@
 // BUG: lineNum wrong - on continuation line, shows last lineNum of entire line.
 // BUG: Does not handle Closures.
 // BUG: Does not handle param list continuation line if line-break not at comma.
+// BUG: Does not handle "catch let DecodingError.typeMismatch(type, context)"
 // separate min/max len for func vs var
 // computed variables, var observer
 // show commentLinesCount(dead code?) vs MarkupLineCount (///) (/**)

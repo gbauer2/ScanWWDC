@@ -81,18 +81,6 @@ public func formatInt(_ number: Int, wid: Int) -> String {
     return str.rightJust(wid)
 }
 
-//---- Format a String number "%#.#f" using fieldLen & places. fieldLen=0 to remove leading spaces ----
-//public func formatDbl(text: String, fieldLen: Int = 0, places: Int) -> String {
-//    guard var dbl = Double(text) else {return text}
-//    dbl = roundToPlaces(number: dbl, places: places)
-//    var w = fieldLen
-//    if fieldLen == 0 { w = text.count + places + 2 }
-//    let format = "%\(w).\(places)f"
-//    var t = String(format:format, dbl)              //String(format:"Alt %5.0f ft",gpsAlt)
-//    if fieldLen == 0 { t = t.trimmingCharacters(in: .whitespaces) }
-//    return t
-//}
-
 //---- makeTimeStr ----
 /// Make Time String "17:02" or " 5:02pm" from "17", "2"
 /// - Parameters:

@@ -382,7 +382,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
     var containerName = ""
     var index         = 0
     var lineNum       = 0
-    var inQuote       = false
+    //var inQuote       = false
     var inMultiLine: InMultiLine = .none
 
     var fromPrevLine    = ""    // if prev line had a ";" (Compund Line), this is the excess after 1st ";"
