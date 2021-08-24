@@ -53,7 +53,9 @@ extension ViewController {
     
     //---- formatSwiftLine - Add line numbers and comment colors - format tabs at right26 & left32, font at 13pt
     // called from showFileContents()
-    func formatSwiftLine(lineNumber: Int, text: String, inBlockComment: inout Bool, inTripleQuote: inout Bool, curlyDepth: inout Int) -> NSAttributedString {
+    func formatSwiftLine(lineNumber: Int, text: String,
+                         inBlockComment: inout Bool, inTripleQuote: inout Bool, curlyDepth: inout Int)
+                        -> NSAttributedString {
         let paragraphStyle = NSMutableParagraphStyle()
         paragraphStyle.minimumLineHeight = 2
         paragraphStyle.alignment = .left
@@ -74,30 +76,12 @@ extension ViewController {
         return output
     }//end func formatSwiftLine
     
-    // format tabs at 48 & 96, font at 14pt
-//    func formatContentsTextX(_ text: String) -> NSAttributedString {
-//        let paragraphStyle = NSMutableParagraphStyle.default.mutableCopy() as? NSMutableParagraphStyle
-//        paragraphStyle?.minimumLineHeight = 24
-//        paragraphStyle?.alignment = .left
-//        paragraphStyle?.tabStops = [ NSTextTab(type: .leftTabStopType, location: 48),  NSTextTab(type: .leftTabStopType, location: 96) ]
-//
-//        let textAttributes: [NSAttributedString.Key: Any] = [
-//            NSAttributedString.Key.font: NSFont.systemFont(ofSize: 14),
-//            NSAttributedString.Key.paragraphStyle: paragraphStyle ?? NSParagraphStyle.default
-//        ]
-//
-//        let formattedText = NSAttributedString(string: text, attributes: textAttributes)
-//        return formattedText
-//    }//end func
-
     func formatCodeLine(codeLine: String, inTripleQuote: inout Bool, inBlockComment: inout Bool) -> NSAttributedString {
         let textAttributes: [NSAttributedString.Key: Any] = [NSAttributedString.Key.font: NSFont(name: "PT Mono", size: 12) ?? NSFont.systemFont(ofSize: 12)]
         var formattedText = NSMutableAttributedString(string: "\(codeLine)\n", attributes: textAttributes)
 
         let marks = markCodeLine(codeLine: codeLine, inTripleQuote: &inTripleQuote, inBlockComment: &inBlockComment)
         formattedText = constructAttributedLine(codeLine: codeLine, marks: marks, attributes: textAttributes)
-        //textAttributes[NSAttributedString.Key.foregroundColor] = codeColor
-        //formattedText = NSMutableAttributedString(string: "\(codeLine)\n", attributes: textAttributes)
         return formattedText        // All Code
     }//end func formatCodeLine
 

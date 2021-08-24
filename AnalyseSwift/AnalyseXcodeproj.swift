@@ -733,8 +733,9 @@ public func showXcodeproj(_ xcodeProj: XcodeProj) -> NSAttributedString  {      
     for swiftSummary in xcodeProj.swiftSummaries {
         let fileName = swiftSummary.fileName
         let shortName = fileName.components(separatedBy: ".")[0]
+        // ignore files
         let isTest = swiftSummary.url.path.contains("TestSharedCode")
-        if isTest || (!fileName.hasPrefix("VBcompatablity") && fileName != "MyFuncs.swift" && fileName != "StringExtension.swift" && fileName != "MapLibVB.swift") {
+        if isTest || (!fileName.hasPrefix("VBcompatablity") && fileName != "MyFuncs.swift" && fileName != "StringExtension.swift" && fileName != "MapLibVB.swift" && fileName != "SampleCode.swift") {
             let clCt = swiftSummary.codeLineCount
             totalCodeLine += clCt
             var bigCt    = 0

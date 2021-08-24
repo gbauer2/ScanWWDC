@@ -178,7 +178,8 @@ struct SwiftSumAttStr {
         if swiftSummary.totalIssues == 0 {
             issuesTitle = fileInfo.name + " - No Issues"
         } else {
-            issuesTitle = "\(fileInfo.name) - \(swiftSummary.totalIssues) Possible Issues"
+            let ess = swiftSummary.totalIssues == 1 ? "" : "s"
+            issuesTitle = "\(fileInfo.name) - \(swiftSummary.totalIssues) Possible Issue\(ess)"
         }
 
         tx = showDivider(title: issuesTitle, font: fontMonoDigitMedium)

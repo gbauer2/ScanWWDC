@@ -9,8 +9,6 @@
 import Cocoa
 
 // MARK: - Properties of analyseSwiftFile (globals - change to instance vars)
-fileprivate var curlyDepth  = 0                     //accessed from gotOpenCurly, gotCloseCurly, getSelecFileInfo
-
 fileprivate var blockOnDeck = BlockInfo()       //accessed from analyseSwiftFile, gotOpenCurly,
 fileprivate var blockStack  = [BlockInfo]()     //accessed from analyseSwiftFile, gotOpenCurly, gotCloseCurly
 public      var namedBlocks = [BlockInfo]()     //accessed from analyseSwiftFile, gotCloseCurly,     FormatSwiftSummary
@@ -184,15 +182,19 @@ internal enum ProjectType {
 // MARK: - Helper funcs
 
 //---- gotOpenCurly - push "ondeck" onto stack, clear ondeck,  stackedCounter = nCodeLines
-private func gotOpenCurly(lineNum: Int) {
+// uses: gTrace
+// modifies: blockStack, blockOnDeck, curlyDepth
+private func gotOpenCurly(lineNum: Int, curlyDepth: inout Int) {
     if gTrace == .all { print("\(lineNum) got open curly; depth \(curlyDepth) -> \(curlyDepth+1)") }
     blockStack.insert(blockOnDeck, at: 0)
     blockOnDeck = BlockInfo()
     curlyDepth += 1
-}
+}//end func
 
 //---- gotCloseCurly - pop stackedCounter lines4item = nCodeLines - stackedCounter
-private func gotCloseCurly(lineNum: Int, nCodeLine: Int) {
+// uses: gTrace, blockStack
+// modifies: block, namedBlocks, curlyDepth
+private func gotCloseCurly(lineNum: Int, nCodeLine: Int, curlyDepth: inout Int) {
     if gTrace == .all {print("\(lineNum) got close curly; depth \(curlyDepth) -> \(curlyDepth-1)")}
     if curlyDepth <= 0 {
         print("⛔️ Error: Closed-curly found when not inside curlys")
@@ -200,10 +202,7 @@ private func gotCloseCurly(lineNum: Int, nCodeLine: Int) {
     }
     curlyDepth -= 1
     var block = blockStack.remove(at: 0)
-//    if curlyDepth == 0 {
-//        print(#line, lineNum, block.blockType, block.name)
-//        print()
-//    }
+
     if block.blockType != .none {
         if gDebug == .all {print("#\(#line) \(block.name)")}
         block.codeLineCount = nCodeLine - block.codeLinesAtStart // lineNum - block.lineNum
@@ -350,7 +349,7 @@ internal func needsContinuation(codeLineDetail: CodeLineDetail, nextLine: String
     return false
 }
 
-// MARK: - The Main Event 354-977 = 623-lines
+// MARK: - The Main Event 353-998 = 645-lines
 public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttributes, deBug: Bool) -> (SwiftSummary) {
     let codeFile = "AnalyseSwift"
     let lines = contentFromFile.components(separatedBy: "\n")
@@ -374,12 +373,12 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         blockLookup[bkTyp.codeName] = i         // Set Lookup Name
     }
 
-    curlyDepth   = 0
     blockOnDeck  = BlockInfo()
     blockStack   = []
     namedBlocks  = []
 
     var containerName = ""
+    var curlyDepth    = 0
     var index         = 0
     var lineNum       = 0
     //var inQuote       = false
@@ -486,7 +485,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
     }
 
     var prevLineCount = 0
-    // MARK: Main Loop 482-936 = 454-lines
+    // MARK: Main Loop 489-957 = 468-lines
     while iLine < lines.count {
         //        // Multitasking Check
         //        if selecFileInfo.url != ViewController.latestUrl {
@@ -593,20 +592,24 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
             swiftSummary.quoteLineCount += 1    //5/10/2019
             continue                                                // bypass further processing???
         } else if line.count == 1 {
-            if line == "{" { gotOpenCurly(lineNum: lineNum) }                                       // single "{" on line
-            if line == "}" { gotCloseCurly(lineNum: lineNum, nCodeLine: swiftSummary.codeLineCount) }   // single "}" on line
+            if line == "{" {        // single "{" on line
+                gotOpenCurly(lineNum: lineNum, curlyDepth: &curlyDepth)
+            }
+            if line == "}" {        // single "}" on line
+                gotCloseCurly(lineNum: lineNum, nCodeLine: swiftSummary.codeLineCount, curlyDepth: &curlyDepth)
+            }
             continue                                                // bypass further processing
         } else if line.hasPrefix("{") {
-            gotOpenCurly(lineNum: lineNum)
+            gotOpenCurly(lineNum: lineNum, curlyDepth: &curlyDepth)
             fromPrevLine = String(line.dropFirst())
             continue
         } else if line.hasPrefix("}") {
-            gotCloseCurly(lineNum: lineNum, nCodeLine: swiftSummary.codeLineCount)
+            gotCloseCurly(lineNum: lineNum, nCodeLine: swiftSummary.codeLineCount, curlyDepth: &curlyDepth)
             fromPrevLine = String(line.dropFirst())
             continue
         }
 
-        // MARK: Code!  604-936 = 332-lines
+        // MARK: Code!  611-936 = 332-lines
 
         // Call CodeLineDetail.init
         var codeLineDetail = CodeLineDetail(fullLine: line, inMultiLine: inMultiLine, lineNum: lineNum)
@@ -633,9 +636,9 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
                 //TODO: See why this never executes in UnitTest
                 if lineTuple.lhs.isEmpty {  // isPrefix
                     if firstSplitterChar == "{" {
-                        gotOpenCurly(lineNum: lineNum)
+                        gotOpenCurly(lineNum: lineNum, curlyDepth: &curlyDepth)
                     } else {                // must be "}"
-                        gotCloseCurly(lineNum: lineNum, nCodeLine: swiftSummary.codeLineCount)
+                        gotCloseCurly(lineNum: lineNum, nCodeLine: swiftSummary.codeLineCount, curlyDepth: &curlyDepth)
                     }
                     fromPrevLine = lineTuple.rhs
                     continue
@@ -693,7 +696,7 @@ public func analyseSwiftFile(contentFromFile: String, selecFileInfo: FileAttribu
         let words = wordsWithEmpty.filter { !$0.isEmpty }                   // Use filter to eliminate empty strings.
         let firstWord = words.first ?? ""
 
-        // MARK: Check each word 688-747 = 59-lines
+        // MARK: Check each word 700-759 = 59-lines
         for word in words {
 
             // Find Force Unwraps
