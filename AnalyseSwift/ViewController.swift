@@ -18,6 +18,7 @@
 // if newly opened folder has a single xcodeproj: analyse it
 // Display AnalyseSwift as expandable tree, with option for printable.
 // Show signatures for funcs & inits
+// Fixed Bug: Garmitrk.xcodeproj does not show VC+MKMapView.swift or VC+Filter.swift
 // Bug: TextView horizontal Scroll Bar may not show, based on original view.
 // Bug: Cached files do not update when changed.
 

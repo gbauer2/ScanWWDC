@@ -352,7 +352,7 @@ private func addSourceURLsFromSubFolder(thisURL: URL, sourceFileObj: PBX, deBug:
     for childKey in sourceFileObj.children {
         if let childFileObj = pbxObjects[childKey] {
             if childFileObj.children.isEmpty {
-                let fileName = childFileObj.path
+                let fileName = childFileObj.path.replacingOccurrences(of: "\"", with: "")//Remove Quotes (sometimes)
                 if fileName.hasSuffix(".swift") {
                     let url = folderURL.appendingPathComponent(fileName)
                     if deBug {print(url.path)}

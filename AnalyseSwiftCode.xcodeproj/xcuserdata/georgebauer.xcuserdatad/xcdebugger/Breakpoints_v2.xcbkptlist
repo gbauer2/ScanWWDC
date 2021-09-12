@@ -217,8 +217,8 @@
             filePath = "AnalyseSwift/ViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "315"
-            endingLineNumber = "315"
+            startingLineNumber = "316"
+            endingLineNumber = "316"
             landmarkName = "findAllXcodeprojFiles(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -482,22 +482,6 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "3AF6EE07-609D-48E3-9E43-8719283FFC76"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "AnalyseSwift/AnalyseXcodeproj.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "282"
-            endingLineNumber = "282"
-            landmarkName = "pbxToXcodeProj(_:deBug:pauseForErr:)"
-            landmarkType = "9">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
             uuid = "B1D74219-7FFE-48B4-BB3F-4E9C505D776E"
             shouldBeEnabled = "No"
             ignoreCount = "0"
@@ -626,23 +610,7 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "536CEC7F-4237-49F0-B74D-2B22E717D643"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "AnalyseSwift/AnalyseXcodeproj.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "292"
-            endingLineNumber = "292"
-            landmarkName = "pbxToXcodeProj(_:deBug:pauseForErr:)"
-            landmarkType = "9">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "208F8A4F-1BF9-4909-A635-1FA4ED573678"
+            uuid = "ADD89B40-BD0F-4787-BC6B-DCE4E812B99A"
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
@@ -652,6 +620,22 @@
             startingLineNumber = "295"
             endingLineNumber = "295"
             landmarkName = "pbxToXcodeProj(_:deBug:pauseForErr:)"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "8C1A575A-9BE5-4186-8208-62C2DA030212"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "AnalyseSwift/AnalyseXcodeproj.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "353"
+            endingLineNumber = "353"
+            landmarkName = "addSourceURLsFromSubFolder(thisURL:sourceFileObj:deBug:)"
             landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
