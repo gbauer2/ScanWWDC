@@ -1,17 +1,17 @@
 //
-//  AnalyseSwiftCodeUnitTests.swift
-//  AnalyseSwiftCodeUnitTests
+//  ScanWWDCUnitTests.swift
+//  ScanWWDCUnitTests
 //
 //  Created by George Bauer on 12/9/18.
-//  Copyright © 2018,2019 George Bauer. All rights reserved.
+//  Copyright © 2018,2022 George Bauer. All rights reserved.
 //
 
 import XCTest
-@testable import AnalyseSwiftCode
+@testable import ScanWWDC
 
 var vcTest: ViewController!
 
-class AnalyseSwiftCodeUnitTests: XCTestCase {
+class ScanWWDCUnitTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
