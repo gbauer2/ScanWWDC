@@ -12,7 +12,7 @@
 		26ECD33F1E874B5C00380F56 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 26ECD33E1E874B5C00380F56 /* Assets.xcassets */; };
 		CE04499622A38BA400E8B7A7 /* Rules.txt in Resources */ = {isa = PBXBuildFile; fileRef = CE04499522A38BA400E8B7A7 /* Rules.txt */; };
 		CE1944E523A3F0B8009B4A2C /* SampleCode.txt in Resources */ = {isa = PBXBuildFile; fileRef = CE1944E423A3F0B8009B4A2C /* SampleCode.txt */; };
-		CE1D751421BDA90B00286967 /* AnalyseSwiftCodeUnitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE1D751321BDA90B00286967 /* AnalyseSwiftCodeUnitTests.swift */; };
+		CE1D751421BDA90B00286967 /* ScanWWDCUnitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE1D751321BDA90B00286967 /* ScanWWDCUnitTests.swift */; };
 		CE37C72822B17CE800433E5D /* Alerts.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE37C72722B17CE800433E5D /* Alerts.swift */; };
 		CE410E93227D383B00D4B351 /* FormatSwiftSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE410E92227D383B00D4B351 /* FormatSwiftSummary.swift */; };
 		CE4194AE21BD8C22006808B1 /* AttributableStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE4194AD21BD8C22006808B1 /* AttributableStrings.swift */; };
@@ -50,7 +50,7 @@
 		CE04499522A38BA400E8B7A7 /* Rules.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Rules.txt; sourceTree = "<group>"; };
 		CE1944E423A3F0B8009B4A2C /* SampleCode.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = SampleCode.txt; sourceTree = "<group>"; };
 		CE1D751121BDA90B00286967 /* ScanWWDCUnitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ScanWWDCUnitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		CE1D751321BDA90B00286967 /* AnalyseSwiftCodeUnitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyseSwiftCodeUnitTests.swift; sourceTree = "<group>"; };
+		CE1D751321BDA90B00286967 /* ScanWWDCUnitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanWWDCUnitTests.swift; sourceTree = "<group>"; };
 		CE1D751521BDA90B00286967 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		CE37C72722B17CE800433E5D /* Alerts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Alerts.swift; sourceTree = "<group>"; };
 		CE410E92227D383B00D4B351 /* FormatSwiftSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatSwiftSummary.swift; sourceTree = "<group>"; };
@@ -140,7 +140,7 @@
 		CE1D751221BDA90B00286967 /* ScanWWDCUnitTests */ = {
 			isa = PBXGroup;
 			children = (
-				CE1D751321BDA90B00286967 /* AnalyseSwiftCodeUnitTests.swift */,
+				CE1D751321BDA90B00286967 /* ScanWWDCUnitTests.swift */,
 				CE1D751521BDA90B00286967 /* Info.plist */,
 			);
 			path = ScanWWDCUnitTests;
@@ -287,7 +287,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE1D751421BDA90B00286967 /* AnalyseSwiftCodeUnitTests.swift in Sources */,
+				CE1D751421BDA90B00286967 /* ScanWWDCUnitTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -418,13 +418,13 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = XD8UZ6484B;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = ScanWWDC/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
-				MARKETING_VERSION = 0.1;
+				MARKETING_VERSION = 0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.georgebauer.scanwwdc;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -440,13 +440,13 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = XD8UZ6484B;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = ScanWWDC/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
-				MARKETING_VERSION = 0.1;
+				MARKETING_VERSION = 0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.georgebauer.scanwwdc;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -467,12 +467,12 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = XD8UZ6484B;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
-				INFOPLIST_FILE = AnalyseSwiftCodeUnitTests/Info.plist;
+				INFOPLIST_FILE = ScanWWDCUnitTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.georgebauer.AnalyseSwiftCodeUnitTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.georgebauer.ScanWWDCTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ScanWWDC.app/Contents/MacOS/ScanWWDC";
@@ -492,11 +492,11 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = XD8UZ6484B;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
-				INFOPLIST_FILE = AnalyseSwiftCodeUnitTests/Info.plist;
+				INFOPLIST_FILE = ScanWWDCUnitTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.georgebauer.AnalyseSwiftCodeUnitTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.georgebauer.ScanWWDCTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ScanWWDC.app/Contents/MacOS/ScanWWDC";
